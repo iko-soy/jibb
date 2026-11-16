@@ -1,3 +1,5 @@
+mod common;
+
 use jibb::{
     loader::evaluate_path,
     value::{Noun, Value},
@@ -23,7 +25,7 @@ fn atom(value: &Value) -> &BigUint {
 #[test]
 fn imports_nested_hoon_unions_and_recursive_molds() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tests/clay-fixtures/desk");
-    if !root.join("sur/import-fixture.hoon").is_file() {
+    if !common::corpus(&root.join("sur/import-fixture.hoon")) {
         return;
     }
     let directory = tempfile::tempdir().expect("temporary directory");
@@ -50,7 +52,7 @@ fn imports_nested_hoon_unions_and_recursive_molds() {
 #[test]
 fn imports_hoon_records_unions_and_marks() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../my-app");
-    if !root.join("sur/blog.hoon").is_file() {
+    if !common::corpus(&root.join("sur/blog.hoon")) {
         return;
     }
     let directory = tempfile::tempdir().expect("temporary directory");

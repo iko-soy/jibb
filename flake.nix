@@ -54,6 +54,14 @@
       ];
       source = fileset: fs.toSource { root = ./.; inherit fileset; };
       cliSource = fs.toSource { root = ./jibb-cli; fileset = cliFiles; };
+      # What the CLI's corpus tests read beside the crate, which find
+      # it from jibb-cli/..: the golden cases, some of whose sources
+      # link into my-app; jibb-dev's sources and prelude; my-app; and
+      # the Clay fixture desk. Without them the tests fail rather than
+      # pass unread, so they build from the repository root.
+      cliTestFiles = fs.unions [
+        cliFiles ./tests/golden ./jibb-dev ./my-app ./tests/clay-fixtures/desk
+      ];
 
       perSystem = pkgs:
         let
@@ -141,12 +149,34 @@
             };
           };
 
+          # The executable, from the crate's own files, so editing the
+          # corpus doesn't rebuild it. cliTests runs its tests.
           cliUnwrapped = pkgs.rustPlatform.buildRustPackage {
             pname = "jibb-cli";
             version = "0.1.0";
             src = cliSource;
             cargoLock.lockFile = ./jibb-cli/Cargo.lock;
+            doCheck = false;
             meta.mainProgram = "jibb";
+          };
+          # The CLI's Rust tests, as tools/check runs them (cargo test,
+          # in the default profile), with the corpus they read.
+          cliTests = pkgs.rustPlatform.buildRustPackage {
+            pname = "jibb-cli-tests";
+            version = "0.1.0";
+            src = source cliTestFiles;
+            cargoRoot = "jibb-cli";
+            buildAndTestSubdir = "jibb-cli";
+            cargoLock.lockFile = ./jibb-cli/Cargo.lock;
+            checkType = "debug";
+            dontCargoBuild = true;
+            dontCargoInstall = true;
+            installPhase = ''
+              runHook preInstall
+              mkdir $out
+              runHook postInstall
+            '';
+            meta.description = "The Jibb CLI's tests, with the golden corpus";
           };
           jibb = pkgs.runCommand "jibb-cli-0.1.0" {
             nativeBuildInputs = [ pkgs.makeWrapper python3 ];
@@ -248,7 +278,9 @@
             (name: name != "probes-eval" && name != "selftest") evalManifest.residual;
           residual = check "eval-residual" checkFiles
             "tools/check ${quote residualNames} -j 1 --timeout 10800 --logs $out" {
-              nativeBuildInputs = [ python3 urbit nodejs esbuild terser cliUnwrapped ];
+              nativeBuildInputs = [ python3 urbit nodejs esbuild terser ];
+              # tools/doc-format checks this CLI, built from the same source.
+              JIBB_BIN = lib.getExe cliUnwrapped;
             };
           manifestCheck = check "eval-manifest" (fs.unions [checkFiles ./nix/eval-manifest.json])
             "tools/eval-manifest --check" { };
@@ -288,10 +320,16 @@
               tail -n 100 $TMPDIR/zod.log || true
             '';
           };
+          # Stop the ship from stdenv's exit hooks: a trap on EXIT would
+          # replace stdenv's handler, and with it the failureHook that
+          # prints the end of the ship's log.
           directShipExtra = shipExtra // {
             preBuild = shipExtra.preBuild + ''
               python3 tools/ship start
-              trap 'python3 tools/ship stop --force' EXIT
+            '';
+            exitHook = "python3 tools/ship stop --force";
+            failureHook = shipExtra.failureHook + ''
+              python3 tools/ship stop --force
             '';
           };
           mappedShipExtra = batch: directShipExtra // {
@@ -372,6 +410,7 @@
           checks = {
             inherit desks;
             jibb-cli = jibb;
+            jibb-cli-tests = cliTests;
             eval = evalChecks;
           } // lib.optionalAttrs isLinux { ship = shipChecks; };
 

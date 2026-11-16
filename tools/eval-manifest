@@ -68,15 +68,30 @@ def in_repo(path):
 
 
 def add_file(paths, path):
-    """Add an in-repo file and its final in-repo symlink target."""
+    """Add an in-repo file and, when it is a link, every link of its chain
+    and the final target.  Nix copies a link as a link, so a link the
+    chain passes through must be an input too, or the input dangles."""
     relative = repo_relative(path)
     if not os.path.isfile(path):
         raise ManifestError('dependency is not a file: %s' % relative)
     paths.add(relative)
-    real = os.path.realpath(path)
-    target = in_repo(real)
-    if target is not None and os.path.isfile(real):
-        paths.add(target)
+
+    def physical(location):
+        # location has its folders resolved, so compare with the real root.
+        target = os.path.relpath(location, os.path.realpath(ROOT))
+        if target == '..' or target.startswith('..' + os.sep):
+            raise ManifestError('dependency %s links outside the repository: %s'
+                                % (relative, location))
+        paths.add(target.replace(os.sep, '/'))
+
+    hop = os.path.abspath(path)
+    while os.path.islink(hop):      # isfile() above rules out a cycle
+        # The next link or file, its folder resolved as the OS resolves it.
+        target = os.path.join(os.path.dirname(hop), os.readlink(hop))
+        hop = os.path.join(os.path.realpath(os.path.dirname(target)),
+                           os.path.basename(target))
+        physical(hop)
+    physical(os.path.realpath(path))
 
 
 def add_case(paths, folder):
@@ -378,6 +393,18 @@ def probe_signature(root, groups):
          probe_regression.app.ROOT, sys.argv, runner.subprocess.run) = saved
 
 
+def copy_input(root, narrow, relative):
+    """Copy one input into a narrow tree as Nix copies a source: a link
+    as a link.  A dereferencing copy would give the link's own filename
+    its target's bytes, hiding a link target missing from the inputs."""
+    source, target = Path(root) / relative, Path(narrow) / relative
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if source.is_symlink():
+        target.symlink_to(os.readlink(source))
+    else:
+        shutil.copy2(source, target)
+
+
 def probe_batches():
     ship = probe_regression.shiptool
     app_desk, test_desk = ship.assemble('my-app'), ship.assemble('jibb-dev')
@@ -417,9 +444,7 @@ def probe_batches():
         full = probe_signature(ROOT, groups)
         with tempfile.TemporaryDirectory(prefix='jibb-probe-inputs-') as narrow:
             for path in sorted(paths):
-                target = Path(narrow) / path
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(Path(ROOT) / path, target)
+                copy_input(ROOT, narrow, path)
             if probe_signature(narrow, groups) != full:
                 raise ManifestError('full and narrow probe inputs differ for batch %d' % (index + 1))
         batches.append({'name': 'probes-%d' % (index + 1), 'groups': list(groups),

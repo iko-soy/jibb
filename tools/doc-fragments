@@ -26,6 +26,33 @@ def definitions(text):
     return result
 
 
+def molds(text):
+    """Return top-level +$ definitions: each +$ line with the indented
+    and blank lines after it, up to the next unindented line, without
+    trailing blank lines."""
+    lines = text.splitlines(keepends=True)
+    result = {}
+    i = 0
+    while i < len(lines):
+        if not lines[i].startswith('+$'):
+            i += 1
+            continue
+        words = lines[i].split()
+        if len(words) < 2:
+            raise ValueError('a +$ line names no mold: ' + lines[i].rstrip('\n'))
+        body = [lines[i]]
+        i += 1
+        while i < len(lines) and (not lines[i].strip() or lines[i][0] in ' \t'):
+            body.append(lines[i])
+            i += 1
+        while body and not body[-1].strip():
+            body.pop()
+        if words[1] in result:
+            raise ValueError('duplicate mold definition: ' + words[1])
+        result[words[1]] = ''.join(body).rstrip('\n') + '\n'
+    return result
+
+
 def read(path):
     return (ROOT / path).read_text(encoding='utf-8')
 
@@ -94,13 +121,17 @@ def main():
                                       (manifest.parent / 'mar' / (name + '.txt')).read_text(encoding='utf-8')))
         if 'add-button' not in buttons:
             raise ValueError('documented buttons have no add-button definition')
+        # The documented cmd and sub molds are the prelude's, case for case:
+        # each whole definition must equal the prelude's, not merely occur
+        # in it, so a case the doc doesn't show is a difference.
         cmd_sub = read('tests/golden/doc-overview-01-cmd-sub/source.jibb')
-        cmd, sub = cmd_sub.split('+$  sub  ', 1)
-        prelude = read('jibb-dev/lib/jibb/prelude.jibb')
-        for name, fragment in [('cmd', cmd), ('sub', '+$  sub  ' + sub)]:
-            present = fragment.rstrip('\n') + '\n' in prelude
-            print(('ok     ' if present else 'FAIL   ') + 'documented ' + name + ' in prelude')
-            checks.append(present)
+        documented = molds(cmd_sub)
+        if list(documented) != ['cmd', 'sub'] or ''.join(documented.values()) != cmd_sub:
+            raise ValueError('doc-overview-01-cmd-sub should hold just the cmd and sub molds')
+        prelude = molds(read('jibb-dev/lib/jibb/prelude.jibb'))
+        for name in documented:
+            checks.append(compare('documented ' + name + ' in prelude',
+                                  documented[name], prelude.get(name, '')))
         for source in sorted((ROOT / 'tests/golden').glob('doc-*/type-source.jibb')):
             logical = (source.parent / 'path.txt').read_text(encoding='utf-8').strip()
             if not logical.startswith('/ui/') or not logical.endswith('.jibb'):

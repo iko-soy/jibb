@@ -1,3 +1,5 @@
+mod common;
+
 use jibb::{
     Diagnostic,
     ast::{
@@ -298,7 +300,7 @@ fn valid_case(about: &Path) -> bool {
 #[test]
 fn every_golden_case_lowers_and_valid_cases_survive_formatting() {
     let golden = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tests/golden");
-    if !golden.is_dir() {
+    if !common::corpus(&golden) {
         return;
     }
     let mut checked = 0;

@@ -1,3 +1,5 @@
+mod common;
+
 use jibb::{
     loader::{check_path, check_source, evaluate_path},
     value::{Noun, Value},
@@ -48,7 +50,7 @@ fn loads_values_molds_and_native_primitive_modules() {
 fn evaluates_with_the_source_prelude() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../jibb-dev");
     let prelude = root.join("lib/jibb/prelude.jibb");
-    if !prelude.is_file() {
+    if !common::corpus(&prelude) {
         return;
     }
     let directory = tempfile::tempdir().expect("temporary directory");
@@ -62,7 +64,7 @@ fn evaluates_with_the_source_prelude() {
 #[test]
 fn evaluates_internal_prelude_constructor() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../jibb-dev");
-    if !root.join("lib/jibb/internal.jibb").is_file() {
+    if !common::corpus(&root.join("lib/jibb/internal.jibb")) {
         return;
     }
     let directory = tempfile::tempdir().expect("temporary directory");

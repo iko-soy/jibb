@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
-"""Check recorded assemblies and suite partitions without ships or Hoon eval."""
+"""Check recorded assemblies and suite partitions without ships or Hoon eval,
+and the tools' own guards that need neither: golden case discovery, ship sync
+verification against a fake ship, tools/check's interruption, doc-fragments,
+browser-check.mjs and doc-format arguments, and manifest link closures.
 
+Every check raises explicitly, so the checks also run under python -O."""
+
+import ast
+import hashlib
 import importlib.machinery
+import importlib.util
 from contextlib import redirect_stderr, redirect_stdout
 import io
 import json
@@ -9,24 +17,42 @@ import os
 from pathlib import Path
 import re
 import shutil
+import signal
+import subprocess
 import sys
 import tempfile
+import time
 from types import SimpleNamespace
 from unittest.mock import patch
 
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[2]
-ship = importlib.machinery.SourceFileLoader(
-    'check_inputs_ship', str(ROOT / 'tools/ship')).load_module()
-arms = importlib.machinery.SourceFileLoader(
-    'check_inputs_arms', str(ROOT / 'tools/test-arms')).load_module()
+
+
+def expect(condition, detail='check failed'):
+    """An assert that python -O (PYTHONOPTIMIZE) can't remove."""
+    if not condition:
+        raise AssertionError(detail)
+
+
+def load_tool(name, path):
+    """A tools/ script, which has no .py suffix, as a module."""
+    loader = importlib.machinery.SourceFileLoader(name, str(path))
+    spec = importlib.util.spec_from_file_location(name, str(path), loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+ship = load_tool('check_inputs_ship', ROOT / 'tools/ship')
+arms = load_tool('check_inputs_arms', ROOT / 'tools/test-arms')
 
 
 def rejects(operation, fragment):
     try:
         operation()
     except ship.Unable as error:
-        assert fragment in str(error), str(error)
+        expect(fragment in str(error), str(error))
     else:
         raise AssertionError('accepted invalid recorded assembly: ' + fragment)
 
@@ -40,7 +66,7 @@ with tempfile.TemporaryDirectory(prefix='jibb-check-inputs-test-') as folder:
     mapping = {'mar/hoon.hoon': 'mark.hoon', 'mar/kelvin.hoon': 'mark.hoon',
                'sys.kelvin': 'sys.kelvin', 'lib/value.hoon': 'value.hoon'}
     assembly = ship.mapped_assembly('fixture', mapping)
-    assert assembly.files['lib/value.hoon'] == (b'42\n', 'value.hoon')
+    expect(assembly.files['lib/value.hoon'] == (b'42\n', 'value.hoon'))
     rejects(lambda: ship.mapped_assembly('fixture', {}), 'nonempty object')
     for path in ('../escape', '/absolute', 'a//b', 'a/./b', '', 3):
         rejects(lambda: ship.mapped_assembly('fixture', {path: 'value.hoon'}), 'invalid path')
@@ -55,13 +81,13 @@ with tempfile.TemporaryDirectory(prefix='jibb-check-inputs-test-') as folder:
     previous = os.environ.get('JIBB_DESK_MAPS')
     os.environ['JIBB_DESK_MAPS'] = str(maps)
     try:
-        assert ship.assemble('fixture').files == assembly.files
+        expect(ship.assemble('fixture').files == assembly.files)
         rejects(lambda: ship.assemble('unknown'), 'no recorded desk map')
         rejects(lambda: ship.assemble('fixture', lib='value.hoon'), 'cannot replace')
         rejects(lambda: ship.assemble('fixture', golden='custom'), 'cannot replace')
         # Sources remain live inputs, not cached bytes from manifest creation.
         (root / 'value.hoon').write_text('43\n')
-        assert ship.assemble('fixture').files['lib/value.hoon'][0] == b'43\n'
+        expect(ship.assemble('fixture').files['lib/value.hoon'][0] == b'43\n')
     finally:
         if previous is None:
             del os.environ['JIBB_DESK_MAPS']
@@ -69,8 +95,7 @@ with tempfile.TemporaryDirectory(prefix='jibb-check-inputs-test-') as folder:
             os.environ['JIBB_DESK_MAPS'] = previous
 
 
-manifest = importlib.machinery.SourceFileLoader(
-    'check_inputs_manifest', str(ROOT / 'tools/eval-manifest')).load_module()
+manifest = load_tool('check_inputs_manifest', ROOT / 'tools/eval-manifest')
 
 
 with tempfile.TemporaryDirectory(prefix='jibb-reader-inputs-test-') as folder:
@@ -128,23 +153,23 @@ with tempfile.TemporaryDirectory(prefix='jibb-reader-inputs-test-') as folder:
         physical = manifest.prelude_paths()
         targets = {'jibb-dev/.readers/custom.hoon', 'jibb-dev/.groups/group.jibb',
                    'shared/helper.hoon'}
-        assert targets <= physical and not targets & logical
-        assert {'jibb-dev/sur/custom.hoon', 'jibb-dev/lib/helper.hoon',
-                'vendor/fixture/lib/vendored.hoon'} <= logical
-        assert not any('ignored' in path or '/linked/' in path for path in physical)
+        expect(targets <= physical and not targets & logical)
+        expect({'jibb-dev/sur/custom.hoon', 'jibb-dev/lib/helper.hoon',
+                'vendor/fixture/lib/vendored.hoon'} <= logical)
+        expect(not any('ignored' in path or '/linked/' in path for path in physical))
         mapping = manifest.ship_mapping(assembled, logical)
-        assert mapping['sur/custom.hoon'] == 'jibb-dev/sur/custom.hoon'
-        assert mapping['lib/helper.hoon'] == 'jibb-dev/lib/helper.hoon'
-        assert mapping['lib/vendored.hoon'] == 'vendor/fixture/lib/vendored.hoon'
-        assert targets <= set(manifest.ship_dependencies(mapping))
+        expect(mapping['sur/custom.hoon'] == 'jibb-dev/sur/custom.hoon')
+        expect(mapping['lib/helper.hoon'] == 'jibb-dev/lib/helper.hoon')
+        expect(mapping['lib/vendored.hoon'] == 'vendor/fixture/lib/vendored.hoon')
+        expect(targets <= set(manifest.ship_dependencies(mapping)))
         # Exercise the actual caller: physical targets inside jibb-dev must
         # not leak back into its required desk source identities.
         with patch.object(test_ship, 'assemble', return_value=assembled):
             batches = manifest.probe_batches()
-        assert len(batches) == 1
+        expect(len(batches) == 1)
         batch = batches[0]
-        assert targets <= set(batch['paths'])
-        assert not targets & set(batch['ship_desks']['my-app'].values())
+        expect(targets <= set(batch['paths']))
+        expect(not targets & set(batch['ship_desks']['my-app'].values()))
         full = manifest.probe_signature(str(root), batch['groups'])
         # Preserve links here. A dereferencing copy could hide a missing Nix
         # input by copying the target's bytes into the link's own filename.
@@ -156,14 +181,14 @@ with tempfile.TemporaryDirectory(prefix='jibb-reader-inputs-test-') as folder:
                     target.symlink_to(os.readlink(source))
                 else:
                     shutil.copy2(source, target)
-            assert manifest.probe_signature(narrow, batch['groups']) == full
+            expect(manifest.probe_signature(narrow, batch['groups']) == full)
 
 
 def arm_rejects(operation, fragment):
     try:
         operation()
     except arms.Unusable as error:
-        assert fragment in str(error), str(error)
+        expect(fragment in str(error), str(error))
     else:
         raise AssertionError('accepted invalid library dependencies: ' + fragment)
 
@@ -223,11 +248,11 @@ with tempfile.TemporaryDirectory(prefix='jibb-arm-inputs-test-') as folder:
         expected = {'direct', 'transitive', 'diamond', 'file-read',
                     'library-file-read', 'renamed', 'nested', 'symlinked'}
         selected = arms.library_dependents(suites, desk, 'jibb-build', str(compiler))
-        assert selected == expected, (selected, expected)
-        assert arms.library_dependents(suites, desk, 'renamed', str(compiler)) == expected
+        expect(selected == expected, (selected, expected))
+        expect(arms.library_dependents(suites, desk, 'renamed', str(compiler)) == expected)
         # Every generated program starts with the selected root compiler.
-        assert arms.library_dependents(suites, desk, 'jibb', str(compiler)) == {
-            item.name for item in suites}
+        expect(arms.library_dependents(suites, desk, 'jibb', str(compiler)) == {
+            item.name for item in suites})
 
         invalid_dir = root / 'invalid'
         library('cycle-a', '/+  cycle-b\n' + plain)
@@ -257,7 +282,7 @@ with tempfile.TemporaryDirectory(prefix='jibb-arm-inputs-test-') as folder:
 
         def listed(*arguments):
             status, output = cli(*arguments)
-            assert status == 0, output
+            expect(status == 0, output)
             return set(re.findall(r'^([a-z0-9-]+) \(', output, re.M))
 
         fake_ship = SimpleNamespace(assemble=lambda _: desk, Unable=arms.Unusable)
@@ -265,29 +290,29 @@ with tempfile.TemporaryDirectory(prefix='jibb-arm-inputs-test-') as folder:
                 patch.object(arms, 'run', side_effect=AssertionError('unexpected eval')), \
                 patch.object(arms, 'run_fast', side_effect=AssertionError('unexpected eval')):
             all_names = {item.name for item in suites}
-            assert listed() == all_names
-            assert listed('--include-library', 'jibb-build') == expected
-            assert listed('--exclude-library', 'jibb-build') == all_names - expected
+            expect(listed() == all_names)
+            expect(listed('--include-library', 'jibb-build') == expected)
+            expect(listed('--exclude-library', 'jibb-build') == all_names - expected)
             ordinary = set()
             for index in range(1, 4):
                 shard = ['--shard', '%d/3' % index]
                 original = listed(*shard)
                 retained = listed(*shard, '--exclude-library', 'jibb-build')
                 moved = listed(*shard, '--include-library', 'jibb-build')
-                assert retained == original - expected, (index, original, retained)
-                assert moved == original & expected, (index, original, moved)
-                assert not ordinary & retained
+                expect(retained == original - expected, (index, original, retained))
+                expect(moved == original & expected, (index, original, moved))
+                expect(not ordinary & retained)
                 ordinary.update(retained)
-            assert ordinary | expected == all_names and not ordinary & expected
+            expect(ordinary | expected == all_names and not ordinary & expected)
             status, output = cli('--include-library', 'jibb-build',
                                  '--exclude-library', 'jibb-build')
-            assert status == 2, output
+            expect(status == 2, output)
             mapping = root / 'desk.json'
             mapping.write_text(json.dumps({name: entry[1] for name, entry in files.items()}))
             for option in ('--include-library', '--exclude-library'):
                 for conflict in (['--desk-map', str(mapping)], ['--report'], ['--update']):
                     status, output = cli(option, 'jibb-build', *conflict, 'direct')
-                    assert status == 2, (option, conflict, output)
+                    expect(status == 2, (option, conflict, output))
 
 with tempfile.TemporaryDirectory(prefix='jibb-arm-prefix-test-') as folder:
     root = Path(folder)
@@ -315,19 +340,19 @@ with tempfile.TemporaryDirectory(prefix='jibb-arm-prefix-test-') as folder:
         legacy = arms.Suite(str(put('legacy.hoon', header + body)), desk)
         prefixed = arms.Suite(str(put('prefixed.hoon', header + prefix + body)), desk)
         expected_header = ':: fixture\n::  jibb, helper\n::  src  %jibb  /source/jibb\n\n'
-        assert legacy.core == expected_header + body
-        assert prefixed.core == expected_header + prefix + body
-        assert prefixed.arms == legacy.arms == ['test-one', 'test-two']
-        assert prefixed.reports and legacy.reports
-        assert prefixed.files == legacy.files and prefixed.libs == legacy.libs
-        assert arms.library_dependents([prefixed], desk, 'helper', str(compiler)) == {'prefixed'}
+        expect(legacy.core == expected_header + body)
+        expect(prefixed.core == expected_header + prefix + body)
+        expect(prefixed.arms == legacy.arms == ['test-one', 'test-two'])
+        expect(prefixed.reports and legacy.reports)
+        expect(prefixed.files == legacy.files and prefixed.libs == legacy.libs)
+        expect(arms.library_dependents([prefixed], desk, 'helper', str(compiler)) == {'prefixed'})
         _, _, imported = arms.library_input(desk, 'helper')
-        assert imported.libs == ['jibb'] and '=/  answer  value:jibb\n' in imported.core
+        expect(imported.libs == ['jibb'] and '=/  answer  value:jibb\n' in imported.core)
         for path in ('/[name]/jibb', '/(scot %p ship)/jibb', '/~zod/base'):
             setup = '=/  name=@tas  %source\n=/  ship=@p  ~zod\n=/  selected=path\n' + path + '\n'
             filename = put('path-prefix.hoon', header + setup + body)
             parsed = arms.Suite(str(filename), desk)
-            assert parsed.core == expected_header + setup + body, path
+            expect(parsed.core == expected_header + setup + body, path)
             for late in ('/+  helper\n', '  /*  src %jibb /source/jibb\n'):
                 filename = put('late-header.hoon', header + setup + late + body)
                 arm_rejects(lambda: arms.Suite(str(filename), desk),
@@ -344,19 +369,19 @@ with tempfile.TemporaryDirectory(prefix='jibb-arm-prefix-test-') as folder:
             for mode in ('arms', 'report'):
                 actual = arms.program_for([legacy], str(compiler), debug, mode)
                 previous = arms.program_for([old_suite], str(compiler), debug, mode)
-                assert actual.encode() == previous.encode()
-                assert [vars(s) for s in actual.segments] == [vars(s) for s in previous.segments]
+                expect(actual.encode() == previous.encode())
+                expect([vars(s) for s in actual.segments] == [vars(s) for s in previous.segments])
 
         program = arms.program_for([prefixed], str(compiler), True)
-        assert program.text().count(prefix) == 1
-        assert program.text().count('=/  answer  value:jibb\n') == 1
-        assert program.text().count('(mule |.(`tang`') == len(prefixed.arms)
+        expect(program.text().count(prefix) == 1)
+        expect(program.text().count('=/  answer  value:jibb\n') == 1)
+        expect(program.text().count('(mule |.(`tang`') == len(prefixed.arms))
         segment = next(s for s in program.segments if s.name == prefixed.rel)
         for line, text in enumerate((header + prefix + body).splitlines(), 1):
             found, local = program.locate(segment.start + line - 1)
-            assert found is segment and local == line
+            expect(found is segment and local == line)
             if not text.startswith(('/+', '/*')):
-                assert found.lines[local - 1] == text
+                expect(found.lines[local - 1] == text)
 
         for bad, message in [
                 ('/-  extra\n', 'only /+ and /* lines'),
@@ -376,8 +401,7 @@ with tempfile.TemporaryDirectory(prefix='jibb-arm-prefix-test-') as folder:
         arm_rejects(lambda: arms.Suite(str(path), desk), 'no |% core')
 
 
-bench = importlib.machinery.SourceFileLoader(
-    'check_inputs_bench', str(ROOT / 'tools/bench-eval')).load_module()
+bench = load_tool('check_inputs_bench', ROOT / 'tools/bench-eval')
 from noun import atom_to_bytes, cord, from_list, jam
 
 
@@ -422,18 +446,18 @@ with tempfile.TemporaryDirectory(prefix='jibb-bench-inputs-test-') as folder:
         with patch.object(bench.subprocess, 'run',
                           side_effect=AssertionError('dry run invoked Hoon')) as process:
             status, output = benchmark(dry, '--dry-run', '--stage', 'wrapped')
-            assert status == 0, output
+            expect(status == 0, output)
             process.assert_not_called()
             direct = bench.arms.program_for(
                 [bench.arms.Suite(str(suite), bench.arms.DESK)], str(compiler), False)
             frozen = dry / 'arms-fixture-full.hoon'
-            assert frozen.read_bytes() == direct.encode()
-            assert (dry / 'arms-fixture-expected.wain').read_text().splitlines() == expected
+            expect(frozen.read_bytes() == direct.encode())
+            expect((dry / 'arms-fixture-expected.wain').read_text().splitlines() == expected)
             evidence = (dry / 'profile.json').read_bytes()
             status, output = benchmark(dry, '--dry-run')
-            assert status == 2, output
-            assert (dry / 'profile.json').read_bytes() == evidence
-            assert frozen.read_bytes() == direct.encode()
+            expect(status == 2, output)
+            expect((dry / 'profile.json').read_bytes() == evidence)
+            expect(frozen.read_bytes() == direct.encode())
 
         for name, raw, error, timeout, wanted in [
                 ('pass', frame(expected), b'', False, 0),
@@ -441,8 +465,8 @@ with tempfile.TemporaryDirectory(prefix='jibb-bench-inputs-test-') as folder:
                 ('wrong-wain', frame(list(reversed(expected))), b'', False, 1),
                 ('timeout', b'partial trace\n', b'', True, 1)]:
             def fake_process(command, **kwargs):
-                assert command == [str(runtime), 'eval', '-j', '-n']
-                assert kwargs['input'] == direct.encode()
+                expect(command == [str(runtime), 'eval', '-j', '-n'])
+                expect(kwargs['input'] == direct.encode())
                 kwargs['stdout'].write(raw)
                 kwargs['stderr'].write(error)
                 if timeout:
@@ -452,13 +476,347 @@ with tempfile.TemporaryDirectory(prefix='jibb-bench-inputs-test-') as folder:
             destination = root / name
             with patch.object(bench.subprocess, 'run', side_effect=fake_process) as process:
                 status, output = benchmark(destination)
-                assert status == wanted, (name, status, output)
-                assert process.call_count == 1
+                expect(status == wanted, (name, status, output))
+                expect(process.call_count == 1)
             record = json.loads((destination / 'arms-fixture-full.json').read_text())
-            assert record['ok'] is (wanted == 0), record
-            assert record['timed_out'] is timeout, record
-            assert (destination / 'arms-fixture-full.stdout').read_bytes() == raw
+            expect(record['ok'] is (wanted == 0), record)
+            expect(record['timed_out'] is timeout, record)
+            expect((destination / 'arms-fixture-full.stdout').read_bytes() == raw)
             if wanted:
-                assert (destination / record['failure_file']).read_text().strip()
+                expect((destination / record['failure_file']).read_text().strip())
 
-print('check-inputs: assemblies, prelude closures, library dependencies, suite prefixes, partitions and eval profiling passed')
+# ------------------------------------------------------------ golden discovery
+# A case folder without a readable source.jibb, such as a link into my-app
+# whose target was renamed, fails both runners instead of being skipped.
+golden = manifest.golden
+with tempfile.TemporaryDirectory(prefix='jibb-golden-discovery-test-') as folder:
+    cases = Path(folder) / 'golden'
+    for name in ('good', 'linked', '.hidden'):
+        (cases / name).mkdir(parents=True)
+    (cases / 'good' / 'source.jibb').write_text('++ main 1\n')
+    (cases / 'linked' / 'source.jibb').symlink_to('../../my-app/ui/renamed.jibb')
+
+    def discovery_rejects(fragment, globs=()):
+        try:
+            golden.find_cases(str(cases), list(globs))
+        except golden.ue.ToolError as error:
+            expect(fragment in str(error), str(error))
+        else:
+            raise AssertionError('tools/golden skipped a case: ' + fragment)
+        if globs:
+            return
+        try:
+            ship.golden_cases(str(cases))
+        except ship.Unable as error:
+            expect(fragment in str(error), str(error))
+        else:
+            raise AssertionError('tools/ship skipped a case: ' + fragment)
+
+    dangling = 'linked: source.jibb is a dangling link to ../../my-app/ui/renamed.jibb'
+    discovery_rejects(dangling)
+    discovery_rejects(dangling, ['link*'])
+    # An unselected case is not read; a hidden folder is never a case.
+    expect([case.name for case in golden.find_cases(str(cases), ['good'])] == ['good'])
+    (cases / 'linked' / 'source.jibb').unlink()
+    discovery_rejects('linked: it has no source.jibb')
+    (cases / 'linked').rmdir()
+    expect([case.name for case in golden.find_cases(str(cases), [])] == ['good'])
+    expect([name for name, _ in ship.golden_cases(str(cases))] == ['good'])
+
+
+# ------------------------------------------------------------ golden harness
+# Slots are filled in one pass: a case source holding a slot's spelling is
+# inlined as it is, not rewritten under eval only.
+with tempfile.TemporaryDirectory(prefix='jibb-golden-slots-test-') as folder:
+    case = Path(folder) / 'slots'
+    case.mkdir()
+    spelled = '{types-expr} {count} {runs} {prelude-helper} {subject}'
+    (case / 'source.jibb').write_text('++ main "%s"\n' % spelled)
+    stub = str(ROOT / 'tools/testdata/stub.hoon')
+    text = golden.golden_program(stub, [golden.Case('slots', str(case))], debug=False).text()
+    expect("'++ main \"%s\"\\0a'" % spelled in text, 'a case source lost its slot spelling')
+    expect(text.count('=>  [lib=. ..zuse]') == 1 and '{' + 'core-expr}' not in text,
+           'the harness kept an unfilled slot')
+
+
+# ------------------------------------------------------------ ship sync
+# A changed file too big to send for conversion, whose mark stores neither a
+# cord nor a wain (a font), is compared by the size and hash of the %mime the
+# desk gives back, so sync commits it and only then says the desk matches.
+def noun_list(values):
+    noun = 0
+    for value in reversed(values):
+        noun = (value, noun)
+    return noun
+
+
+def clay_noun(rel):
+    return noun_list([ship.term(segment) for segment in ship.clay_path(rel)])
+
+
+def short_hash(data):
+    return int.from_bytes(hashlib.sha256(data).digest()[:8], 'little')
+
+
+class FakeShip:
+    """A desk held as {path: bytes}, answering sync's threads as the ship
+    would for a cord mark (%hoon), a %kelvin file sent for conversion and
+    an %octs font too big to send.  |commit takes the mount's files."""
+
+    def __init__(self, pier, desk, source, mimes=True):
+        self.pier, self.desk, self.source, self.mimes = pier, dict(desk), source, mimes
+        self.rev, self.commits = 7, 0
+
+    def require(self):
+        pass
+
+    def thread(self, hoon, timeout=600):
+        if 'kiln-commit' in hoon:
+            self.commits += 1
+            mount = os.path.join(self.pier, 'my-app')
+            self.desk = {}
+            for folder, _, names in os.walk(mount):
+                for name in names:
+                    path = os.path.join(folder, name)
+                    self.desk[os.path.relpath(path, mount)] = Path(path).read_bytes()
+            self.rev += 1
+            return (ship.term('done'), self.rev)
+        expect('.^((list path) %ct pre)' in hoon, 'unexpected request:\n' + hoon[:300])
+        page, conv, big = [], [], []
+        for rel, data in sorted(self.desk.items()):
+            mark = ship.clay_path(rel)[-1]
+            if mark in ship.BYTE_MARKS:
+                page.append((clay_noun(rel), (ship.term('cord'), short_hash(data))))
+            else:
+                page.append((clay_noun(rel), (ship.term('other'), 0)))
+        for rel, data in sorted(self.source.items()):
+            mark = ship.clay_path(rel)[-1]
+            if mark in ship.BYTE_MARKS:
+                continue
+            have = self.desk.get(rel)
+            if len(data) <= ship.CONV_BYTES:
+                conv.append((clay_noun(rel), 0 if have == data else 1))
+            elif have is None or not self.mimes:
+                big.append((clay_noun(rel), 0))
+            else:
+                big.append((clay_noun(rel), (0, (len(have), short_hash(have)))))
+        manifest_noun = (len(self.desk), (noun_list(conv), (noun_list(big), noun_list(page))))
+        return (self.rev, (1 << 64, (0, manifest_noun)))
+
+
+with tempfile.TemporaryDirectory(prefix='jibb-sync-test-') as pier:
+    font = 'ui/static/fonts/inter.woff2'
+    old_font, new_font = b'OLD\0' * 40000, b'NEW\0' * 40000    # over CONV_BYTES
+    kelvin = b'[%zuse 409]\n'
+    library = b'|%\n++  value  42\n--\n'
+    source = {font: new_font, 'sys.kelvin': kelvin, 'lib/value.hoon': library}
+    mount = os.path.join(pier, 'my-app')
+
+    def put_mount(files):
+        shutil.rmtree(mount, ignore_errors=True)
+        for rel, data in files.items():
+            os.makedirs(os.path.dirname(os.path.join(mount, rel)), exist_ok=True)
+            Path(mount, rel).write_bytes(data)
+
+    def sync(fake):
+        assembly = ship.Assembly('my-app')
+        for rel, data in source.items():
+            assembly.add(rel, data, 'my-app/' + rel)
+        output = io.StringIO()
+        with patch.object(ship, 'ensure_desk', lambda *_args, **_kw: mount), \
+                redirect_stdout(output):
+            ship.sync_assembly(fake, assembly)
+        return output.getvalue()
+
+    stale = dict(source, **{font: old_font})
+    fake = FakeShip(pier, stale, source)
+    put_mount(stale)
+    _, problems, _ = ship.verify(fake, 'my-app', {rel: (data, 'my-app/' + rel)
+                                                  for rel, data in source.items()})
+    expect(problems == ['/ui/static/fonts/inter/woff2 differs from my-app/' + font], problems)
+    said = sync(fake)
+    expect(fake.commits == 1 and fake.desk[font] == new_font, (fake.commits, said))
+    expect('committed revision 8' in said and 'the desk matches the source' in said, said)
+    # Nothing changed: no commit.  Only the mount changed: the desk already
+    # matches, so sync restores the mount without a commit, which Clay would
+    # ignore and change_and_wait would wait out.
+    said = sync(fake)
+    expect(fake.commits == 1 and 'nothing to commit' in said, said)
+    Path(mount, font).write_bytes(old_font)
+    said = sync(fake)
+    expect(fake.commits == 1 and Path(mount, font).read_bytes() == new_font and
+           'copied +0 ~1 -0; nothing to commit' in said, said)
+    # A desk that can't give a big file back as %mime can't be called a match.
+    _, problems, _ = ship.verify(FakeShip(pier, source, source, mimes=False), 'my-app',
+                                 {rel: (data, 'my-app/' + rel) for rel, data in source.items()})
+    expect(problems == ["/ui/static/fonts/inter/woff2 can't be compared with my-app/" + font +
+                        ": the desk's %woff2 mark gives it no %mime"], problems)
+    big_thread = ship.fill(ship.MANIFEST, DESK='my-app', NOW='now.bowl', FROM='0', COUNT='1',
+                           BIG='~[/ui/static/fonts/inter/woff2]', CONV='~')
+    expect('(tub .^(vase %cr (weld pre pax)))' in big_thread and
+           '(shay p.q.p.res q.q.p.res)' in big_thread, 'the manifest lost its %mime hashes')
+
+
+# ------------------------------------------------------------ tools/check
+# Ctrl-C or SIGTERM cancels the queued checks and kills the running one at
+# once, rather than waiting while every queued check runs.
+CHECK_CHILD = r"""
+import importlib.machinery, importlib.util, sys
+path, log = sys.argv[1], sys.argv[2]
+loader = importlib.machinery.SourceFileLoader('check_under_test', path)
+spec = importlib.util.spec_from_file_location('check_under_test', path, loader=loader)
+check = importlib.util.module_from_spec(spec)
+loader.exec_module(check)
+check.CHECKS = [check.Check('c%d' % i, 'eval',
+                            ['sh', '-c', 'echo c%d >> %s; exec sleep 60' % (i, log)])
+                for i in (1, 2, 3)]
+sys.exit(check.main(['-j', '1']))
+"""
+for signum, status in ((signal.SIGINT, 130), (signal.SIGTERM, 143)):
+    with tempfile.TemporaryDirectory(prefix='jibb-check-signal-test-') as folder:
+        log = os.path.join(folder, 'started')
+        Path(log).write_text('')
+        child = subprocess.Popen([sys.executable, '-I', '-B', '-c', CHECK_CHILD,
+                                  str(ROOT / 'tools/check'), log],
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        deadline = time.time() + 30
+        while not Path(log).read_text() and time.time() < deadline:
+            time.sleep(0.05)
+        child.send_signal(signum)
+        try:
+            output, _ = child.communicate(timeout=20)
+        except subprocess.TimeoutExpired:
+            child.kill()
+            child.communicate()
+            raise AssertionError('tools/check kept running queued checks after %s'
+                                 % signal.Signals(signum).name)
+        expect(child.returncode == status and Path(log).read_text().split() == ['c1'],
+               (signum, child.returncode, Path(log).read_text(), output))
+
+
+# ------------------------------------------------------------ doc-fragments
+# The documented cmd and sub molds must equal the prelude's whole
+# definitions: a case the doc doesn't show is a difference.
+fragments = load_tool('check_inputs_doc_fragments', ROOT / 'tools/doc-fragments')
+real_read = fragments.read
+prelude_path = 'jibb-dev/lib/jibb/prelude.jibb'
+shown_last = '  [%who reply=$-(@p  M)]\n'
+expect(real_read(prelude_path).count(shown_last) == 1, 'the prelude changed its cmd mold')
+for edited, wanted in ((real_read(prelude_path), 0),
+                       (real_read(prelude_path).replace(shown_last, shown_last + '  [%log text=@t]\n'), 1)):
+    output = io.StringIO()
+    with patch.object(fragments, 'read', lambda path, edited=edited: edited if path == prelude_path
+                      else real_read(path)), redirect_stdout(output):
+        result = fragments.main()
+    expect(result == wanted and ('FAIL   documented cmd in prelude' in output.getvalue()) == bool(wanted),
+           output.getvalue())
+expect(list(fragments.molds('+$  a  @\n  ::\n+$  b  |$  [M]\n  [%c M]\n\n  [%d M]\n::\n++ e 1\n')) == ['a', 'b'])
+expect(fragments.molds('+$  b  |$  [M]\n  [%c M]\n\n  [%d M]\n::\n')['b'] ==
+       '+$  b  |$  [M]\n  [%c M]\n\n  [%d M]\n')
+
+
+# ------------------------------------------------------------ browser-check.mjs
+# A misspelled step or option, or a spaced value, never quietly runs less:
+# the bad ones stop before Chromium starts; --bar 16 is read as --bar=16.
+node = shutil.which('node')
+expect(node is not None, 'node is not on PATH')
+for arguments, fragment in [
+        (['--only=exampleThre'], '--only names no step "exampleThre"'),
+        (['--only=benchmark,'], '--only names no step ""'),
+        (['--bar', '16', '--only=typo'], '--only names no step "typo"'),
+        (['--bar', '0'], '--bar must be a positive number, not 0'),
+        (['--bar'], '--bar needs a value'),
+        (['--onyl=benchmark'], 'unknown option --onyl'),
+        (['16'], 'unexpected argument "16"')]:
+    result = subprocess.run([node, str(ROOT / 'tools/browser-check.mjs'), '--origin=http://127.0.0.1:1',
+                             '--password=fixture', *arguments],
+                            env=dict(os.environ, JIBB_CHROMIUM='/nonexistent/chromium'),
+                            capture_output=True, text=True, timeout=60)
+    expect(result.returncode == 2 and fragment in result.stderr and 'Chromium' not in result.stderr,
+           (arguments, result.returncode, result.stdout, result.stderr))
+
+
+# ------------------------------------------------------------ doc-format
+# The formatter checked is the repository's, never a jibb that happens to be
+# on PATH: cargo builds it, or $JIBB_BIN names it.
+with tempfile.TemporaryDirectory(prefix='jibb-doc-format-test-') as folder:
+    bin_dir, target = Path(folder) / 'bin', Path(folder) / 'target'
+    bin_dir.mkdir()
+    calls = Path(folder) / 'calls'
+    script = '#!/bin/sh\necho "%s $*" >> ' + str(calls) + '\n%s\n'
+    (bin_dir / 'jibb').write_text(script % ('path-jibb', 'exit 0'))
+    (bin_dir / 'cargo').write_text(script % (
+        'cargo', 'mkdir -p "$CARGO_TARGET_DIR/debug"\n'
+        "printf '#!/bin/sh\\necho \"built-jibb $*\" >> %s\\n' > \"$CARGO_TARGET_DIR/debug/jibb\"\n"
+        'chmod +x "$CARGO_TARGET_DIR/debug/jibb"' % calls))
+    for tool in ('jibb', 'cargo'):
+        (bin_dir / tool).chmod(0o755)
+    environment = dict(os.environ, PATH=str(bin_dir) + os.pathsep + os.environ['PATH'],
+                       CARGO_TARGET_DIR=str(target))
+    environment.pop('JIBB_BIN', None)
+    result = subprocess.run(['sh', str(ROOT / 'tools/doc-format')], env=environment,
+                            capture_output=True, text=True, timeout=60)
+    made = calls.read_text().splitlines()
+    expect(result.returncode == 0 and len(made) == 2 and
+           made[0].startswith('cargo build') and '--manifest-path jibb-cli/Cargo.toml' in made[0] and
+           made[1].startswith('built-jibb fmt --check tests/golden/doc-'),
+           (result.returncode, made, result.stderr))
+    calls.write_text('')
+    result = subprocess.run(['sh', str(ROOT / 'tools/doc-format')],
+                            env=dict(environment, JIBB_BIN=str(target / 'debug/jibb')),
+                            capture_output=True, text=True, timeout=60)
+    made = calls.read_text().splitlines()
+    expect(result.returncode == 0 and len(made) == 1 and made[0].startswith('built-jibb fmt --check'),
+           (result.returncode, made, result.stderr))
+
+
+# ------------------------------------------------------------ manifest links
+# Nix copies a link as a link, so every link of a chain is an input, and the
+# narrow copy that validates the inputs keeps links as links.
+with tempfile.TemporaryDirectory(prefix='jibb-manifest-links-test-') as folder:
+    root = Path(os.path.realpath(folder))
+    (root / 'app').mkdir()
+    (root / 'cases' / 'one').mkdir(parents=True)
+    (root / 'app' / 'real.jibb').write_text('++ main 1\n')
+    (root / 'app' / 'alias.jibb').symlink_to('real.jibb')
+    (root / 'cases' / 'one' / 'source.jibb').symlink_to('../../app/alias.jibb')
+    with patch.object(manifest, 'ROOT', str(root)):
+        paths = set()
+        manifest.add_file(paths, str(root / 'cases' / 'one' / 'source.jibb'))
+        expect(paths == {'cases/one/source.jibb', 'app/alias.jibb', 'app/real.jibb'}, paths)
+        with tempfile.TemporaryDirectory(prefix='jibb-manifest-narrow-test-') as narrow:
+            for relative in ('cases/one/source.jibb', 'app/alias.jibb'):
+                manifest.copy_input(str(root), narrow, relative)
+            copied = Path(narrow) / 'cases' / 'one' / 'source.jibb'
+            expect(copied.is_symlink() and not copied.exists(),
+                   'the narrow copy hid a missing link target')
+        with tempfile.TemporaryDirectory(prefix='jibb-manifest-outside-test-') as outside:
+            Path(outside, 'elsewhere.jibb').write_text('++ main 2\n')
+            (root / 'app' / 'escape.jibb').symlink_to(Path(outside, 'elsewhere.jibb'))
+            try:
+                manifest.add_file(set(), str(root / 'app' / 'escape.jibb'))
+            except manifest.ManifestError as error:
+                expect('links outside the repository' in str(error), str(error))
+            else:
+                raise AssertionError('a link out of the repository became an input')
+
+
+# ------------------------------------------------------------ lint
+# This file's checks must survive python -O, and Python 3.15 removes
+# SourceFileLoader.load_module(), which the tools used to load each other.
+expect(not [node for node in ast.walk(ast.parse(Path(__file__).read_text()))
+            if isinstance(node, ast.Assert)], 'check-inputs has a bare assert')
+loaders = []
+for path in sorted((ROOT / 'tools').rglob('*')):
+    # The golden fixtures' folders hold data, not tools.
+    if not path.is_file() or 'golden' in path.relative_to(ROOT / 'tools').parts[:-1]:
+        continue
+    text = path.read_text(errors='replace')
+    if not (path.suffix == '.py' or text.startswith('#!/usr/bin/env python3')):
+        continue
+    for node in ast.walk(ast.parse(text)):
+        if isinstance(node, ast.Attribute) and node.attr == 'load_module':
+            loaders.append('%s:%d' % (path.relative_to(ROOT), node.lineno))
+expect(not loaders, 'load_module() is gone in Python 3.15: ' + ', '.join(loaders))
+
+print('check-inputs: assemblies, prelude closures, library dependencies, suite prefixes, partitions, eval profiling, golden discovery and harness slots, ship sync verification, check interruption, doc fragments, browser and doc-format arguments, manifest links and tool loading passed')

@@ -1,3 +1,5 @@
+mod common;
+
 use jibb::{check, parse_ast};
 use std::{fs, path::Path};
 
@@ -31,7 +33,7 @@ fn check_golden_lines(
 #[test]
 fn supported_type_golden_cases_follow_the_spec() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tests/golden");
-    if !root.is_dir() {
+    if !common::corpus(&root) {
         return;
     }
 

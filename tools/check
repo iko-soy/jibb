@@ -25,7 +25,9 @@ exits 0.  Output is kept and printed only for a check that fails (all of
 it with -v); --logs DIR keeps every check's output in DIR/<name>.log.
 
 Exit status: 0 when every check ran and passed, 1 when a check failed,
-2 when the checks couldn't run (an unknown name, a ship that won't start).
+2 when the checks couldn't run (an unknown name, a ship that won't start),
+130 or 143 on Ctrl-C (SIGINT) or SIGTERM, which cancel the checks not yet
+started and kill the running ones, then stop a ship tools/check started.
 """
 
 import argparse
@@ -133,6 +135,19 @@ class Result:
 
 _lock = threading.Lock()
 _running = set()     # process groups to kill if we're interrupted
+_stopping = False    # set, under _lock, once interrupted: start no more
+
+
+class Interrupted(BaseException):
+    """SIGINT or SIGTERM arrived; status is the exit status to give."""
+
+    def __init__(self, signum):
+        super().__init__(signum)
+        self.status = 128 + signum
+
+
+def interrupted(signum, _frame):
+    raise Interrupted(signum)
 
 
 def say(msg=''):
@@ -141,19 +156,24 @@ def say(msg=''):
 
 
 def run(check, timeout, env):
-    """Run one check; a Result."""
+    """Run one check; a Result.  Once interrupted it starts nothing: a
+    check is started and recorded under the same lock stop() takes, so
+    stop() kills every check that started."""
     res = Result(check)
     start = time.time()
     with tempfile.TemporaryFile() as out:
-        try:
-            proc = subprocess.Popen(
-                check.command, cwd=ROOT, env=env, stdin=subprocess.DEVNULL,
-                stdout=out, stderr=subprocess.STDOUT,
-                start_new_session=True)
-        except OSError as e:
-            res.why = 'could not run %s: %s' % (check.command[0], e)
-            return res
         with _lock:
+            if _stopping:
+                res.why = 'not started: interrupted'
+                return res
+            try:
+                proc = subprocess.Popen(
+                    check.command, cwd=ROOT, env=env, stdin=subprocess.DEVNULL,
+                    stdout=out, stderr=subprocess.STDOUT,
+                    start_new_session=True)
+            except OSError as e:
+                res.why = 'could not run %s: %s' % (check.command[0], e)
+                return res
             _running.add(proc.pid)
         try:
             res.status = proc.wait(timeout=timeout)
@@ -184,11 +204,31 @@ def kill(pgid):
         pass
 
 
-def kill_all(*_):
+def stop():
+    """Start no more checks, and kill the running ones' process groups."""
+    global _stopping
     with _lock:
+        _stopping = True
         pids = list(_running)
     for pid in pids:
         kill(pid)
+
+
+def run_all(checks, jobs, timeout, env, finished):
+    """Run the checks, at most jobs at once and in list order, calling
+    finished(result) as each ends.  They run in worker threads, so a
+    signal interrupts only the main thread's wait; it then cancels the
+    queued checks and kills the running ones before it goes on."""
+    pool = concurrent.futures.ThreadPoolExecutor(jobs)
+    try:
+        futures = [pool.submit(run, c, timeout, env) for c in checks]
+        for f in concurrent.futures.as_completed(futures):
+            finished(f.result())
+    except BaseException:
+        stop()
+        pool.shutdown(wait=False, cancel_futures=True)
+        raise
+    pool.shutdown()
 
 
 def report(res, verbose, logs, limit=300):
@@ -278,22 +318,25 @@ def main(argv):
         os.makedirs(args.logs, exist_ok=True)
 
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
-    signal.signal(signal.SIGTERM, lambda *_: (kill_all(), sys.exit(143)))
+    #  The checks run in sessions of their own, so a terminal's Ctrl-C
+    #  reaches only this process: on it or SIGTERM, cancel the queued
+    #  checks and kill the running ones, then exit 130 or 143.
+    signal.signal(signal.SIGINT, interrupted)
+    signal.signal(signal.SIGTERM, interrupted)
     started = time.time()
     results = []
     unable = False
+
+    def finished(res):
+        results.append(res)
+        report(res, args.verbose, args.logs)
+
     try:
         evals = [c for c in checks if c.group in ('eval', 'native')]
         if evals:
             say('running %d eval/native check%s, %d at a time'
                 % (len(evals), '' if len(evals) == 1 else 's', args.jobs))
-            with concurrent.futures.ThreadPoolExecutor(args.jobs) as pool:
-                futures = [pool.submit(run, c, args.timeout, env)
-                           for c in evals]
-                for f in concurrent.futures.as_completed(futures):
-                    res = f.result()
-                    results.append(res)
-                    report(res, args.verbose, args.logs)
+            run_all(evals, args.jobs, args.timeout, env, finished)
         ships = [c for c in checks if c.group == 'ship']
         if ships:
             started_ship = False
@@ -311,18 +354,18 @@ def main(argv):
                 say('running %d ship check%s on the running ship'
                     % (len(ships), '' if len(ships) == 1 else 's'))
             try:
-                for c in ships:
-                    res = run(c, args.timeout, env)
-                    results.append(res)
-                    report(res, args.verbose, args.logs)
+                run_all(ships, 1, args.timeout, env, finished)
             finally:
                 if started_ship:
                     say('stopping the ship tools/check started')
                     ship(env, 'stop', '--force')
-    except KeyboardInterrupt:
-        kill_all()
-        print('check: interrupted', file=sys.stderr)
-        return 130
+    except Interrupted as e:
+        for signum in (signal.SIGINT, signal.SIGTERM):
+            signal.signal(signum, signal.SIG_IGN)
+        stop()
+        print('check: interrupted; the queued checks were cancelled and '
+              'the running ones killed', file=sys.stderr)
+        return e.status
 
     failed = [r for r in results if not r.ok]
     order = {c.name: i for i, c in enumerate(CHECKS)}

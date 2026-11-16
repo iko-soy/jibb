@@ -2,7 +2,8 @@
 // serving the host, my-app and the host fixture: worked example 3, the
 // Grammar tab's store example, shared modules across pages, the crash notice,
 // and the benchmark's list island under a 4x CPU slowdown. tools/check-browser runs it once the
-// desks have built. Prints one line per result; exits 1 on any failure.
+// desks have built. Prints one line per result; exits 1 on any failure, and
+// 2 before starting Chromium on an unknown option or --only step name.
 
 import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -12,10 +13,55 @@ import { toVnode } from '../js/browser/vdom.mjs';
 import { arrayToList, cord } from '../js/natives/helpers.mjs';
 import { rawSeal } from '../js/natives/legacy.mjs';
 
-const args = Object.fromEntries(process.argv.slice(2).map(arg => {
-  const [name, ...rest] = arg.replace(/^--/, '').split('=');
-  return [name, rest.join('=')];
-}));
+// The steps, in the order they run; --only=NAME,... runs some of them.
+const STEPS = [cssNumbers, exampleThree, storeExample, crashNotice, sharedModules, viewTemplates, rowTemplates, appRoutes, benchmark];
+const USAGE = 'usage: browser-check.mjs --origin=http://127.0.0.1:PORT --password=CODE'
+  + ' [--chromium=PATH] [--only=STEP,...] [--bar=MS] [--keystrokes=N] [--profile=FILE]';
+
+function usage(problem) {
+  console.error(`browser-check.mjs: ${problem}\n${USAGE}`);
+  process.exit(2);
+}
+
+// --name=value or --name value. An unknown option, a repeated or empty one,
+// or a stray argument stops the run before Chromium starts, so a typo
+// can't make the run check less than it says.
+function parseArguments(argv) {
+  const known = new Set(['origin', 'password', 'chromium', 'only', 'bar', 'keystrokes', 'profile']);
+  const parsed = {};
+  for (let i = 0; i < argv.length; i += 1) {
+    const match = /^--([a-z]+)(?:=([^]*))?$/.exec(argv[i]);
+    if (!match) usage(`unexpected argument ${JSON.stringify(argv[i])}`);
+    const [, name, inline] = match;
+    if (!known.has(name)) usage(`unknown option --${name}`);
+    if (Object.hasOwn(parsed, name)) usage(`--${name} is given twice`);
+    let value = inline;
+    if (value === undefined) {
+      value = argv[i + 1];
+      if (value === undefined || value.startsWith('--')) usage(`--${name} needs a value`);
+      i += 1;
+    }
+    if (value === '') usage(`--${name} needs a value`);
+    parsed[name] = value;
+  }
+  if (!parsed.origin || !parsed.password) usage('--origin and --password are required');
+  if (parsed.only !== undefined) {
+    const names = STEPS.map(step => step.name);
+    const unknown = parsed.only.split(',').filter(name => !names.includes(name));
+    if (unknown.length) {
+      usage(`--only names no step ${unknown.map(name => JSON.stringify(name)).join(', ')}; the steps are ${names.join(', ')}`);
+    }
+  }
+  for (const [name, integer] of [['bar', false], ['keystrokes', true]]) {
+    const number = Number(parsed[name]);
+    if (parsed[name] !== undefined && !(number > 0 && Number.isFinite(number) && (!integer || Number.isInteger(number)))) {
+      usage(`--${name} must be a positive ${integer ? 'whole number' : 'number'}, not ${parsed[name]}`);
+    }
+  }
+  return parsed;
+}
+
+const args = parseArguments(process.argv.slice(2));
 const origin = args.origin;
 const password = args.password;
 const chromium = args.chromium || process.env.JIBB_CHROMIUM || 'chromium';
@@ -23,14 +69,9 @@ const chromium = args.chromium || process.env.JIBB_CHROMIUM || 'chromium';
 // within one 16 ms frame on a mid-range phone, which a 4x slowdown stands
 // for. Until a bar is agreed the benchmark reports its times; --bar=16
 // makes them pass or fail.
-const BAR_MS = args.bar ? Number(args.bar) : undefined;
+const BAR_MS = args.bar === undefined ? undefined : Number(args.bar);
 const KEYSTROKES = Number(args.keystrokes || 40);
 const NOTICE = 'This part of the page stopped working. Reloading the page may fix it.';
-
-if (!origin || !password) {
-  console.error('usage: browser-check.mjs --origin=http://127.0.0.1:PORT --password=CODE');
-  process.exit(2);
-}
 
 const failures = [];
 function expect(condition, message) {
@@ -769,8 +810,7 @@ try {
     console.log(`Chromium's output:\n${browser.output()}`);
     throw error;
   }
-  const steps = [cssNumbers, exampleThree, storeExample, crashNotice, sharedModules, viewTemplates, rowTemplates, appRoutes, benchmark]
-    .filter(step => !args.only || args.only.split(',').includes(step.name));
+  const steps = STEPS.filter(step => args.only === undefined || args.only.split(',').includes(step.name));
   for (const step of steps) {
     try {
       await step(session);

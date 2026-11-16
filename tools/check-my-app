@@ -2,6 +2,7 @@
 """Check every my-app UI module with Hoon types built on a fake ship."""
 
 from importlib.machinery import SourceFileLoader
+import importlib.util
 from pathlib import Path
 import re
 import sys
@@ -9,7 +10,18 @@ import time
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
-shiptool = SourceFileLoader('jibb_ship', str(ROOT / 'tools' / 'ship')).load_module()
+
+
+def load_tool(name, path):
+    """A tools/ script, which has no .py suffix, as a module."""
+    loader = SourceFileLoader(name, str(path))
+    spec = importlib.util.spec_from_file_location(name, str(path), loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+shiptool = load_tool('jibb_ship', ROOT / 'tools' / 'ship')
 import prelude_groups
 
 

@@ -13,8 +13,11 @@ every check passes.
 """
 
 import argparse
+from contextlib import redirect_stderr, redirect_stdout
 import gzip
+import io
 from importlib.machinery import SourceFileLoader
+import importlib.util
 import os
 import random
 import re
@@ -36,6 +39,15 @@ STUB =os.path.join(HERE, 'stub.hoon')
 CASES = os.path.join(HERE, 'golden')
 
 sys.dont_write_bytecode = True
+
+
+def load_tool(name, path):
+    """A tools/ script, which has no .py suffix, as a module."""
+    loader = SourceFileLoader(name, path)
+    spec = importlib.util.spec_from_file_location(name, path, loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
 
 
 class Check:
@@ -894,11 +906,13 @@ def check_bundle_budget(c, tmp):
              'bundle check must be independent of file timestamps')
 
     # Incompressible output exceeds the budget even when minification ran.
+    # The budget is the script's own, which integration may move.
+    limit = int(re.search(r'^limit=(\d+)', read(script).decode(), re.M).group(1))
     with open(payload, 'wb') as f:
-        f.write(random.Random(42).randbytes(30000))
+        f.write(random.Random(42).randbytes(limit + 6000))
     for args in [(), ('--check',)]:
         status, out = bundle(*args)
-        c.expect(status != 0 and 'must be under 20000' in out,
+        c.expect(status != 0 and 'must be under %d' % limit in out,
                  'oversize build must fail before writing: ' + out)
         c.expect(read(vendored) == small, 'oversize build replaced the vendored bundle')
 
@@ -981,8 +995,8 @@ def check_prelude_reader_inventory(c, tmp):
 
     # Both generators must carry the same inventory into reader construction
     # and compiler preparation, including candidates unused by a prior build.
-    goldens = SourceFileLoader('selftest_ford_goldens', GOLDEN).load_module()
-    ship = SourceFileLoader('selftest_ford_ship', os.path.join(TOOLS, 'ship')).load_module()
+    goldens = load_tool('selftest_ford_goldens', GOLDEN)
+    ship = load_tool('selftest_ford_ship', os.path.join(TOOLS, 'ship'))
     write('lib/jibb/prelude.jibb', b'')
     write('lib/jibb/internal.jibb', b'')
     write('lib/jibb-import.hoon', b'|%\n++  marker  42\n--\n')
@@ -1014,7 +1028,7 @@ def check_prelude_reader_inventory(c, tmp):
 def check_golden_lowerer_dependencies(c, tmp):
     """Core goldens bind the lowerer's real dependency graph in both modes."""
     sys.path.insert(0, TOOLS)
-    goldens = SourceFileLoader('selftest_golden_dependencies', GOLDEN).load_module()
+    goldens = load_tool('selftest_golden_dependencies', GOLDEN)
     real_read = goldens.ue.read_text
     fixtures = {
         'jibb-core.hoon': '|%\n++  core-marker  41\n--\n',
@@ -1069,6 +1083,90 @@ def check_golden_lowerer_dependencies(c, tmp):
                          'Core golden has a gap in its generated harness source map')
             c.expect(goldens.golden_program(STUB, [plain], debug=debug).encode() == unchanged.encode(),
                      'Core generation changed later non-Core program bytes')
+
+
+def check_missing_source_fails(c, tmp):
+    """A case folder without its source.jibb, or whose source is a
+    dangling link, stops the run before eval (exit 2): it isn't skipped."""
+    cases = copy_cases(tmp)
+    os.makedirs(os.path.join(cases, 'no-source'))
+    status, out = golden('--dir', cases, '--lib', STUB)
+    c.expect(status == 2 and 'no-source: it has no source.jibb' in out and
+             'PASS' not in out, 'a folder without source.jibb was skipped:\n' + out)
+    os.rmdir(os.path.join(cases, 'no-source'))
+    os.makedirs(os.path.join(cases, 'linked'))
+    os.symlink('../../../my-app/ui/renamed.jibb', os.path.join(cases, 'linked', 'source.jibb'))
+    status, out = golden('--dir', cases, '--lib', STUB, '--update')
+    c.expect(status == 2 and 'linked: source.jibb is a dangling link to '
+             '../../../my-app/ui/renamed.jibb' in out and 'wrote' not in out,
+             'a dangling source.jibb was skipped:\n' + out)
+
+
+# The checked-lowering arms the harness calls, for a copy of the stub: a
+# source whose first line is check-fails fails the check.
+LOWERING_STUB_ARMS = r"""+$  jlowering-result  (each [root=@t cache=~ kind=~] [message=@t sites=~])
+++  check-jibb-file-for-lowering
+  |=  [at=path src=@t externals=* mark-externals=* modules=* active=(list path) prelude-values=* prelude-molds=* cache=* prelude=*]
+  ^-  jlowering-result
+  =/  lines=(list @t)  (split src)
+  =/  first=@t  ?~(lines '' i.lines)
+  ?:  =('check-fails' first)  [%| 'stub check failure' ~]
+  [%& first ~ ~]
+"""
+
+# Stand-ins for the lowerer and Core printer: lower-fails can't be lowered.
+LOWERING_FIXTURES = {
+    'jibb-core.hoon': '::  fixture\n|%\n+$  module  @t\n++  print-module  |=(m=module m)\n--\n',
+    'jibb-fact-types.hoon': '::  fixture\n|%\n++  fact-marker  42\n--\n',
+    'jibb-lower.hoon': ('/+  jibb, jibb-core\n|%\n++  lower-checked-module\n'
+                        '  |=  root=@t\n  ^-  (each module:jibb-core @t)\n'
+                        "  ?:  =('lower-fails' root)  [%| 'stub lowering failure']\n"
+                        "  [%& (cat 3 'lowered ' root)]\n--\n"),
+}
+
+
+def check_core_lowering_failures(c, tmp):
+    """A case that fails the lowering check or Core lowering crashes under
+    eval, as it does on the ship, so --update never writes the failure
+    into core.txt and a run fails the case."""
+    sys.path.insert(0, TOOLS)
+    goldens = load_tool('selftest_core_failures', GOLDEN)
+    real_read = goldens.ue.read_text
+    lib = os.path.join(tmp, 'lowering-stub.hoon')
+    with open(lib, 'w') as f:
+        f.write(read(STUB).decode().replace('|%\n', '|%\n' + LOWERING_STUB_ARMS, 1))
+    cases = os.path.join(tmp, 'cases')
+    for name in ('lowered', 'lower-fails', 'check-fails'):
+        add_case(cases, name, name.encode() + b'\n')
+        with open(os.path.join(cases, name, 'about.txt'), 'w') as f:
+            f.write('expect-core: the stub lowerer\n')
+
+    def run_golden(*args):
+        out = io.TextIOWrapper(io.BytesIO(), encoding='utf-8')
+        with patch.object(goldens.ue, 'read_text',
+                          lambda path: LOWERING_FIXTURES.get(os.path.basename(path)) or real_read(path)), \
+                redirect_stdout(out), redirect_stderr(out):
+            status = goldens.main(['--dir', cases, '--lib', lib, '--jobs', '1'] + list(args))
+        out.flush()
+        return status, out.buffer.getvalue().decode('utf-8', 'replace')
+
+    status, out = run_golden('--update')
+    lowered = os.path.join(cases, 'lowered', 'core.txt')
+    c.expect(status == 1 and os.path.isfile(lowered) and read(lowered) == b'lowered lowered\n',
+             'the lowered case should be written and the run fail:\n' + out)
+    for name, why in (('lower-fails', 'Core lowering failed: stub lowering failure'),
+                      ('check-fails', 'lowering check failed: stub check failure')):
+        c.expect(not os.path.exists(os.path.join(cases, name, 'core.txt')) and
+                 'FAIL  %s: crashed' % name in out and why in out,
+                 '%s must crash, not become core.txt:\n%s' % (name, out))
+    for name in ('lower-fails', 'check-fails'):
+        with open(os.path.join(cases, name, 'core.txt'), 'w') as f:
+            f.write('stale expected text\n')
+    status, out = run_golden()
+    c.expect(status == 1 and 'PASS  lowered' in out and
+             'FAIL  lower-fails: crashed' in out and 'FAIL  check-fails: crashed' in out and
+             'Core lowering failed: stub lowering failure' in out,
+             'a Core failure must fail its case:\n' + out)
 
 
 def check_fast_goldens(c, tmp):
@@ -1133,9 +1231,9 @@ def check_fast_failure_preserved(c, tmp):
     sys.path.insert(0, TOOLS)
     import urbit_eval as ue
     from noun import bytes_to_atom, from_list
-    arms = SourceFileLoader('selftest_fast_arms', TEST_ARMS).load_module()
-    goldens = SourceFileLoader('selftest_fast_goldens', GOLDEN).load_module()
-    probes = SourceFileLoader('selftest_fast_probes', os.path.join(TOOLS, 'probe-regression')).load_module()
+    arms = load_tool('selftest_fast_arms', TEST_ARMS)
+    goldens = load_tool('selftest_fast_goldens', GOLDEN)
+    probes = load_tool('selftest_fast_probes', os.path.join(TOOLS, 'probe-regression'))
     suite = SimpleNamespace(name='sample')
     for first_lines in (['FAILED sample test-sample', '  original mismatch'], None):
         seen = []
@@ -1212,8 +1310,8 @@ def check_fast_resource_isolation(c, tmp):
     sys.path.insert(0, TOOLS)
     import urbit_eval as ue
     from noun import bytes_to_atom
-    goldens = SourceFileLoader('selftest_split_goldens', GOLDEN).load_module()
-    probes = SourceFileLoader('selftest_split_probes', os.path.join(TOOLS, 'probe-regression')).load_module()
+    goldens = load_tool('selftest_split_goldens', GOLDEN)
+    probes = load_tool('selftest_split_probes', os.path.join(TOOLS, 'probe-regression'))
     cases = goldens.find_cases(CASES, [])[:2]
     seen = []
     def eval_golden(prog, **kwargs):
@@ -1257,7 +1355,7 @@ def check_fast_resource_isolation(c, tmp):
 
 
 def probe_batch_fixture():
-    probes = SourceFileLoader('selftest_batch_probes', os.path.join(TOOLS, 'probe-regression')).load_module()
+    probes = load_tool('selftest_batch_probes', os.path.join(TOOLS, 'probe-regression'))
     # Repeated labels in different groups are valid; module additions stay local.
     items = [
         ('p1', [('/ui/shared/jibb same', '/ui/shared/jibb', '++ main 1\n')]),

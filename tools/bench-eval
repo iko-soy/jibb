@@ -17,6 +17,7 @@ import argparse
 import difflib
 import hashlib
 import importlib.machinery
+import importlib.util
 import json
 import math
 from pathlib import Path
@@ -33,8 +34,10 @@ sys.path.insert(0, str(TOOLS))
 import urbit_eval as ue
 from noun import bytes_to_atom, cue
 
-arms = importlib.machinery.SourceFileLoader(
-    'bench_eval_arms', str(TOOLS / 'test-arms')).load_module()
+_arms_loader = importlib.machinery.SourceFileLoader('bench_eval_arms', str(TOOLS / 'test-arms'))
+arms = importlib.util.module_from_spec(importlib.util.spec_from_file_location(
+    'bench_eval_arms', str(TOOLS / 'test-arms'), loader=_arms_loader))
+_arms_loader.exec_module(arms)
 STAGES = ('startup', 'compiler', 'prefix', 'compile', 'wrapped', 'full')
 BATCH_TAIL = '^-  wain\n%-  zing\n^-  (list wain)\n:~\n'
 

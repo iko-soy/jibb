@@ -741,7 +741,10 @@ MERGE = r"""
 #  vere's jet does, or gives an empty line after it, as the Hoon does;
 #  how many files the desk has; for each file sent with its content,
 #  whether the desk's mark, converting that content from %mime, gives
-#  the stored value; and for the files @@FROM@@ to @@FROM@@ + @@COUNT@@,
+#  the stored value; for each file in @@BIG@@, too big to send, the size
+#  and hash of the %mime its mark makes of the stored value, the bytes
+#  a mount of the desk would hold, or ~ when it has none; and for the
+#  files @@FROM@@ to @@FROM@@ + @@COUNT@@,
 #  the path with [%wain hash] for a %txt file's lines, each with a
 #  newline after it (an empty file's wain is ~, an atom, so this comes
 #  first), [%cord hash] for another cord, or [%other 0].  A hash is the
@@ -760,6 +763,18 @@ MANIFEST = r"""
   =/  tub  .^(tube:clay %cc (weld pre /mime/[(rear pax)]))
   =/  res  (mule |.((tub !>([/text/plain (as-octs:mimes:html c)]))))
   [pax &(?=(%& -.res) =(q.p.res have))]
+=/  big=(list [path (unit [@ud @])])
+  %+  turn  `(list path)`@@BIG@@
+  |=  pax=path
+  :-  pax
+  ?.  .^(? %cu (weld pre pax))  ~
+  =/  res
+    %-  mule
+    |.
+    =/  tub  .^(tube:clay %cc (weld pre /[(rear pax)]/mime))
+    ;;(mime q:(tub .^(vase %cr (weld pre pax))))
+  ?.  ?=(%& -.res)  ~
+  `[p.q.p.res (end [3 8] (shay p.q.p.res q.q.p.res))]
 =/  page=(list [path @tas @])
   %+  turn  (swag [@@FROM@@ @@COUNT@@] all)
   |=  pax=path
@@ -771,7 +786,7 @@ MANIFEST = r"""
   ?@  have  [%cord (end [3 8] (shax have))]
   [%other 0]
 =/  jet=?  =(1 (lent (to-wain:format 'a\0a')))
-(pure:m !>([ud:.^(cass:clay %cw pre) now jet (lent all) conv page]))
+(pure:m !>([ud:.^(cass:clay %cw pre) now jet (lent all) conv big page]))
 """
 
 #  -test /=@@DESK@@=/tests, through the %test thread on %base.
@@ -1184,7 +1199,9 @@ TESTS_HELPERS = r"""::
 
 
 def golden_cases(golden):
-    """[(case name, folder)] for each case folder holding a source.jibb."""
+    """[(case name, folder)] for each case folder, hidden ones aside.  A
+    folder without a readable source.jibb, such as a dangling link into
+    my-app, stops the run (exit status 2), as it does in tools/golden."""
     if not os.path.isdir(golden):
         return []
     cases = []
@@ -1192,9 +1209,9 @@ def golden_cases(golden):
         folder = os.path.join(golden, name)
         if not os.path.isdir(folder) or name.startswith('.'):
             continue
-        if not os.path.isfile(os.path.join(folder, 'source.jibb')):
-            warn('skipping %s: it has no source.jibb' % show(folder))
-            continue
+        problem = golden_case.source_problem(folder)
+        if problem:
+            raise Unable('%s: %s' % (show(folder), problem))
         if not KNOT.match(name):
             warn('skipping %s: %r is not a knot, so it has no Clay path '
                  '(lowercase letters, digits and - . ~ _)' % (show(folder), name))
@@ -1612,13 +1629,15 @@ def generate_tests(golden, source=None, cases=None):
     (turn modules |=(item=[label=@t at=path source=@t] [at.item source.item]))
 =/  prep=(unit iprelude-lowering:jibb)
     (prepare-prelude-with-group-evidence-for-lowering:jibb prelude-source internal-source prelude-group-sources prelude-group-modules prelude-reader-inputs)
-?~  prep  !!
+?~  prep  ~_  leaf+"prelude lowering preparation failed"  !!
 =/  built=jlowering-result:jibb
     (check-jibb-file-for-lowering-prepared:jibb at src external mark-external sources ~[at] ~ u.prep)
-?:  ?=(%| -.built)  !!
+?:  ?=(%| -.built)
+  ~_  leaf+(trip (cat 3 'lowering check failed: ' message.p.built))  !!
 =/  lowered=(each module:jibb-core @t)
     (lower-checked-module:jibb-lower root.p.built)
-?:  ?=(%| -.lowered)  !!
+?:  ?=(%| -.lowered)
+  ~_  leaf+(trip (cat 3 'Core lowering failed: ' p.lowered))  !!
 (print-module:jibb-core p.lowered)
 '''
     if any(golden_case.wants_types(folder) for _, folder in cases):
@@ -1788,7 +1807,7 @@ def commit(ship, desk):
 
 
 MANIFEST_PAGE = 2000    # files per reply; see REPLY_BYTES
-CONV_BYTES = 65536      # bigger files with other marks are only looked for
+CONV_BYTES = 65536      # bigger files with other marks are checked by hash
 
 
 def short_hash(data):
@@ -1814,26 +1833,33 @@ def verify(ship, desk, files):
 
     The ship sends its manifest, a short hash of each file, and Python
     compares: files whose mark stores a cord by the hash of their
-    bytes, %txt files by the hash of their lines, and the rest, which
-    are few and small (desk.bill, sys.kelvin, desk.docket-0), by
-    sending their content to be converted by the desk's own mark.
+    bytes, %txt files by the hash of their lines, the small rest
+    (desk.bill, sys.kelvin, desk.docket-0) by sending their content to
+    be converted by the desk's own mark, and the rest, too big to send
+    (fonts, images), by the size and hash of the %mime their mark makes
+    of the stored file, which must be their bytes.  So every file is
+    checked, and a desk that verifies holds the source.
     """
     by_path = {'/' + '/'.join(clay_path(rel)): rel for rel in files}
-    conv = []
+    conv, big = [], []
     for pax, rel in sorted(by_path.items()):
         mark = clay_path(rel)[-1]
         data = files[rel][0]
-        if mark not in BYTE_MARKS and mark != 'txt' and \
-                len(data) <= CONV_BYTES:
+        if mark in BYTE_MARKS or mark == 'txt':
+            continue
+        if len(data) <= CONV_BYTES:
             conv.append('[%s %s]' % (hoon_path(clay_path(rel)),
                                      hoon_cord(data)))
+        else:
+            big.append(hoon_path(clay_path(rel)))
     now, start, total, desk_files = 'now.bowl', 0, None, {}
     while total is None or start < total:
         noun = ship.thread(fill(
             MANIFEST, DESK=desk, NOW=now, FROM=hoon_ud(start),
             COUNT=hoon_ud(MANIFEST_PAGE),
+            BIG='~[%s]' % ' '.join(big) if big else '~',
             CONV='~[%s]' % ' '.join(conv) if conv else '~'))
-        rev, (da, (jet, (total, (conv_res, page)))) = noun
+        rev, (da, (jet, (total, (conv_res, (big_res, page))))) = noun
         now = '`@da``@`%s' % hoon_ud(da)
         for pax, (kind, val) in items(page):
             desk_files[path_text(pax)] = (text(kind), val)
@@ -1844,6 +1870,8 @@ def verify(ship, desk, files):
     for pax in extra:
         problems.append('%s is on the desk but not in the source' % pax)
     converted = {path_text(p): ok == 0 for p, ok in items(conv_res)}
+    #  [size hash] of a big file's %mime, or None when its mark gave none
+    mimes = {path_text(p): None if u == 0 else u[1] for p, u in items(big_res)}
     for pax, rel in sorted(by_path.items()):
         data, src = files[rel]
         mark = clay_path(rel)[-1]
@@ -1858,8 +1886,12 @@ def verify(ship, desk, files):
                 b''.join(l + b'\n' for l in txt_lines(data, jet)))
         elif pax in converted:
             same = converted[pax]
+        elif mimes.get(pax) is None:
+            problems.append("%s can't be compared with %s: the desk's %%%s "
+                            'mark gives it no %%mime' % (pax, src, mark))
+            continue
         else:
-            continue    # too big to send; it's there
+            same = mimes[pax] == (len(data), short_hash(data))
         if not same:
             problems.append('%s differs from %s' % (pax, src))
     return rev, problems, extra

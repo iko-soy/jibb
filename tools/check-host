@@ -3,6 +3,7 @@
 
 from contextlib import contextmanager
 from importlib.machinery import SourceFileLoader
+import importlib.util
 from pathlib import Path
 import argparse
 import http.cookiejar
@@ -21,7 +22,11 @@ import zlib
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
-shiptool = SourceFileLoader('jibb_ship', str(ROOT / 'tools' / 'ship')).load_module()
+_ship_spec = importlib.util.spec_from_file_location(
+    'jibb_ship', str(ROOT / 'tools' / 'ship'),
+    loader=SourceFileLoader('jibb_ship', str(ROOT / 'tools' / 'ship')))
+shiptool = importlib.util.module_from_spec(_ship_spec)
+_ship_spec.loader.exec_module(shiptool)
 
 DESK = 'jibb-host-fixture'
 BASE = '/apps/' + DESK

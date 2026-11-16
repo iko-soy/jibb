@@ -6,6 +6,20 @@ KNOT = re.compile(r'^[a-z0-9.\-_~]+$')
 TERM = re.compile(r'^[a-z][a-z0-9-]*$')
 
 
+def source_problem(folder):
+    """Why a case folder holds no source.jibb to run, or None.  Both
+    runners fail such a case rather than skip it, so a renamed my-app
+    file can't quietly drop the case that links to it."""
+    filename = os.path.join(folder, 'source.jibb')
+    if os.path.isfile(filename):
+        return None
+    if os.path.islink(filename) and not os.path.exists(filename):
+        return 'source.jibb is a dangling link to %s' % os.readlink(filename)
+    if os.path.lexists(filename):
+        return 'source.jibb is not a file'
+    return 'it has no source.jibb'
+
+
 def source_path(folder):
     """The optional logical /ui path as a Hoon path expression."""
     filename = os.path.join(folder, 'path.txt')

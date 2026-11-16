@@ -13,7 +13,10 @@ with file set to the case's Clay path, /tests/golden/<case>/source/jibb,
 or its logical /ui path from path.txt. Cases with an expect-types: line
 or types.txt also call +golden-types and compare its output with types.txt.
 Cases with an expect-core: line or core.txt also lower the checked tree and
-compare its canonical Core text with core.txt. An optional type-source.jibb
+compare its canonical Core text with core.txt; a case whose tree fails the
+lowering check or lowering crashes, as on the ship. A case folder without
+a source.jibb, such as one whose link into my-app dangles, is an error
+(exit status 2), not a case to skip. An optional type-source.jibb
 supplies the containing module for a fragment;
 type-path.txt and type-exclude-molds.txt select its prelude context.
 It runs the program with `urbit eval`, decodes the jammed result, and
@@ -58,8 +61,8 @@ HARNESS = r"""::  The harness tools/golden writes after the library.  It runs
 ::  each <length>:<bytes>, first jibb-golden and the case count, then
 ::  per case its name, status, tokens, tree, types, Core and module trees.
 ::
-=>  [lib=. ..zuse]
-|^  %+  rap  3
+{subject}
+{prelude-preparation}|^  %+  rap  3
     :~  (fields ~['jibb-golden' '{count}'])
 {runs}
     ==
@@ -219,18 +222,22 @@ class Case:
 
 
 def find_cases(root, globs):
+    """The selected cases: each folder in root, hidden ones aside.  A
+    selected folder without a readable source.jibb, such as a dangling
+    link into my-app, is an error, not a case to skip: tools/ship
+    gen-tests rejects it too."""
     if not os.path.isdir(root):
         raise ue.ToolError('no such folder: %s' % ue.display_path(root))
     cases = []
     for name in sorted(os.listdir(root)):
         folder = os.path.join(root, name)
-        if not os.path.isdir(folder):
-            continue
-        if not os.path.isfile(os.path.join(folder, 'source.jibb')):
-            warn('skipping %s: it has no source.jibb' % ue.display_path(folder))
+        if name.startswith('.') or not os.path.isdir(folder):
             continue
         if globs and not any(fnmatch.fnmatchcase(name, g) for g in globs):
             continue
+        problem = golden_case.source_problem(folder)
+        if problem:
+            raise ue.ToolError('%s: %s' % (ue.display_path(folder), problem))
         cases.append(Case(name, folder))
     return cases
 
@@ -301,30 +308,28 @@ def golden_program(lib_path, cases, debug=True):
     imported = any(c.imports or c.marks for c in cases)
     needs_reader = imported or bool(reader_sources)
     has_excluded = any(c.excluded for c in cases)
-    harness = HARNESS
-    if has_core:
-        core = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-core.hoon'))
-        fact_types = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-fact-types.hoon'))
-        fact_types = '|%\n' + fact_types.split('\n|%\n', 1)[1]
-        lower = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-lower.hoon'))
-        lower = '|%\n' + lower.split('\n|%\n', 1)[1]
-        harness = harness.replace(
-            '=>  [lib=. ..zuse]',
-            '=/  jibb-lib  .\n=/  core-lib\n=>  ..zuse\n' + core +
-            '\n=/  fact-types-lib\n=>  [jibb=jibb-lib ..zuse]\n' + fact_types +
-            '\n=/  lower-lib\n=>  :*  jibb=jibb-lib  jibb-core=core-lib  jibb-fact-types=fact-types-lib  ..zuse\n==\n' +
-            lower + '\n=>  [lib=jibb-lib core-lib=core-lib lower-lib=lower-lib ..zuse]')
-    if needs_reader:
-        reader = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-import.hoon'))
+    #  The harness's subject: the library as lib, and the Core lowerer and
+    #  the importer when cases need them, each built against the ones before.
+    subject = '=>  [lib=. ..zuse]'
+    if has_core or needs_reader:
+        parts, faces = ['=/  jibb-lib  .\n'], ['lib=jibb-lib']
+        if needs_reader:
+            faces.append('reader=reader')
         if has_core:
-            harness = harness.replace(
-                '=>  [lib=jibb-lib core-lib=core-lib lower-lib=lower-lib ..zuse]',
-                '=/  reader\n' + reader +
-                '\n=>  [lib=jibb-lib reader=reader core-lib=core-lib lower-lib=lower-lib ..zuse]')
-        else:
-            harness = harness.replace('=>  [lib=. ..zuse]',
-                                      '=/  jibb-lib  .\n=/  reader\n' + reader +
-                                      '\n=>  [lib=jibb-lib reader=reader ..zuse]')
+            core = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-core.hoon'))
+            fact_types = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-fact-types.hoon'))
+            fact_types = '|%\n' + fact_types.split('\n|%\n', 1)[1]
+            lower = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-lower.hoon'))
+            lower = '|%\n' + lower.split('\n|%\n', 1)[1]
+            parts += ['=/  core-lib\n=>  ..zuse\n', core,
+                      '\n=/  fact-types-lib\n=>  [jibb=jibb-lib ..zuse]\n', fact_types,
+                      '\n=/  lower-lib\n=>  :*  jibb=jibb-lib  jibb-core=core-lib  '
+                      'jibb-fact-types=fact-types-lib  ..zuse\n==\n', lower, '\n']
+            faces += ['core-lib=core-lib', 'lower-lib=lower-lib']
+        if needs_reader:
+            reader = ue.read_text(os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb-import.hoon'))
+            parts += ['=/  reader\n', reader, '\n']
+        subject = ''.join(parts) + '=>  [%s ..zuse]' % ' '.join(faces)
     types_value = ("(golden-types-with-marks:lib type-at type-src "
                   "(import-types imports.metadata) (import-marks marks.metadata imports.metadata))"
                   if has_marks else
@@ -365,15 +370,26 @@ def golden_program(lib_path, cases, debug=True):
     if has_module_types:
         core_check = ('(check-jibb-file-for-lowering-prepared:lib type-at type-src %s %s %s ~[type-at] ~ u.prepared-lowering)'
                       % (surs, marks, modules))
+    #  A case that can't be lowered crashes, as it does on the ship, so
+    #  the failure is never an output --update could write to core.txt.
     core_body = ('=/  built=jlowering-result:lib  %s\n'
-                 '        ?:  ?=(%%| -.built)  (cat 3 \'lowering check failed: \' message.p.built)\n'
+                 '        ?:  ?=(%%| -.built)\n'
+                 '          ~_  leaf+(trip (cat 3 \'lowering check failed: \' message.p.built))  !!\n'
                  '        =/  lowered=(each module:core-lib @t)  (lower-checked-module:lower-lib root.p.built)\n'
-                 '        ?:  ?=(%%| -.lowered)  (cat 3 \'Core lowering failed: \' p.lowered)\n'
+                 '        ?:  ?=(%%| -.lowered)\n'
+                 '          ~_  leaf+(trip (cat 3 \'Core lowering failed: \' p.lowered))  !!\n'
                  '        (print-module:core-lib p.lowered)' % core_check)
     core_value = core_body
     if has_module_types:
-        core_value = "?~  prepared-lowering  'prelude lowering preparation failed'\n        " + core_body
+        #  Prepared once for every case (below); when that failed, prepare
+        #  again here, so the crash shows the preparation's own trace.
+        core_value = ('?~  prepared-lowering\n'
+                      '          ~_  leaf+"prelude lowering preparation failed"\n'
+                      '          ?>  ?=(^ (prepare-prelude-with-group-evidence-for-lowering:lib prelude-source internal-source prelude-group-sources prelude-group-modules prelude-reader-inputs))\n'
+                      '          !!\n'
+                      '        ' + core_body)
     prelude_helper = ''
+    prelude_preparation = ''
     if has_module_types:
         prelude_path = os.path.join(ue.ROOT, 'jibb-dev', 'lib', 'jibb', 'prelude.jibb')
         try:
@@ -404,38 +420,52 @@ def golden_program(lib_path, cases, debug=True):
             ' '.join(ue.cord_literal(p) for p in parts))
         internal_expr = '(rap 3 `(list @t)`~[%s])' % (
             ' '.join(ue.cord_literal(p) for p in internal_parts))
-        prelude_preparation = (
+        preparations = (
             '=/  prepared-prelude\n'
             '  =/  prep  (mule |.((prepare-prelude-with-group-evidence:lib %s %s prelude-group-sources prelude-group-modules prelude-reader-inputs)))\n'
             '  ?:(?=(%%& -.prep) p.prep ~)'
             % (prelude_expr, internal_expr))
         if has_core:
-            prelude_preparation = (
+            preparations = (
                 '=/  prepared-lowering\n'
                 '  =/  prep  (mule |.((prepare-prelude-with-group-evidence-for-lowering:lib %s %s prelude-group-sources prelude-group-modules prelude-reader-inputs)))\n'
                 '  ?:(?=(%%& -.prep) p.prep ~)\n'
-                % (prelude_expr, internal_expr)) + prelude_preparation
+                % (prelude_expr, internal_expr)) + preparations
         #  Under mule: when preparing the prelude crashes, the cases that
         #  need it prepare it again under their own mule and fail with the
         #  trace, and the other cases still run.
-        harness = harness.replace(
-            '|^  %+  rap  3',
+        prelude_preparation = (
             '=/  prelude-group-sources  %s\n'
             '=/  prelude-reader-sources  %s\n'
             '=/  prelude-group-modules  %s\n'
             '=/  prelude-reader-inputs  %s\n'
-            '%s\n'
-            '|^  %%+  rap  3' % (group_expression, inventory_expression, private_expression, reader_expression, prelude_preparation))
-    prog.add(harness.replace('{count}', str(len(cases)))
-                    .replace('{runs}', runs)
-                    .replace('{types-expr}', types_expr if any(c.want_types for c in cases) else "''")
-                    .replace('{core-expr}', core_value if has_core else "''")
-                    .replace('{import-helper}', IMPORT_HELPER if imported else '')
-                    .replace('{modules-expr}', '(module-trees modules.metadata)' if has_modules else "''")
-                    .replace('{module-helper}', MODULE_HELPER if has_modules else '')
-                    .replace('{prelude-helper}', prelude_helper),
-             '(harness)', 'harness')
+            '%s\n' % (group_expression, inventory_expression, private_expression,
+                      reader_expression, preparations))
+    prog.add(fill_harness({
+        'subject': subject,
+        'prelude-preparation': prelude_preparation,
+        'count': str(len(cases)),
+        'runs': runs,
+        'types-expr': types_expr if any(c.want_types for c in cases) else "''",
+        'core-expr': core_value if has_core else "''",
+        'import-helper': IMPORT_HELPER if imported else '',
+        'modules-expr': '(module-trees modules.metadata)' if has_modules else "''",
+        'module-helper': MODULE_HELPER if has_modules else '',
+        'prelude-helper': prelude_helper,
+    }), '(harness)', 'harness')
     return prog
+
+
+def fill_harness(values):
+    """HARNESS with each {slot} replaced by its value, in one pass, so
+    the library and case sources a value holds are never searched for
+    slots themselves."""
+    pattern = re.compile(r'\{(%s)\}' % '|'.join(map(re.escape, values)))
+    slots = set(pattern.findall(HARNESS))
+    if slots != set(values):
+        raise ue.ToolError('the harness slots %s and values %s differ'
+                           % (sorted(slots), sorted(values)))
+    return pattern.sub(lambda m: values[m.group(1)], HARNESS)
 
 
 def parse_fields(data):

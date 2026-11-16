@@ -1,3 +1,5 @@
+mod common;
+
 use jibb::format_source;
 use std::{fs, path::Path};
 
@@ -11,11 +13,31 @@ fn valid_case(about: &Path) -> bool {
         .is_none_or(|line| line.starts_with("expect: parse") || line.starts_with("expect: unclear"))
 }
 
+// Outside a checkout the corpus is missing: the corpus tests then fail
+// rather than pass without reading it, unless JIBB_CLI_SKIP_CORPUS=1.
+#[test]
+fn a_missing_corpus_fails_unless_skipped() {
+    let missing = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/no-such-corpus");
+    let checked = std::panic::catch_unwind(|| common::corpus(&missing));
+    if std::env::var_os("JIBB_CLI_SKIP_CORPUS").is_some_and(|value| value == "1") {
+        assert!(
+            matches!(checked, Ok(false)),
+            "a skipped corpus should be skipped"
+        );
+    } else {
+        assert!(checked.is_err(), "a missing corpus passed unread");
+    }
+    let golden = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tests/golden");
+    if golden.is_dir() {
+        assert!(common::corpus(&golden));
+    }
+}
+
 #[test]
 fn golden_syntax_and_formatting_corpus() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
     let golden = root.join("tests/golden");
-    if !golden.is_dir() {
+    if !common::corpus(&golden) {
         return;
     }
 
@@ -55,7 +77,7 @@ fn golden_syntax_and_formatting_corpus() {
 #[test]
 fn doc_examples_are_canonical() {
     let golden = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tests/golden");
-    if !golden.is_dir() {
+    if !common::corpus(&golden) {
         return;
     }
     let mut checked = 0;
@@ -83,7 +105,7 @@ fn app_and_prelude_sources_format_and_converge() {
     let mut files = Vec::new();
     for directory in ["my-app", "jibb-dev"] {
         let directory = root.join(directory);
-        if !directory.is_dir() {
+        if !common::corpus(&directory) {
             return;
         }
         collect_jibb(&directory, &mut files);

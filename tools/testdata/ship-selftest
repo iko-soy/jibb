@@ -7,7 +7,8 @@
 
 The generator checks need no ship: tools/ship gen-tests on no cases, on
 the cases in tools/testdata/ship-golden, on cases whose names clash or
-aren't knots, and on a few hundred made-up cases, and --check.
+aren't knots or that lack a source.jibb, and on a few hundred made-up
+cases, and --check.
 
 The ship checks run tools/ship test --stub --golden on the running fake
 ship: the cases in tools/testdata/ship-golden, whose about.txt files
@@ -589,7 +590,6 @@ def generator_checks(tmp):
     clash = os.path.join(tmp, 'clash')
     for case in ('a.b', 'a_b', 'a-b', 'Upper', 'has space'):
         write_case(clash, case, b'++ x\n')
-    os.makedirs(os.path.join(clash, 'no-source'))
     res = subprocess.run(
         [SHIP, 'gen-tests', '--golden', clash, '--out',
          os.path.join(tmp, 'clash.hoon')], capture_output=True, text=True)
@@ -597,11 +597,30 @@ def generator_checks(tmp):
         got = [a for a, _ in arms(f.read())]
     check('clashing names get numbered arms: a-b, a.b, a_b',
           got == ['test-a-b', 'test-a-b-2', 'test-a-b-3'], got)
-    check('names that are not knots, and folders without source.jibb, '
-          'are skipped with a warning',
+    check('names that are not knots are skipped with a warning',
           res.returncode == 0 and "'Upper' is not a knot" in res.stderr and
-          "'has space' is not a knot" in res.stderr and
-          'no-source: it has no source.jibb' in res.stderr, res.stderr)
+          "'has space' is not a knot" in res.stderr, res.stderr)
+
+    # A case folder without a readable source.jibb stops the generator, as
+    # it stops tools/golden: it must not silently drop out of the tests.
+    missing = os.path.join(tmp, 'missing')
+    write_case(missing, 'good', b'++ x\n')
+    os.makedirs(os.path.join(missing, 'no-source'))
+    out = os.path.join(tmp, 'missing.hoon')
+    res = subprocess.run([SHIP, 'gen-tests', '--golden', missing, '--out', out],
+                         capture_output=True, text=True)
+    check('a folder without source.jibb stops gen-tests rather than being skipped',
+          res.returncode == 2 and 'no-source: it has no source.jibb' in res.stderr and
+          not os.path.exists(out), (res.returncode, res.stderr))
+    os.rmdir(os.path.join(missing, 'no-source'))
+    os.makedirs(os.path.join(missing, 'linked'))
+    os.symlink('../../my-app/ui/renamed.jibb', os.path.join(missing, 'linked', 'source.jibb'))
+    res = subprocess.run([SHIP, 'gen-tests', '--golden', missing, '--out', out],
+                         capture_output=True, text=True)
+    check('a dangling source.jibb link stops gen-tests rather than being skipped',
+          res.returncode == 2 and 'linked: source.jibb is a dangling link to '
+          '../../my-app/ui/renamed.jibb' in res.stderr and not os.path.exists(out),
+          (res.returncode, res.stderr))
 
     many = os.path.join(tmp, 'many')
     for i in range(400):
