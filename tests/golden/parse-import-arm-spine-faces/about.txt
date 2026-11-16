@@ -1,0 +1,4 @@
+source: Grammar, Imports: "An imported Hoon record with duplicate field names is an error where used"; docs/compiler.md, Importing Hoon types: each `$:` in the source is a record of its own, as the written-record check reads Jibb's; AGENTS.md: "Fail closed when a construct is unsupported, with a diagnostic naming the construct and its source site"
+tests: a /sur mold written with `++` and `,`, whose source the reader doesn't read as a record, and whose type graph repeats a field only along a spine of cells: a nested record could explain that, and nothing shows which, so the import fails closed as unverified where `rec.fixture` is used, naming the field
+expect: parses
+expect-types: full checker result

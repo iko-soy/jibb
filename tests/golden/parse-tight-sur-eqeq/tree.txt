@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-sur-eqeq/source.jibb:1:9: expected the end of the line, found `=`; the closer `==` is left out: indentation covers it
+/-  todo==
+        ^

@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-sur-dot/source.jibb:1:9: expected the end of the line, found `.`; a `.` in a wing is followed by a name
+/-  todo.
+        ^

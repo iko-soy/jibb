@@ -1,0 +1,11 @@
+1:1 glyph /-
+1:4 name fixture
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name keep
+2:9 glyph |=
+2:12 name x
+2:13 tight glyph =
+2:14 tight wing rec.fixture
+2:26 name x
+2:27 NEWLINE

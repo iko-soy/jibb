@@ -2,8 +2,10 @@ The actual Hoon source includes local aliases, nested cells, equal and unequal
 singleton nouns, open auras and three-/four-case unions. The reader reports a
 definite overlap only when its bounded structural witness finds a shared noun;
 otherwise ordinary source-aware disjointness checks can still recover a union,
-or the outcome remains unsupported. The checker report is partial and points
-to the Jibb mold use; source-case positions are unavailable here.
+or the outcome remains unsupported. Atom molds share a noun whatever their
+auras unless both are distinct constants, so `different-aura`'s `@p` and `@t`
+cases overlap. The checker report is partial and points to the Jibb mold use;
+source-case positions are unavailable here.
 
 Low-level controls exercise void at the root and in a cell, opaque references
 and applications, named and faced nodes, nested alternatives, source/tag

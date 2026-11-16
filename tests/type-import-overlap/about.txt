@@ -5,8 +5,9 @@ forks across the original cases. It compares singleton noun values regardless
 of aura. Some overlap shapes remain unsupported.
 
 The mixed-aura zero and nonzero controls prove actual overlap. Boolean tails
-share loobean nouns, and `~` is the null singleton, which overlaps `@t`; unequal,
-opaque and other unproven payloads remain unsupported. The structured diagnostic
+share loobean nouns, and `~` is the null singleton, which overlaps `@t`. Atom
+molds share every atom whatever their auras, so `different-tail`'s `@t` and `@p`
+tails overlap too; opaque and other unproven payloads remain unsupported. The structured diagnostic
 bridge reports a definite overlap at the Jibb use site, while the disjoint
 case infers and an unresolved case stays unsupported. The Hoon source case
 locations are unavailable in this fixture and are not claimed. This is a

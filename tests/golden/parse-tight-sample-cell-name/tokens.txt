@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-sample-cell-name/source.jibb:1:14: the closer `==` is left out: indentation covers it
+++ x |= [a b==]
+             ^

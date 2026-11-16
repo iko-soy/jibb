@@ -1,0 +1,4 @@
+source: Grammar, Imports: "An imported Hoon record with duplicate field names is an error where used"; docs/compiler.md, Importing Hoon types: each `$:` in the source is a record of its own, as the written-record check reads Jibb's
+tests: a /sur record whose nested record repeats a field of its own: `[a=@t [b=@ud a=@p]]` is two records, as Jibb reads its own `[a=@ [b=@ a=@]]`, and imports, though Hoon's type graph merges the nested record's cells into its parent's; a referenced record is a scope of its own too
+expect: parses
+expect-types: full checker result

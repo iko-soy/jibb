@@ -1,0 +1,3 @@
+source: library note 2.0 and docs/compiler.md, Positions and errors: "Every error points at the first character where the text stops being the start of any valid module"; Grammar, EBNF: `import = "/%" term`, and `term` holds no loobean
+tests: a `/%` import whose term begins `%.`: a mark takes a term, and `%.` begins only a loobean, so the `.` already fails, as it does in `/%  %.y`
+expect: error at 1:6 — the `.`, not the `x` past it where a loobean would fail

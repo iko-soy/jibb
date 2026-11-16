@@ -76,30 +76,32 @@
 ::  crosses a line break, and only layout tokens join lines.
 ::
 ::  2.0 Errors. +layout never fails. Where the text breaks a rule of this
-::  section, it emits one error token, [%error msg from c], at the first
+::  section, it emits one error token, [%error msg from c d], at the first
 ::  character that breaks it, and stops reading. from is where the text it
-::  was reading began, c is that text's first character, and the token is
-::  tight when that text follows the previous token with no space. Where
-::  the lexer has already cut a token from the front of that text, as 100
-::  from 1000, the parser takes that token before it reaches the error, so
-::  the text the error token stands for begins at the error: from is the
-::  error's own place, and c the character there (2.8, +err-on). The
-::  parser accepts no error token, so it reports whichever comes first,
-::  its own error or this one (section 3, Errors). Every error, from
-::  either stage, points at the first character where the text stops being
-::  the start of any valid module: everything before it could still be
-::  right. Hoon's parser reports errors the same way, and the golden
-::  corpus's expect lines assume it. It also puts `++ x ]` on line 1
-::  before a bad string on line 9, which a lexer that failed first would
-::  report instead. The positions below follow from it, for text that
-::  could begin a token where it stands; where the parser's place can't
-::  begin with c at all, the parser moves the error back to from, as
-::  `++ x @sd` at the @ (section 3, Errors). Spaces and comments emit
+::  was reading began, c and d are that text's first two characters (0
+::  past the end of the text), and the token is tight when that text
+::  follows the previous token with no space. Where the lexer has already
+::  cut a token from the front of that text, as 100 from 1000, the parser
+::  takes that token before it reaches the error, so the text the error
+::  token stands for begins at the error: from is the error's own place,
+::  and c the character there (2.8, +err-on); a bare ~ that the run goes
+::  on from as no literal is no token of its own (+literal). The parser
+::  accepts no error token, so it reports whichever comes first, its own
+::  error or this one (section 3, Errors). Every error, from either stage,
+::  points at the first character where the text stops being the start of
+::  any valid module: everything before it could still be right. Hoon's
+::  parser reports errors the same way, and the golden corpus's expect
+::  lines assume it. It also puts `++ x ]` on line 1 before a bad string on
+::  line 9, which a lexer that failed first would report instead. The
+::  positions below follow from it, for text that could begin a token
+::  where it stands; where the parser's place can't begin with c at all,
+::  the parser moves the error back to from, as `++ x @sd` at the @, and
+::  where it can begin with c but nothing there goes on with d, to d, as
+::  `/%  %.x` at the . (section 3, Errors). Spaces and comments emit
 ::  nothing (2.3, 2.6), so where a line ends before what it needs, the
-::  error is just past the line's last token, not at its trailing
-::  spaces or comment: `++ x ^-  :: c` above a deeper line fails at 1:8
-::  (section 3, Errors). Messages quote code in backticks, as the
-::  parser's do.
+::  error is just past the line's last token, not at its trailing spaces
+::  or comment: `++ x ^-  :: c` above a deeper line fails at 1:8 (section
+::  3, Errors). Messages quote code in backticks, as the parser's do.
 ::
 ::  2.1 Lines. The text is split at every \0a. A final \0a ends the last
 ::  line rather than starting an empty one. Lines are numbered from 1.
@@ -348,8 +350,13 @@
 ::      x, and ~sampel-palnez at the z. The error token's from is the
 ::      error's own place, not the run's start, since the parser has
 ::      taken the run's first part as a token by the time it reaches the
-::      error (2.0, +err-on): so `+$ x ~x` fails at the x too, the ~
-::      being a mold, and `+$ x %1.0` at 1:10, as `++ x %1.0` does.
+::      error (2.0, +err-on): so `+$ x %1.0` fails at 1:10, as `++ x
+::      %1.0` does. A part that is only the ~, read as null while the
+::      run goes on, is no token, though: the error token's text begins
+::      at the ~, where any place that takes a ~ literal keeps the error,
+::      as `++ x ~2026.1.x` at the x, past the run's last dot, while one
+::      that takes ~ only alone puts it just past the ~ (+fail-in-then):
+::      `+$ x ~x` fails at the x, and `+$ x ~2026.1.x` at the 2.
 ::  The token is [%lit [form aura val txt]]: form names the literal rule
 ::  that matched, aura and val are the dime Hoon's parser gives, and txt
 ::  is the literal as written. A numeric term's decimal is read as a
@@ -379,8 +386,13 @@
 ::  `{…}`", and so is a {; inside a string, :: is text (Decisions). A
 ::  line that ends inside a string or an interpolation is an error at
 ::  its end, "this string has no closing `\"` on its line" or "this `{`
-::  has no `}` on its line". Token texts hold the decoded text. Spaces
-::  after { and before } are allowed, as after any opener (Decisions).
+::  has no `}` on its line". Token texts hold the decoded text, a cord
+::  of its bytes in order, as Hoon's cord literal reads it: "a\00b" is
+::  'a\00b', three bytes. A cord is an atom, and no atom ends in a zero
+::  byte, so zero bytes at the end of a text are lost, as in Hoon, where
+::  'a\00' is 'a': "a\00" is "a", and in "a\00{b}" the text before the
+::  { is 'a'. Spaces after { and before } are allowed, as after any
+::  opener (Decisions).
 ::
 ::  2.10 What fails here. Bad characters (2.2), an indented first line and
 ::  a dedent to no open level (2.4), characters that start no token or a
@@ -403,7 +415,7 @@
 ::
 ::    ;<  [s=shape after=(list token)]  then  (read-mold ts)
 ::    ;<  [e=expr more=(list token)]  then
-::      (read-expr-or-body "the mold" after)
+::      (read-expr-or-body fin "the mold" after (mold-can s))
 ::    [%& [%cast [beg.at.ket end:(span-of e)] s e] more]
 ::
 ::  Why: after the layout pass the grammar is LL(2). Each choice is made by
@@ -659,19 +671,29 @@
 ::      begin with. Then at that character, the lexer's message after
 ::      the parser's (+moved): `++ x @sd` is "expected an expression,
 ::      found `@`; signed and floating-point auras are left out of Jibb"
-::      at the @, while `+$ x @sd` fails at the s. The place includes
-::      what could still go on before it: after a call's operand and a
-::      space, another operand, so `++ x a ?:` fails at the ? and `++ x
-::      a |%` at the % (+read-operands), as `++ x !! |%` does, !! being
-::      an operand; after a mold or an import that ends a line, nothing,
-::      so `+$ x @ |%` fails at the | (+bad-end-in), and so after an
-::      open mold bracket's line's one item; tight after an item, a
-::      closer, or after a name the ( . + or = of a change, wing, pair
-::      or face (+tight-error, which doesn't look at what the item was,
-::      though it takes no = after a call's operand). A : stays where
-::      the lexer put it, since it could begin a comment. An error token
-::      after a space or on a later line, where a tight form needed its
-::      next token, comes after the tight form's error (+fail-space).
+::      at the @, while `+$ x @sd` fails at the s. Where the place can
+::      begin with that character but take no text that goes on with the
+::      next, at the next (+fail-in-then): a mark takes a term, so
+::      `/%  %.x` fails at the ., and a mold's ~ is null alone, so
+::      `+$ x ~2026.1.x` fails at the 2. The place includes what could
+::      still go on before it: after a call's operand and a space,
+::      another operand, so `++ x a ?:` fails at the ? and `++ x a |%`
+::      at the % (+read-operands), as `++ x !! |%` does, !! being an
+::      operand; after a mold or an import that ends a line, nothing, so
+::      `+$ x @ |%` fails at the | (+bad-end-in), and so after an open
+::      mold bracket's line's one item; tight after an item, a closer,
+::      and after a name the ( . + or = of a change, wing, pair or face
+::      where it can go there (+tight-error-in): the = only where a face
+::      could begin, after a tuple's unnamed name, a sample's bound name
+::      or a cell mold's bare one, so `++ x [1 2==]`, `+$ x [a=@]==` and
+::      `++ x ~[a==]` fail at the first =, `++ x [a==1]` and `++ x |=
+::      a==` at the second; the . only where a wing could go on, after a
+::      name in an expression or a mold, so `/-  todo.` and a pattern's
+::      `[a.` fail at the ., `++ x foo.` and `^- foo.` at the line's end.
+::      A : stays where the lexer put it, since it could begin a comment.
+::      An error token after a space or on a later line, where a tight
+::      form needed its next token, comes after the tight form's error
+::      (+fail-space).
 ::    - At layout tokens followed by an error token whose text begins
 ::      the line, both errors are at the line's start, and the lexer's
 ::      message, about that text, says more: a line `==` that closes a
@@ -1013,7 +1035,7 @@
       [%knot p=@ta]                                     ::  path segment
       [%aura p=@ta]                                     ::  @ud as 'ud', @ as ''
       [%tvar p=@t]                                      ::  M
-      [%error p=tape from=loc c=@]                      ::  2.0: what broke
+      [%error p=tape from=loc c=@ d=@]                  ::  2.0: what broke
   ==
 ::
 ::  +glyph: a token that is its text, and the layout tokens
@@ -1353,22 +1375,27 @@
   ::  +err: the error token, at column c of this line (2.0)
   ::
   ::    It also records where the text it was reading began, from, and
-  ::    that text's first character: the parser moves the error there
-  ::    when the place it is in can't begin with that character (section
-  ::    3, Errors). Like any token, it is tight when that text follows the
-  ::    last token with no space.
+  ::    that text's first two characters: the parser moves the error there
+  ::    when the place it is in can't begin with the first, or to the
+  ::    second when it can't go on with that one (section 3, Errors). Like
+  ::    any token, it is tight when that text follows the last token with
+  ::    no space.
   ::
   ++  err
     |=  [c=@ud msg=tape]
     ^+  cor
-    (err-from c msg [lin col] ?~(cs 0 i.cs))
+    (err-from c msg [lin col] cs)
   ::
-  ::  +err-from: +err, where the text began at from with first
+  ::  +err-from: +err, where the text it was reading began at from, as
+  ::  text from there
   ::
   ++  err-from
-    |=  [c=@ud msg=tape from=loc first=@]
+    |=  [c=@ud msg=tape from=loc text=tape]
     ^+  cor
-    cor(out [[[[lin c] [lin c]] =(from pend) [%error msg from first]] out])
+    =/  first=@  ?~(text 0 i.text)
+    =/  second=@  ?~(text 0 ?~(t.text 0 i.t.text))
+    =/  x=lexeme  [%error msg from first second]
+    cor(out [[[[lin c] [lin c]] =(from pend) x] out])
   ::
   ::  +err-on: +err after a token cut from the front of the text that
   ::  fails, as 100 from 1000 or %1 from %1.0: the parser has taken that
@@ -1381,8 +1408,7 @@
     |=  [c=@ud msg=tape]
     ^+  cor
     ?:  (lth c col)  (err c msg)
-    =/  rest=tape  (slag (sub c col) cs)
-    (err-from c msg [lin c] ?~(rest 0 i.rest))
+    (err-from c msg [lin c] (slag (sub c col) cs))
   ::
   ::  +put: a token from beg to end on this line, with rest the text
   ::  after it, which starts at end
@@ -1620,7 +1646,7 @@
     =/  lex=lexeme
       [%lit %term %ud val.red (crip ['%' (scag used.red run)])]
     ?:  =(used.red n)  (emit +(n) lex)
-    ?:  =(0 used.red)  (err-from at.red term-msg [lin col] '%')
+    ?:  =(0 used.red)  (err-from at.red term-msg [lin col] cs)
     (err-on:(emit +(used.red) lex) at.red term-msg)
   ::
   ::  +name: a name, or a wing, names joined by dots (2.6)
@@ -1731,13 +1757,27 @@
     =?  at  &(=('~' a) (is-lower b) ?=(?(%n %p) p.p.con))
       =/  dur=@ud  ?:(|(=('d' b) =('h' b) =('m' b) =('s' b)) 2 1)
       (min at (add col (max dur (ship-stop run))))
-    ::  the run's first part is a token, which the parser takes before
-    ::  it reaches the error, so the error token begins at the error
+    ::  a bare ~ that nuck:so reads alone, as null, while the run goes on
+    ::  as a date, a ship or another ~ literal would, is no token of its
+    ::  own: the error token's text begins at the ~, so where a place
+    ::  takes ~ only alone, as a mold does, the error is at what follows
+    ::  it (+fail-in-then), as for a whole literal the place can't take:
+    ::  `+$ x ~2026.1.x` fails at 1:7, as `+$ x ~2026.1.1` does
+    ?:  &(=(%n p.p.con) =(1 used))  (err at (literal-msg run p.p.con))
+    ::  else the run's first part is a token, which the parser takes
+    ::  before it reaches the error, so the error token begins at the error
     (err-on:(emit used lex) at (literal-msg run p.p.con))
   ::
   ::  +text: a string's text, from its opening " or the } that closes
   ::  an interpolation, through the " or { that ends it (2.9). mid: it
   ::  resumes after a }, so it is str-mid or str-tail, not str-head or str.
+  ::
+  ::    acc holds the text's bytes, one per element, and rep packs them
+  ::    a byte each, so an escape such as \00 writes its byte, as Hoon's
+  ::    cord literal 'a\00b' does; crip would drop it, since rap packs
+  ::    each element in as many bytes as it needs, and 0 needs none. A
+  ::    zero byte at the text's end is lost, as in Hoon's 'a\00', which
+  ::    is 'a': no atom ends in a zero byte (2.9).
   ::
   ++  text
     |=  mid=?
@@ -1751,10 +1791,10 @@
       (err at "this string has no closing `\"` on its line")
     =/  ch=@  i.rest
     ?:  =('"' ch)
-      =/  txt=@t  (crip (flop acc))
+      =/  txt=@t  (rep 3 (flop acc))
       (put beg [lin +(at)] ?:(mid [%str-tail txt] [%str txt]) t.rest)
     ?:  =('{' ch)
-      =/  txt=@t  (crip (flop acc))
+      =/  txt=@t  (rep 3 (flop acc))
       =>  (put beg [lin +(at)] ?:(mid [%str-mid txt] [%str-head txt]) t.rest)
       cor(dep +(dep))
     ?:  =('\\' ch)
@@ -1831,8 +1871,10 @@
 ::    an operand       a-z 0-9 " ( [ ~ % / ` | !
 ::    a mold           a-z A-Z @ * ! ? ~ % / ( [ $ _
 ::    a pattern        a-z 0-9 " ~ % * [
-::  and what may go tight after an operand: . ( + = after a name, a
-::  closer ) ] }, or the : of a comment
+::  and what may go tight after an item: a closer ) ] }, or the : of a
+::  comment, after anything (shut-mask); and after a name, the ( . + or =
+::  of a change, a wing, a pair or a face (after-mask), where each can go
+::  there (section 3, Errors)
 ::
 ++  expr-mask     0x57ff.ffff.4800.0000.83ff.8126.0000.0000
 ++  operand-mask  0x57ff.ffff.0800.0000.03ff.8126.0000.0000
@@ -1840,6 +1882,10 @@
 ++  bar-mask      0x1000.0000.0000.0000.0000.0000.0000.0000
 ++  pattern-mask  0x47ff.fffe.0800.0000.03ff.0424.0000.0000
 ++  after-mask    0x2000.0000.2000.0000.2400.4b00.0000.0000
+++  shut-mask     0x2000.0000.2000.0000.0400.0200.0000.0000   ::  ) ] } :
+++  dot-mask      0x4000.0000.0000                            ::  .
+::  what may follow the % of a term: a-z 0-9 & | $
+++  term-mask     0x17ff.fffe.0000.0000.03ff.0050.0000.0000
 ++  plus-mask     0x800.0000.0000                            ::  +
 ++  cen-mask      0x20.0000.0000                             ::  %
 ++  fas-mask      0x8000.0000.0000                           ::  /
@@ -2585,6 +2631,31 @@
   =/  e=[%| p=error]  (fail file toks want)
   e(col.p (add n col.p.e))
 ::
+::  +fail-in-then: +fail-in where, after its first character first, the
+::  place goes on only with a character of the mask then
+::
+::    The layout pass reads text as any place could take it, so it fails
+::    %.x past the ., which a loobean could take. Where an error token's
+::    text begins with first and its error is past that text's second
+::    character, d, which the place can't take after first, the error
+::    moves to d, the place's want before the layout pass's message, as
+::    for a token the place can't take (+prefix): `/%  %.x` fails at the
+::    . with "expected a mark's term, as `%todo-action`, found `%.`; the
+::    loobeans are `%.y` and `%.n`", as `/%  %.y` fails there, and
+::    `+$ x ~2026.1.x` at the 2, as `+$ x ~2026.1.1` does.
+::
+++  fail-in-then
+  |=  [file=path toks=(list token) want=tape can=@ first=@ then=@]
+  ^-  [%| p=error]
+  ?.  ?&  ?=([[* * [%error *]] *] toks)
+          =(first c.lex.i.toks)
+          !(in d.lex.i.toks then)
+          (gth col.beg.at.i.toks +(col.from.lex.i.toks))
+      ==
+    (fail-in file toks want can)
+  =*  x  lex.i.toks
+  [%| file line.from.x +(col.from.x) "expected {want}, found `{[c.x d.x ~]}`; {p.x}"]
+::
 ::  +prefix: how many of the first characters of a token that a place
 ::  can't take could still begin it, the place beginning with a
 ::  character of the mask can (+fail-in)
@@ -2692,21 +2763,18 @@
   ?^  (lexer-error file toks)  e
   e(msg.p (weld msg.p.e "; {why}"))
 ::
-::  +tight-error: the error at an error token tight after an operand or
-::  an item, if its text's first character can't go there: the layout
-::  pass's message, at that character (+fail-in)
+::  +tight-error-in: the error at an error token tight after an operand
+::  or an item, if its text's first character can't go there, can being
+::  what may: the layout pass's message, at that character (+fail-in)
 ::
-::    What may go tight after an item is a closer, a comment's :, or,
-::    after a name, the ( . + or = of a change, a wing, a pair or a face
-::    (after-mask, which doesn't look at what the item was).
-::
-++  tight-error
-  |=  [file=path toks=(list token)]
-  ^-  (unit error)
-  (tight-error-in file toks after-mask)
-::
-::  +tight-error-in: +tight-error where what may go tight is can, as no
-::  = goes tight after a call's operand, which takes no face
+::    What may go tight after an item is a closer or a comment's :, and
+::    after a name the ( . + or = of a change, a wing, a pair or a face,
+::    where each can go (the +-can arms below): an = goes only where a
+::    face could begin, as after [a, not after [1 or a call's operand; a
+::    . only where a wing could go on, as in an expression or a mold, not
+::    in a pattern or after an import's name. So `++ x [1 2==]` fails at
+::    the first =, as no face follows the 2, while `++ x [a==1]` fails
+::    at the second, after [a= (section 3, Errors).
 ::
 ++  tight-error-in
   |=  [file=path toks=(list token) can=@]
@@ -2714,6 +2782,70 @@
   ?.  ?=([[* %& [%error *]] *] toks)  ~
   ?:  (in c.lex.i.toks can)  ~
   `(moved file "a space between items" i.toks)
+::
+::  +expr-can: what may go tight after expression e on its line: a closer
+::  or a comment's :, and the . of a wing where its last name could go on
+::
+++  expr-can
+  |=  e=expr
+  ^-  @
+  ?+  -.e  shut-mask
+    %wing  (con shut-mask dot-mask)
+    %pair  $(e val.e)
+    %unit  $(e val.e)
+    %call  ?~(args.e shut-mask $(e (rear args.e)))
+    %cast  $(e val.e)
+    %gate  $(e body.e)
+  ==
+::
+::  +mold-can: what may go tight after mold s: a closer or a comment's :,
+::  and after a name the . of a wing
+::
+++  mold-can
+  |=  s=shape
+  ^-  @
+  ?.  ?=(%ref -.s)  shut-mask
+  (con shut-mask dot-mask)
+::
+::  +field-can: what may go tight after a cell mold's field f: as after its
+::  mold, and the = of a face after a bare name; nothing goes on a pun
+::
+++  field-can
+  |=  f=field
+  ^-  @
+  ?-  -.f
+    %pun   shut-mask
+    %face  (mold-can shape.f)
+    %bare  ?.  ?=([%ref * [@ ~]] shape.f)  (mold-can shape.f)
+           (con (mold-can shape.f) tis-mask)
+  ==
+::
+::  +sample-can: what may go tight after a gate's sample s, or a cell
+::  sample's item: after a bare name, which binds, the = of a face or the
+::  . of a wing, which would make it a mold; after a mold, as after it
+::
+++  sample-can
+  |=  s=sample
+  ^-  @
+  ?-  -.s
+    %bind  :(con shut-mask dot-mask tis-mask)
+    %pun   shut-mask
+    %cell  shut-mask
+    %face  (mold-can shape.s)
+    %bare  (mold-can shape.s)
+  ==
+::
+::  +def-tight: what may go tight after definition d on its line
+::
+++  def-tight
+  |=  d=def
+  ^-  @
+  ?-  -.d
+    %value  (expr-can val.d)
+    %mold
+      ?:  ?=(%generic -.shape.d)  (mold-can body.shape.d)
+      (mold-can shape.d)
+  ==
 ::
 ::  +moved: an error token's error, moved to the first character of the
 ::  text it was reading, which can't go where it is (+fail-in): "expected
@@ -2847,6 +2979,16 @@
 ::
 +$  slot  [at=span face=(list term) val=expr]
 ::
+::  +item-can: what may go tight after item i of a bracket of kind (+tight-
+::  error-in): after its value, and the = of a face after a tuple's name
+::
+++  item-can
+  |=  [kind=?(%tuple %list %change) i=slot]
+  ^-  @
+  =/  can=@  (expr-can val.i)
+  ?.  &(?=(%tuple kind) ?=(~ face.i) ?=([%wing * [@ ~]] val.i))  can
+  (con can tis-mask)
+::
 ::  +bracket-node: a tuple, list or change from its items, ending at fin
 ::
 ++  bracket-node
@@ -2909,6 +3051,14 @@
     ^-  [%| p=error]
     (fail-in file ts want can)
   ::
+  ::  +bad-in-then: +bad-in where, after its first character first, the
+  ::  place goes on only with a character of then (+fail-in-then)
+  ::
+  ++  bad-in-then
+    |=  [ts=(list token) want=tape can=@ first=@ then=@]
+    ^-  [%| p=error]
+    (fail-in-then file ts want can first then)
+  ::
   ::  +bad-in-why: +bad-in with a hint (+fail-in-why)
   ::
   ++  bad-in-why
@@ -2943,15 +3093,17 @@
   ++  bad-end
     |=  ts=(list token)
     ^-  [%| p=error]
-    (bad-end-in ts operand-mask)
+    (bad-end-in ts operand-mask shut-mask)
   ::
   ::  +bad-end-in: +bad-end after a construct that text beginning with
-  ::  a character of the mask can could still go on, as more operands go
-  ::  on a call; at an error token whose text can't, at that text's
-  ::  start (+fail-in): +$ x @ ?: fails at the ?
+  ::  a character of the mask can could still go on after a space, as
+  ::  more operands go on a call, or of tight right after its last token,
+  ::  as a wing's . after a mold's name (+tight-error-in); at an error
+  ::  token whose text can't, at that text's start (+fail-in): +$ x @ ?:
+  ::  fails at the ?, and +$ x [a=@]== at the first =
   ::
   ++  bad-end-in
-    |=  [ts=(list token) can=@]
+    |=  [ts=(list token) can=@ tight=@]
     ^-  [%| p=error]
     =/  want=tape  "the end of the line"
     ?:  ?=([[* * %indent] *] ts)
@@ -2961,37 +3113,45 @@
     ?:  &(?=(^ ts) (stray i.ts))
       (bad-why ts want "this {(show-found i.ts)} closes no bracket")
     ?.  ?=([[* * [%error *]] *] ts)  (bad ts want)
-    =/  ok=@  ?:(tight.i.ts after-mask can)
+    =/  ok=@  ?:(tight.i.ts tight can)
     ?:  |(=(':' c.lex.i.ts) (in c.lex.i.ts ok))  (bad ts want)
     [%| (moved file want i.ts)]
   ::
   ::  +no-gap: a token tight where a space goes, after a rune, a name, a
-  ::  sample or a pattern; at an error token, whose text can't go tight
-  ::  there unless it is a comment's :, at that text's start (+fail-in)
+  ::  sample, a mold or a pattern; at an error token, whose text can't go
+  ::  tight there unless it is a comment's : or a character of can, which
+  ::  could go on the sample or the mold, as the = of `|= a=` or the . of
+  ::  `^- foo.`, at that text's start (+fail-in)
   ::
   ++  no-gap
-    |=  [ts=(list token) want=tape]
+    |=  [ts=(list token) want=tape can=@]
     ^-  [%| p=error]
-    ?.  &(?=([[* * [%error *]] *] ts) !=(':' c.lex.i.ts))  (bad ts want)
+    ?.  ?&  ?=([[* * [%error *]] *] ts)
+            !=(':' c.lex.i.ts)
+            !(in c.lex.i.ts can)
+        ==
+      (bad ts want)
     [%| (moved file want i.ts)]
   ::
-  ::  +no-space: a token tight after an item, where a space goes
+  ::  +no-space: a token tight after an item, where a space goes, can
+  ::  being what may go tight after that item (+tight-error-in)
   ::
   ++  no-space
-    |=  ts=(list token)
+    |=  [ts=(list token) can=@]
     ^-  [%| p=error]
-    =/  te=(unit error)  (tight-error file ts)
+    =/  te=(unit error)  (tight-error-in file ts can)
     ?^  te  [%| u.te]
     ?.  ?=([[* * %'='] *] ts)  (bad ts "a space between items")
     %^  bad-why  ts  "a space between items"
     "`name=value` goes in a cell, as [a=1], or a change, as m(a=1)"
   ::
-  ::  +no-space-pattern: +no-space in a cell pattern
+  ::  +no-space-pattern: +no-space in a cell pattern, where nothing goes
+  ::  on a pattern: its names bind, so take no `.` or `=`
   ::
   ++  no-space-pattern
     |=  ts=(list token)
     ^-  [%| p=error]
-    ?.  ?=([[* * %'='] *] ts)  (no-space ts)
+    ?.  ?=([[* * %'='] *] ts)  (no-space ts shut-mask)
     %^  bad-why  ts  "a space between items"
     "patterns take no `name=`: a bare name binds, as [a b]"
   ::
@@ -3048,6 +3208,20 @@
     ^-  [%| p=error]
     (unclosed-want (closing op close) ts)
   ::
+  ::  +unclosed-tight: +unclosed after the bracket's last part, where an
+  ::  error token tight after it whose text can't go on that part, can
+  ::  being what may (+tight-error-in), fails at that text's start, as
+  ::  `$-(a b==` at its first = (+moved)
+  ::
+  ++  unclosed-tight
+    |=  [op=token close=tape ts=(list token) can=@]
+    ^-  [%| p=error]
+    ?.  ?&  ?=([[* %& [%error *]] *] ts)
+            !(in c.lex.i.ts can)
+        ==
+      (unclosed op close ts)
+    [%| (moved file (closing op close) i.ts)]
+  ::
   ::  +unclosed-want: what a bracket still needs where ts begins, want:
   ::  its closer once it is complete, else its next part, as "a mold,
   ::  the product" in $-(@. At a layout token, the bracket being one
@@ -3082,7 +3256,7 @@
     |=  [txt=tape ts=(list token)]
     ^-  [%| p=error]
     =/  want=tape  "a space after `{txt}`"
-    ?.  ?=([[* * %'('] *] ts)  (no-gap ts want)
+    ?.  ?=([[* * %'('] *] ts)  (no-gap ts want 0)
     %^  bad-why  ts  want
     "the wide form `{txt}(…)` is left out: indentation covers it"
   ::
@@ -3202,7 +3376,7 @@
     |-  ^-  (each module error)
     ?:  ?=([[* * ?(%'/-' %'/%' %'/=')] *] ts)
       ;<  [im=import after=(list token)]  then  (read-import ts)
-      ?.  ?=([[* * %newline] *] after)  (bad-end-in after 0)
+      ?.  ?=([[* * %newline] *] after)  (bad-end-in after 0 shut-mask)
       $(ims [im ims], ts t.after)
     =|  defs=(list def)
     |-  ^-  (each module error)
@@ -3212,7 +3386,7 @@
     ::  what may begin the line: a definition, or before any, an import
     =/  can=@  ?~(defs (con plus-mask fas-mask) plus-mask)
     ;<  [d=def after=(list token)]  then  (read-def ts can)
-    ?.  ?=([[* * %newline] *] after)  (bad-end-in after (def-can d))
+    ?.  ?=([[* * %newline] *] after)  (bad-end-in after (def-can d) (def-tight d))
     $(defs [d defs], ts t.after)
   ::
   ::  +read-import: /- name, /% term, or /= name pathlit
@@ -3224,21 +3398,22 @@
     =*  g  i.ts
     =/  rest=(list token)  t.ts
     ?:  &(?=(^ rest) tight.i.rest)
-      (no-gap rest "a space after {(show-found g)}")
+      (no-gap rest "a space after {(show-found g)}" 0)
     ?:  =(%'/%' lex.g)
       ?:  ?=([[* * [%lit %term %tas *]] *] rest)
         ?:  =(0 val.p.lex.i.rest)
           (bad-in rest "a mark's term, as `%todo-action`" cen-mask)
         [%& [%mark [beg.at.g end.at.i.rest] val.p.lex.i.rest] t.rest]
       =/  want=tape  "a mark's term, as `%todo-action`"
-      ?.  ?=([[* * [%name *]] *] rest)  (bad-in rest want cen-mask)
+      ?.  ?=([[* * [%name *]] *] rest)
+        (bad-in-then rest want cen-mask '%' lower-mask)
       (bad-why rest want "`/%` takes no face: it names the type after its mark")
     ?.  ?=([[* * [%name *]] *] rest)  (no-name rest)
     =*  nam  i.rest
     ?.  =(%'/=' lex.g)
       [%& [%sur [beg.at.g end.at.nam] p.lex.nam] t.rest]
     =/  more=(list token)  t.rest
-    ?:  &(?=(^ more) tight.i.more)  (no-gap more "a space after the name")
+    ?:  &(?=(^ more) tight.i.more)  (no-gap more "a space after the name" 0)
     ?.  ?=([[* * %'/'] *] more)
       (bad-in more "a module's path, as /ui/components/card" fas-mask)
     ;<  [[sp=span segs=(list @ta)] after=(list token)]  then
@@ -3281,7 +3456,7 @@
     ?:  =(%'++' lex.rune)
       ;<  [nam=term after=(list token)]  then  (read-def-name rune t.ts)
       ;<  [e=expr more=(list token)]  then
-        (read-expr-or-body | "the name" after)
+        (read-expr-or-body | "the name" after 0)
       [%& [%value [beg.at.rune end:(span-of e)] nam e] more]
     ?:  (is-closer rune)
       %^  bad-why  ts  "a definition"
@@ -3293,9 +3468,9 @@
     ?.  =(%'+$' lex.rune)  (bad-in ts want can)
     ;<  [nam=term after=(list token)]  then  (read-def-name rune t.ts)
     ?:  &(?=(^ after) tight.i.after)
-      (no-gap after "a space after the name")
+      (no-gap after "a space after the name" 0)
     ?:  ?=([[* * [%error *]] *] after)
-      (bad-in after "a mold" (con mold-mask bar-mask))
+      (bad-in-then after "a mold" (con mold-mask bar-mask) '~' 0)
     ?:  ?=([[* * ?(%'|=' %'|=(')] *] after)
       %:  bad-in-why  after  "a mold"  (con mold-mask bar-mask)
         "a gate's mold is $-(sample product)"
@@ -3348,6 +3523,8 @@
       "a `+$`'s lines below are its cases; a record's fields go in a [ left open on the `+$` line"
     ?:  ?=([[* * %indent] *] after)  (bad-end after)
     ?:  &(?=(^ after) (stray i.after))  (bad-end after)
+    ::  nothing goes on a case's line, but tight what goes on its mold
+    ?:  ?=([[* * [%error *]] *] after)  (bad-end-in after 0 (mold-can c))
     (bad-why after "the end of the line" "a union takes one case per line")
   ::
   ::  +read-def-name: after ++ or +$, a space and a name
@@ -3356,24 +3533,25 @@
     |=  [rune=token ts=(list token)]
     ^-  (pare term)
     ?:  &(?=(^ ts) tight.i.ts)
-      (no-gap ts "a space after {(show-found rune)}")
+      (no-gap ts "a space after {(show-found rune)}" 0)
     ?.  ?=([[* * [%name *]] *] ts)  (no-name ts)
     [%& p.lex.i.ts t.ts]
   ::
   ::  +read-expr-or-body: a space and an expression on the line, or a
-  ::  body on deeper lines; what names what comes before, for errors.
-  ::  On a body's final line (fin, +read-last), a line at the same depth
-  ::  is the rest of the body instead, and the expression on the line
-  ::  goes on with fin, except a ?-, which keeps its arms deeper
+  ::  body on deeper lines; what names what comes before, for errors, and
+  ::  can what may go tight after it (+no-gap). On a body's final line
+  ::  (fin, +read-last), a line at the same depth is the rest of the body
+  ::  instead, and the expression on the line goes on with fin, except a
+  ::  ?-, which keeps its arms deeper
   ::
   ++  read-expr-or-body
-    |=  [fin=? what=tape ts=(list token)]
+    |=  [fin=? what=tape ts=(list token) can=@]
     ^-  (pare expr)
     ?:  ?=([[* * %indent] *] ts)  (read-body t.ts)
     ?:  &(fin ?=([[* * %newline] *] ts))  (read-rest t.ts)
     ?:  ?=([[* * ?(%newline %dedent)] *] ts)
       (bad ts "an expression, or a body on deeper lines")
-    ?:  &(?=(^ ts) tight.i.ts)  (no-gap ts "a space after {what}")
+    ?:  &(?=(^ ts) tight.i.ts)  (no-gap ts "a space after {what}" can)
     (read-last &(fin !?=([[* * %'?-'] *] ts)) ts)
   ::
   ::  +read-body: after its INDENT, the rest of a body, then its DEDENT
@@ -3398,7 +3576,7 @@
     ?:  ?=([[* * ?(%'++' %'+$')] *] ts)
       ;<  [d=def after=(list token)]  then  (read-def ts plus-mask)
       ?:  ?=([[* * %newline] *] after)  $(defs [d defs], ts t.after)
-      ?.  ?=([[* * %dedent] *] after)  (bad-end-in after (def-can d))
+      ?.  ?=([[* * %dedent] *] after)  (bad-end-in after (def-can d) (def-tight d))
       (bad after "the body's final expression, after its definitions")
     ?:  ?=([[* * %'+'] *] ts)
       %:  bad-in-why  ts  "a definition or an expression"  plus-mask
@@ -3409,7 +3587,7 @@
       =/  ds=(list def)  (flop defs)
       =/  beg=loc  ?~(ds beg:(span-of e) beg:(span-of i.ds))
       [%& [%body [beg end:(span-of e)] ds e] after]
-    ?.  ?=([[* * %newline] *] after)  (bad-end-in after (tail-can e))
+    ?.  ?=([[* * %newline] *] after)  (bad-end-in after (tail-can e) (expr-can e))
     ?:  &(?=(%branch -.e) !?=([* [* * ?(%'++' %'+$')] *] after))
       %^  bad-why  after  "the end of the body"
       "this `?-`'s arms are on deeper lines, so this one goes there too"
@@ -3463,8 +3641,8 @@
     ?:  (ends-call t)
       ::  an error token whose text can't go tight after an operand
       =/  te=(unit error)
-        ::  after-mask without its =
-        ?~(els ~ (tight-error-in file ts (mix after-mask tis-mask)))
+        ::  no = goes after a call's operand, which takes no face
+        ?~(els ~ (tight-error-in file ts (expr-can i.els)))
       ?^  te  [%| u.te]
       ::  or, past a space, can't begin one (+fail-in)
       ?:  ?&  ?=(^ els)  ?=([%error *] lex.t)  !tight.t
@@ -3472,7 +3650,7 @@
           ==
         [%| (moved file "an expression" t)]
       [%& (flop els) ts]
-    ?:  &(tight.t ?=(^ els))  (no-space ts)
+    ?:  &(tight.t ?=(^ els))  (no-space ts (expr-can i.els))
     ?:  (is-operand-start t)
       ;<  [e=expr more=(list token)]  then  (read-operand ts)
       $(els [e els], ts more)
@@ -3552,7 +3730,7 @@
           "a case's constructor takes its term with no space, as |=%got"
         "a gate in an operand is |=(a body)"
       ==
-    ?.  ?=([[* * [%lit %term *]] *] ts)  (bad-in ts "a term" cen-mask)
+    ?.  ?=([[* * [%lit %term *]] *] ts)  (bad-in-then ts "a term" cen-mask '%' term-mask)
     [%& [%ctor [beg.at.bar end.at.i.ts] p.lex.i.ts] t.ts]
   ::
   ::  +read-path: a path literal, as /posts/~zod, an operand (Decisions)
@@ -3696,7 +3874,7 @@
       [%& (bracket-node kind op target (flop its) end.at.i.its) ts]
     ?:  ?=(?(%newline %dedent) lex.t)
       (unclosed-open op (trip close) "an item" ts)
-    ?:  &(tight.t ?=(^ its))  (no-space ts)
+    ?:  &(tight.t ?=(^ its))  (no-space ts (item-can kind i.its))
     ;<  [i=slot more=(list token)]  then  (read-item kind ts)
     $(its [i its], ts more)
   ::
@@ -3741,7 +3919,8 @@
     ;<  [l=slot after=(list token)]  then  (read-line kind ts)
     ?:  ?=([[* * %newline] *] after)  $(ls [l ls], ts t.after)
     ?:  ?=([[* * %dedent] *] after)  [%& (flop [l ls]) t.after]
-    ?.  ?=([[* * ?(%')' %']')] *] after)  (bad-end-in after (tail-can val.l))
+    ?.  ?=([[* * ?(%')' %']')] *] after)
+      (bad-end-in after (tail-can val.l) (expr-can val.l))
     (closer-after after)
   ::
   ::  +closer-after: a ) or ] after an open bracket's line's item
@@ -3780,6 +3959,14 @@
       ;<  [v=expr after=(list token)]  then  (read-expr rest)
       [%& [[beg.at.nam end:(span-of v)] (names-of lex.nam) v] after]
     ?:  ?=(%change kind)  (unnamed ts)
+    ::  a tuple's line may begin name=, so an error token tight after its
+    ::  first name whose text begins with = is the layout pass's, at its
+    ::  second character, as an item's is (+item-can)
+    ?:  ?&  ?=(%tuple kind)
+            ?=([[* * [%name *]] [* %& [%error *]] *] ts)
+            =('=' c.lex.i.t.ts)
+        ==
+      (bad t.ts "an item")
     ;<  [v=expr after=(list token)]  then  (read-expr ts)
     [%& [(span-of v) ~ v] after]
   ::
@@ -3800,7 +3987,7 @@
       ?^  dm  u.dm
       (unclosed-want "the gate's body" after)
     ?:  &(?=(^ after) tight.i.after)
-      (no-gap after "a space after the sample")
+      (no-gap after "a space after the sample" (sample-can s))
     ?:  &(?=(^ after) (is-rune i.after))
       %:  bad-in-why  after  "an expression"  operand-mask
         "the wide gate's body is an operand, so a rune goes in parentheses"
@@ -3811,7 +3998,7 @@
     ?:  (shut op `(span-of b) more)
       [%& [%gate-wide [beg.at.op end:(span-of b)] s b] more]
     ?.  &(?=(^ more) !tight.i.more (is-operand-start i.more))
-      (unclosed op ")" more)
+      (unclosed-tight op ")" more (expr-can b))
     %^  bad-why  more  (closing op ")")
     "the wide gate's body is one operand, so a call goes in parentheses"
   ::
@@ -3823,15 +4010,15 @@
     ^-  (pare expr)
     ?:  &(?=(^ ts) tight.i.ts)
       ::  a % could begin a constructor's term, as |=%got
-      ?:  =('%' (first-char i.ts))  (bad-in ts "a term" cen-mask)
-      (no-gap ts "a space after `|=`")
+      ?:  =('%' (first-char i.ts))  (bad-in-then ts "a term" cen-mask '%' term-mask)
+      (no-gap ts "a space after `|=`" 0)
     ;<  [s=sample after=(list token)]  then  (read-sample ts)
     ?:  (hoon-union ts after)
       (bad-why after "a space after the sample" "a union is a `+$` with its cases below")
     =/  dm  (doomed ts after "an expression, or a body on deeper lines")
     ?^  dm  u.dm
     ;<  [e=expr more=(list token)]  then
-      (read-expr-or-body fin "the sample" after)
+      (read-expr-or-body fin "the sample" after (sample-can s))
     [%& [%gate [beg.at.bar end:(span-of e)] s e] more]
   ::
   ::  +read-cast: ^- mold, then an expression or a body; fin as for
@@ -3847,7 +4034,7 @@
     =/  dm  (doomed ts after "an expression, or a body on deeper lines")
     ?^  dm  u.dm
     ;<  [e=expr more=(list token)]  then
-      (read-expr-or-body fin "the mold" after)
+      (read-expr-or-body fin "the mold" after (mold-can s))
     [%& [%cast [beg.at.ket end:(span-of e)] s e] more]
   ::
   ::  +read-trace: ~& expr, then its body below, or, on a body's final
@@ -3887,7 +4074,8 @@
     ;<  [a=arm more=(list token)]  then
       ?:(flat (read-flat-arm rest) (read-arm rest))
     ?:  ?=([[* * %newline] *] more)  $(arms [a arms], rest t.more)
-    ?.  ?=([[* * %dedent] *] more)  (bad-end-in more (tail-can val.a))
+    ?.  ?=([[* * %dedent] *] more)
+      (bad-end-in more (tail-can val.a) (expr-can val.a))
     =/  at=span  [beg.at.wut end.at.a]
     [%& [%branch at s (flop [a arms])] ?:(flat more t.more)]
   ::
@@ -3920,7 +4108,7 @@
       %^  bad-why  after  "a space after the pattern"
       "patterns take no `name=`: a bare name binds, as [a b]"
     ;<  [e=expr more=(list token)]  then
-      (read-expr-or-body | "the pattern" after)
+      (read-expr-or-body | "the pattern" after 0)
     [%& [[beg:(span-of p) end:(span-of e)] p e] more]
   ::
   ::  +read-pattern: a term, number, string, ship, loobean, ~, * or name,
@@ -3937,7 +4125,8 @@
     ^-  (pare pattern)
     ?~  ts  (bad ts "a pattern")
     =*  t  i.ts
-    ?+    lex.t  (bad-in ts "a pattern" pattern-mask)
+    ::  ~ goes on only as a ship (+fail-in-then)
+    ?+    lex.t  (bad-in-then ts "a pattern" pattern-mask '~' lower-mask)
         [%lit *]
       =*  l  p.lex.t
       ?:  ?=(?(%number %ship %term %loobean %null) form.l)
@@ -4007,7 +4196,7 @@
     ?:  ?=([[* * %'='] *] ts)  (read-pun i.ts t.ts)
     ?:  &(?=(^ ts) (is-layout i.ts))  (bad-line ts "a sample")
     ?:  ?=([[* * [%error *]] *] ts)
-      (bad-in ts "a mold" (con mold-mask tis-mask))
+      (bad-in-then ts "a mold" (con mold-mask tis-mask) '~' 0)
     ?.  ?=([[* * %'['] *] ts)
       ;<  [s=shape after=(list token)]  then  (read-mold ts)
       [%& [%bare (span-of s) s] after]
@@ -4023,7 +4212,7 @@
     ?:  &(?=(^ rest) |((is-closer i.rest) (is-layout i.rest)))
       ?~  ss  (unclosed-want "a sample" rest)
       (unclosed op "]" rest)
-    ?:  &(?=(^ ss) ?=(^ rest) tight.i.rest)  (no-space rest)
+    ?:  &(?=(^ ss) ?=(^ rest) tight.i.rest)  (no-space rest (sample-can i.ss))
     ;<  [s=sample after=(list token)]  then  (read-sample rest)
     ?:  (hoon-union rest after)
       (bad-why after "a space between items" "a union is a `+$` with its cases below")
@@ -4038,7 +4227,7 @@
     ?:  ?=([[* * %'='] *] ts)  (read-pun i.ts t.ts)
     ::  = begins a pun here, as a mold's first characters begin a mold
     ?:  ?=([[* * [%error *]] *] ts)
-      (bad-in ts "a mold" (con mold-mask tis-mask))
+      (bad-in-then ts "a mold" (con mold-mask tis-mask) '~' 0)
     ;<  [s=shape after=(list token)]  then  (read-mold ts)
     [%& [%bare (span-of s) s] after]
   ::
@@ -4070,7 +4259,8 @@
     ^-  (pare shape)
     ?~  ts  (bad ts "a mold")
     =*  t  i.ts
-    ?+    lex.t  (bad-in ts "a mold" mold-mask)
+    ::  ~ alone is a mold, so nothing goes on after it (+fail-in-then)
+    ?+    lex.t  (bad-in-then ts "a mold" mold-mask '~' 0)
       [%aura *]  [%& [%aura at.t p.lex.t] t.ts]
       %'*'       [%& [%noun at.t ~] t.ts]
       %'!!'      [%& [%void at.t ~] t.ts]
@@ -4121,7 +4311,8 @@
     ?:  &(?=(^ ts) |((is-closer i.ts) (is-layout i.ts)))
       ?~  ms  (unclosed-want "a mold" ts)
       (unclosed op ")" ts)
-    ?:  &(?=(^ ts) tight.i.ts)  (no-space ts)
+    ?:  &(?=(^ ts) tight.i.ts)
+      (no-space ts ?~(ms (con shut-mask dot-mask) (mold-can i.ms)))
     ;<  [m=shape after=(list token)]  then  (read-mold ts)
     ?:  (hoon-union ts after)
       (bad-why after "a space between items" "a union is a `+$` with its cases below")
@@ -4160,7 +4351,7 @@
       =/  dm  (doomed ts after want)
       ?^  dm  u.dm
       (unclosed-want want after)
-    ?:  &(?=(^ after) tight.i.after)  (no-space after)
+    ?:  &(?=(^ after) tight.i.after)  (no-space after (mold-can a))
     ;<  [b=shape more=(list token)]  then  (read-mold after)
     ?:  (hoon-union after more)
       (bad-why more "a space between items" "a union is a `+$` with its cases below")
@@ -4168,7 +4359,7 @@
       [%& [%fn [beg.at.op end.at.i.more] a b] t.more]
     ?:  (shut op `(span-of b) more)
       [%& [%fn [beg.at.op end:(span-of b)] a b] more]
-    (unclosed op ")" more)
+    (unclosed-tight op ")" more (mold-can b))
   ::
   ::  +read-cell-mold: [ field { field } ], or [ { field } and its lines
   ::  below, left open (flines), or closed with its last field's lines
@@ -4193,7 +4384,7 @@
       (unclosed-open op "]" "a field" ts)
     ?:  &(?=(^ ts) |((is-closer i.ts) (is-layout i.ts)))
       (unclosed op "]" ts)
-    ?:  &(?=(^ fs) ?=(^ ts) tight.i.ts)  (no-space ts)
+    ?:  &(?=(^ fs) ?=(^ ts) tight.i.ts)  (no-space ts (field-can i.fs))
     ;<  [f=field after=(list token)]  then  (read-field ts)
     ?:  (hoon-union ts after)
       (bad-why after "a space between items" "a union is a `+$` with its cases below")
@@ -4214,7 +4405,7 @@
       (bad-why after "the end of the line" "a union is a `+$` with its cases below")
     ?:  ?=([[* * %newline] *] after)  $(ms [m ms], ts t.after)
     ?:  ?=([[* * %dedent] *] after)  [%& (flop [m ms]) t.after]
-    (mold-line-end after "mold")
+    (mold-line-end after "mold" (mold-can m))
   ::
   ::  +read-flines: after a mold's open ['s INDENT, one field per line, to
   ::  its DEDENT
@@ -4231,17 +4422,18 @@
       (bad-why after "the end of the line" "a union is a `+$` with its cases below")
     ?:  ?=([[* * %newline] *] after)  $(fs [f fs], ts t.after)
     ?:  ?=([[* * %dedent] *] after)  [%& (flop [f fs]) t.after]
-    (mold-line-end after "field")
+    (mold-line-end after "field" (field-can f))
   ::
   ::  +mold-line-end: what goes on after the one mold or field of an open
-  ::  mold bracket's line (noun: which); nothing does but its end
+  ::  mold bracket's line (noun: which); nothing does but its end, or tight
+  ::  what may go on it, can (+tight-error-in)
   ::
   ++  mold-line-end
-    |=  [ts=(list token) noun=tape]
+    |=  [ts=(list token) noun=tape can=@]
     ^-  [%| p=error]
     ?:  ?=([[* * ?(%')' %']')] *] ts)  (closer-after ts)
     ?:  |(?=(~ ts) tight.i.ts (is-layout i.ts) ?=([%error *] lex.i.ts))
-      (bad-end-in ts 0)
+      (bad-end-in ts 0 can)
     %^  bad-why  ts  "the end of the line"
     "a bracket open at the end of its line takes one {noun} per line"
   ::
@@ -4260,13 +4452,13 @@
     ?:  ?=([[* * %']'] *] rest)
       ?~  vs  (bad rest "a type variable")
       =/  more=(list token)  t.rest
-      ?:  &(?=(^ more) tight.i.more)  (no-gap more "a space after `]`")
+      ?:  &(?=(^ more) tight.i.more)  (no-gap more "a space after `]`" 0)
       ;<  [b=shape after=(list token)]  then  (read-def-body more)
       [%& [%generic [beg.at.bar end:(span-of b)] (flop vs) b] after]
     ?:  &(?=(^ rest) |((is-closer i.rest) (is-layout i.rest)))
       ?~  vs  (unclosed-want "a type variable" rest)
       (unclosed op "]" rest)
-    ?:  &(?=(^ vs) ?=(^ rest) tight.i.rest)  (no-space rest)
+    ?:  &(?=(^ vs) ?=(^ rest) tight.i.rest)  (no-space rest shut-mask)
     ?.  ?=([[* * [%tvar *]] *] rest)
       (bad-in rest "a type variable" upper-mask)
     $(vs [p.lex.i.rest vs], rest t.rest)
@@ -9041,11 +9233,16 @@
 ::
 ::
 ::
-::  Repeated faces along an imported record spine fail closed. Hoon's type
-::  graph can erase unfaced nested-cell boundaries, so that alone does not
-::  prove the original source repeated a name within one record. A faced
-::  body and each union alternative have separate scopes. Check recursive
-::  roots before making them opaque; unused molds are never inspected.
+::  A repeated face fails closed where it is certainly one record's: on a
+::  cell's head and on its tail, when the tail isn't a cell. Hoon's type
+::  graph merges a nested $: in a record's last field into the record's
+::  own right-nested cells, so faces repeated further along a spine may be
+::  separate records', as nested and separate records have independent
+::  scopes in the written-record check. The reader tells those apart from
+::  the original source and fails closed where the source doesn't show
+::  them (jibb-import, +graph-faces). A faced body, each union alternative
+::  and each nested cell have separate scopes. Check recursive roots
+::  before making them opaque; unused molds are never inspected.
 ::
 ++  imported-faces-valid
   |=  node=*
@@ -9053,7 +9250,7 @@
   ?@  node  &
   ?+  -.node  &
     %face  ?:(?=([%face @ *] node) $(node +>.node) |)
-    %cell  ?:(?=([%cell * *] node) (imported-record-faces-valid node ~) |)
+    %cell  ?:(?=([%cell * *] node) (imported-record-faces-valid node) |)
     %fork  (imported-faces-valid-list +.node)
     %apply  ?:(?=([%apply @ *] node) (imported-faces-valid-list +>.node) |)
     %named
@@ -9070,21 +9267,18 @@
   $(nodes +.nodes)
 ::
 ++  imported-record-faces-valid
-  |=  [node=* names=(list @)]
+  |=  node=*
   ^-  ?
-  ?:  ?=([%cell * *] node)
-    =/  head=*  +<.node
-    =/  rest=*  +>.node
-    ?:  ?=([%face @ *] head)
-      ?:  (lien names |=(n=@ =(n +<.head)))  |
-      ?.  (imported-faces-valid +>.head)  |
-      $(node rest, names [+<.head names])
-    ?.  (imported-faces-valid head)  |
-    $(node rest)
-  ?:  ?=([%face @ *] node)
-    ?:  (lien names |=(n=@ =(n +<.node)))  |
-    (imported-faces-valid +>.node)
-  (imported-faces-valid node)
+  ?.  ?=([%cell * *] node)  (imported-faces-valid node)
+  =/  head=*  +<.node
+  =/  tail=*  +>.node
+  ?:  ?&  ?=([%face @ *] head)
+          ?=([%face @ *] tail)
+          =(+<.head +<.tail)
+      ==
+    |
+  ?.  (imported-faces-valid head)  |
+  (imported-faces-valid tail)
 ::
 ++  import-to-itype
   |=  node=*

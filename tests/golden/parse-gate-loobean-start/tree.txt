@@ -1,0 +1,3 @@
+/tests/golden/parse-gate-loobean-start/source.jibb:1:9: expected a term, found `%.`; the loobeans are `%.y` and `%.n`
+++ x |=%.x
+        ^

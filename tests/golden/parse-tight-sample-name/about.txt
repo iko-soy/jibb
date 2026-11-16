@@ -1,0 +1,3 @@
+source: library note 2.0 and docs/compiler.md, Positions and errors: "Every error points at the first character where the text stops being the start of any valid module"; Grammar, Runes: `|=` takes a faced sample, `m=model`
+tests: a `==` tight after a gate's bare sample name, which a face's `=` could follow: `++ x |= a=` could still go on as `|= a=@`
+expect: error at 1:11 — the second `=`, where `|= a=` stops being valid

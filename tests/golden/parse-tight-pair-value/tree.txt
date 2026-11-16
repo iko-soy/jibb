@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-pair-value/source.jibb:1:12: expected a space between items, found `=`; the closer `==` is left out: indentation covers it
+++ x [gap+a==]
+           ^

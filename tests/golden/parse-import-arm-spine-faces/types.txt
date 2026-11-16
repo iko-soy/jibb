@@ -1,0 +1,4 @@
+++ spine: Hoon record fields could not be verified: `a` repeats along nested cells, and the source does not show which are one record
+/tests/golden/parse-import-arm-spine-faces/source.jibb:2:15: unsupported imported mold
+++ spine |= x=rec.fixture x
+              ^

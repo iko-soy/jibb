@@ -33,4 +33,71 @@
   ?.  (lien lines |=(line=tape =(line "/ui/probe.jibb:2:14: invalid imported mold")))
     ~[leaf+"full checker did not locate the repeated-field use"]
   ~
+::
+::  Each $: is a record of its own, as the written-record check reads
+::  Jibb's: a nested record's faces don't repeat its parent's. Hoon's type
+::  graph merges a nested $: in a record's last field into the record's
+::  own cells, so the reader decides from the source, following local
+::  molds; with no +$ source, a repeat in one cell is still definite, and
+::  one only along a spine of cells fails closed as unverified.
+++  test-import-face-scopes
+  ^-  tang
+  =/  lines=(list @t)
+    :~  '|%'
+        '+$  tail  [a=@t [b=@ud a=@p]]'
+        '+$  spine  [a=@t b=@ud a=@p]'
+        '+$  via  [a=@ b=twin]'
+        '+$  twin  [c=@ c=@]'
+        '+$  via-flat  [a=@ b=flat]'
+        '+$  flat  [c=@ d=@ c=@]'
+        '+$  via-tail  [a=@ other]'
+        '+$  other  [b=@ a=@]'
+        '++  arm-pair  ,[a=@ a=@]'
+        '++  arm-spine  ,[a=@ b=@ a=@]'
+        '--'
+    ==
+  =/  source=@t  (rap 3 (turn lines |=(line=@t (cat 3 line '\0a'))))
+  =/  cor=type  -:(ride -:!>(..zuse) source)
+  =/  read
+    |=  name=term
+    (read-named-diagnostic:jibb-import %fixture name cor)
+  =/  tail  (read %tail)
+  ?.  ?=([%ok *] tail)
+    ~[leaf+"a nested record's repeated face was read as one record's"]
+  ?.  ?=([%ok *] (read %via-tail))
+    ~[leaf+"a referenced record's face was read as its parent's"]
+  ?.  =([%invalid %face 'Hoon record repeats field `a`'] (read %spine))
+    ~[leaf+"a repeated face in one record was not reported"]
+  ?.  =([%invalid %face 'Hoon record repeats field `c`'] (read %via))
+    ~[leaf+"a referenced record's repeated face was not reported"]
+  ?.  =([%invalid %face 'Hoon record repeats field `c`'] (read %via-flat))
+    ~[leaf+"a referenced flat record's repeated face was not reported"]
+  ?.  =([%invalid %face 'Hoon record repeats field `a`'] (read %arm-pair))
+    ~[leaf+"a repeated face in one cell was not reported without source"]
+  =/  spine  (read %arm-spine)
+  =/  why=@t
+    %+  rap  3
+    :~  'Hoon record fields could not be verified: `a` repeats along '
+        'nested cells, and the source does not show which are one record'
+    ==
+  ?.  =([%unsupported why] spine)
+    ~[leaf+"an unverifiable repeated face did not fail closed"]
+  ::  a successful read reaches the checker as the host passes it,
+  ::  [%& node] (+read-module-result); a diagnostic as it is
+  =/  external=(list [module=term name=term result=*])
+    ~[[%fixture %tail [%& value.tail]] [%fixture %arm-pair (read %arm-pair)]]
+  =/  at=path  /ui/probe/jibb
+  =/  keep=@t  (of-wain:format ~['/- fixture' '++ keep |= x=tail.fixture x'])
+  =/  kept  (infer-jibb-file-detailed:jibb at keep external ~ ~ ~[at] ~ ~ ~ ~)
+  ?.  ?=(%& -.kept)
+    ~[leaf+"full checker rejected a nested record's repeated face"]
+  =/  pair=@t  (of-wain:format ~['/- fixture' '++ keep |= x=arm-pair.fixture x'])
+  =/  checked  (infer-jibb-file-detailed:jibb at pair external ~ ~ ~[at] ~ ~ ~ ~)
+  ?:  ?=(%& -.checked)  ~[leaf+"full checker accepted a repeated face in one cell"]
+  =/  got=wall  (turn (to-wain:format message.p.checked) |=(line=@t (trip line)))
+  ?.  (lien got |=(line=tape =(line "++ keep: Hoon record repeats field `a`")))
+    ~[leaf+"full checker lost the definite repeated-field diagnostic: {(trip message.p.checked)}"]
+  ?.  (lien got |=(line=tape =(line "/ui/probe.jibb:2:14: invalid imported mold")))
+    ~[leaf+"full checker did not locate the repeated-field use"]
+  ~
 --

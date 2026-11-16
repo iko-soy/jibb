@@ -1,0 +1,3 @@
+/tests/golden/parse-mark-loobean-start/source.jibb:1:7: the loobeans are `%.y` and `%.n`
+/%  %.x
+      ^

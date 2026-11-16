@@ -1,0 +1,4 @@
+module kind: library
+++ keep: $-([a=@t [b=@ud a=@p]] [a=@t [b=@ud a=@p]])
+++ middle: $-([a=@t [b=@ud a=@p]] @ud)
+++ referenced: $-([a=@t [b=@ud a=@p]] [a=@t [b=@ud a=@p]])

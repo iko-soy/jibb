@@ -1,0 +1,4 @@
+++ pair: Hoon record repeats field `a`
+/tests/golden/parse-import-arm-faces/source.jibb:2:14: invalid imported mold
+++ pair |= x=twin.fixture x
+             ^

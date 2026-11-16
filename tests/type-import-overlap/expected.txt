@@ -5,7 +5,7 @@ swapped: invalid/overlap: Hoon union cases overlap
 separate-tags: (union [left [%$ @t]] [right [(union @f:0 @f:1) @t]])
 separate-terms: (union [left [%$ @t]] [right [yes @t]])
 different-value: (union [tag [(union @f:0 @f:1) @t]] [tag [yes @t]])
-different-tail: unsupported: a Hoon union needs a source-level disjointness check
+different-tail: invalid/overlap: Hoon union cases overlap
 unknown-middle: invalid/overlap: Hoon union cases overlap
 unsupported-gate: unsupported: a Hoon union needs a source-level disjointness check
 dollar-percent: (union [left [%$ @t]] [right [yes @t]])

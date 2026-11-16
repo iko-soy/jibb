@@ -1,0 +1,3 @@
+source: library note 2.0 and docs/compiler.md, Positions and errors: "Every error points at the first character where the text stops being the start of any valid module"; Grammar, EBNF: `import = "/-" name`
+tests: a `.` tight after a `/-` import's name: an import takes a name, not a wing, so the `.` is where the text stops being valid
+expect: error at 1:9 — the `.`, as `++ todo. 1` fails at its `.`

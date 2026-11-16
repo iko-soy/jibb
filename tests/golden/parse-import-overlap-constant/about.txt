@@ -1,0 +1,4 @@
+source: Overview, Importing Hoon types: "`$%`, `$?` | A union if its cases differ as nouns, else an error where used"; Grammar, Molds: inhabited cases "must differ at some position of their right-nested cells, where one is an atom and the other a cell, or both are different constants"
+tests: a `$?` of a constant and an atom mold of another aura: the constant `%a` is an atom the `@t` case holds too
+expect: parses
+expect-types: full checker result

@@ -1,0 +1,4 @@
+source: Overview, Importing Hoon types: "`$%`, `$?` | A union if its cases differ as nouns, else an error where used"; Grammar, Molds: inhabited cases "must differ at some position of their right-nested cells, where one is an atom and the other a cell, or both are different constants"
+tests: a `$?` of two plain atom molds, which share every atom, is a definite overlap where used, as `$?(@t @t)` is: whether cases differ as nouns doesn't depend on their auras
+expect: parses
+expect-types: full checker result

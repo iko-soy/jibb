@@ -76,7 +76,7 @@ explicit-wut-safe: (union [ok @ud] [err @t])
 explicit-percent-overlap: error: Hoon union cases overlap
 explicit-wut-overlap: error: Hoon union cases overlap
 explicit-collapsed: error: Hoon union cases overlap
-explicit-subsumed: error: Hoon union disjointness could not be verified
+explicit-subsumed: error: Hoon union cases overlap
 explicit-three: (union [a @ud] [b @t] [c @p])
 explicit-unknown: (union [x @t] [y @t])
 explicit-nested: error: Hoon union disjointness could not be verified

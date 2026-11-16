@@ -1,0 +1,3 @@
+/tests/golden/parse-ctor-loobean-start/source.jibb:1:12: expected a term, found `%.`; the loobeans are `%.y` and `%.n`
+++ x (f |=%.x)
+           ^

@@ -1,0 +1,3 @@
+source: library note 2.0 and docs/compiler.md, Positions and errors: "Every error points at the first character where the text stops being the start of any valid module"; Grammar, Runes: the closers `==` and `--` are left out
+tests: a `==` tight after a cell mold's `]`: nothing goes tight after a `]`, so the text stops being valid at the first `=`, not the second, which the lexer reports for `name==`
+expect: error at 1:11 — the first `=`: `+$ x [a=@]=` begins no valid module

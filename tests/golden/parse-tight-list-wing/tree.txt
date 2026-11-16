@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-list-wing/source.jibb:1:10: a `.` in a wing is followed by a name
+++ x ~[a.]
+         ^

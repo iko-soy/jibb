@@ -1,0 +1,9 @@
+++ inside "nul\00end"
+++ leading "\00a"
+++ trailing "nul\00"
+++ only "\00"
+++ pieces |= b=@t "a\00{b}x\00y{b}\00c"
+++ match |= x=@t
+  ?- x
+    "a\00b"  1
+    *  2

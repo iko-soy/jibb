@@ -1,0 +1,2 @@
+/- fixture
+++ keep |= x=rec.fixture x

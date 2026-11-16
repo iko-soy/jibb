@@ -1,0 +1,4 @@
+++ a: Hoon union cases overlap
+/tests/golden/parse-import-overlap-constant/source.jibb:2:11: invalid imported mold
+++ a |= x=dup.fixture x
+          ^

@@ -1,0 +1,6 @@
+/- fixture
+++ keep |= x=rec.fixture x
+++ middle |= x=rec.fixture
+  ?- x
+    [p q r]  q
+++ referenced |= x=via.fixture x

@@ -1,0 +1,5 @@
+|%
++$  rec  [a=@t [b=@ud a=@p]]
++$  via  [a=@t inner]
++$  inner  [b=@ud a=@p]
+--

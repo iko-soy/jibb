@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-tuple-line-face/source.jibb:2:5: the closer `==` is left out: indentation covers it
+  a==1
+    ^

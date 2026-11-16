@@ -6,13 +6,14 @@ tail-distinct: (union [tag [@f:0 two]] [tag [%$ one]])
 later-overlap: invalid/overlap: Hoon union cases overlap
 many-safe: (union [tag [one @t]] [tag [two @t]] [tag [three @t]])
 open-atoms: invalid/overlap: Hoon union cases overlap
-different-aura: unsupported: Hoon union disjointness could not be verified
+different-aura: invalid/overlap: Hoon union cases overlap
 same literal: ok
 different literals: ok
 named expands: ok
 opaque declines: ok
 opaque versus noun: ok
-unknown aura: ok
+open auras overlap: ok
+constant in open aura: ok
 open admits zero: ok
 different tail: ok
 nested face: ok

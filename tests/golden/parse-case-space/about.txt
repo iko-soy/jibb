@@ -1,0 +1,3 @@
+source: library note 2.0 and docs/compiler.md, Positions and errors: "Every error points at the first character where the text stops being the start of any valid module"; Grammar, Runes: a `+$`'s cases go "one per line"
+tests: a signed aura after a `+$` case's mold and a space: nothing more goes on a case's line, so the text stops being valid at the `@`, not at the `s` where a mold would fail
+expect: error at 2:7 — the `@`

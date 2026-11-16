@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-case/source.jibb:2:9: the closer `==` is left out: indentation covers it
+  [a=@]==
+        ^

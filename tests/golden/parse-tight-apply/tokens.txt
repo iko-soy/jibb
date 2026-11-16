@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-apply/source.jibb:1:14: the closer `==` is left out: indentation covers it
++$ x (list a==)
+             ^

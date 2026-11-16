@@ -1,0 +1,4 @@
+source: Grammar, Imports: "An imported Hoon record with duplicate field names is an error where used"; docs/compiler.md, Importing Hoon types: each `$:` in the source is a record of its own, as the written-record check reads Jibb's
+tests: a /sur record whose field's mold, another local `+$`, repeats a field within its one record: the reader follows the local mold and reports the repeat where `rec.fixture` is used, though `rec`'s own source repeats nothing
+expect: parses
+expect-types: full checker result

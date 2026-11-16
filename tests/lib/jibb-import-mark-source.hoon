@@ -183,4 +183,33 @@
   ?.  ?=(~ (imported-mark-origin:jibb %external-mark duplicates ~[%external-mark]))
     ~[leaf+"duplicate direct mark evidence manufactured an origin"]
   ~
+::
+::  The text site scan is one pass: a source with many declaring lines
+::  costs no more than its length, where re-scanning the rest at each
+::  match cost twice as much per match, so forty matches never finished.
+::  Only a unique declaration gives a site.
+++  test-text-site-scan
+  =,  jibb-import
+  ^-  tang
+  =/  many=@t
+    %-  of-wain:format
+    (weld ~['|%'] (weld (reap 40 '+$  item  @ud') ~['--']))
+  ?.  =(~ (mark-source-text-site many %item))
+    ~[leaf+"forty declarations of one name gave a site"]
+  =/  long=@t
+    %-  of-wain:format
+    ;:  weld
+      ~['|%']
+      (reap 1.500 '+$  other  @ud')
+      ~['+$  item  @ud']
+      (reap 1.500 '+$  other  @ud')
+      ~['--']
+    ==
+  ?.  =((mark-source-text-site long %item) `[[1.502 5] [1.502 5]])
+    ~[leaf+"a unique declaration among long text lost its site"]
+  ?.  =(~ (mark-source-text-site long %other))
+    ~[leaf+"repeated declarations gave a site"]
+  ?.  =(~ (mark-source-text-site long %missing))
+    ~[leaf+"an absent declaration gave a site"]
+  ~
 --

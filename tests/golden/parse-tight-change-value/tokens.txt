@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-change-value/source.jibb:1:12: the closer `==` is left out: indentation covers it
+++ x m(a=b==)
+           ^

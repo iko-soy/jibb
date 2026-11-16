@@ -1,0 +1,3 @@
+source: library note 2.0 and docs/compiler.md, Positions and errors: "Every error points at the first character where the text stops being the start of any valid module"; Grammar, EBNF: `ctor = "|=" term`
+tests: a case's constructor whose term begins `%.`, which begins only a loobean
+expect: error at 1:12 — the `.`, as `|=%.y` fails there

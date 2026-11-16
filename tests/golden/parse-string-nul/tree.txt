@@ -1,0 +1,17 @@
+(module
+  (value 1:1 inside (str 1:11 "nul\00end"))
+  (value 2:1 leading (str 2:12 "\00a"))
+  (value 3:1 trailing (str 3:13 "nul"))
+  (value 4:1 only (str 4:9 ""))
+  (value 5:1 pieces
+    (gate 5:11
+      (face 5:14 b (aura 5:16 @t))
+      (str 5:19 "a" (wing 5:25 b) "x\00y" (wing 5:33 b) "\00c")))
+  (value 6:1 match
+    (gate 6:10
+      (face 6:13 x (aura 6:15 @t))
+      (body 7:3
+        (branch 7:3
+          (wing 7:6 x)
+          (arm 8:5 (str 8:5 "a\00b") (lit 8:14 1))
+          (arm 9:5 (any 9:5) (lit 9:8 2)))))))

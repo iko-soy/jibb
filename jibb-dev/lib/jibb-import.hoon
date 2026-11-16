@@ -292,20 +292,33 @@
   ?:  (lien names |=(n=term =(n name)))  ``name
   $(fields t.fields, names [name names], fuel (dec fuel))
 ::
-++  source-repeat-work
-  |=  [pending=(list spec) fuel=@ud]
-  ^-  (unit (unit term))
-  ?~  pending  `~
+::  +source-faces: what a mold's original source proves about the faces of
+::  the records it expands to. Each $: is a record of its own, so a nested
+::  $: is a separate scope, as the written-record check reads Jibb's: a
+::  face repeated within one $: is repeat. complete says the source shows
+::  every record the mold expands to: a local mold the source names is
+::  read in turn, once, when cor gives the /sur core to find it in, and a
+::  standard collection's arguments are read; any other reference or spec
+::  may hide a record, and leaves it incomplete. ~ when the source can't be
+::  read within the budget.
++$  source-faces  [repeat=(unit term) complete=?]
+++  source-faces-work
+  |=  [pending=(list spec) cor=(unit type) seen=(list term) complete=? fuel=@ud]
+  ^-  (unit source-faces)
+  ?~  pending  `[~ complete]
   ?:  =(0 fuel)  ~
   =/  plain=(unit *)  (source-unwrap i.pending 4)
   ?~  plain  ~
   =/  shape=spec  ;;(spec u.plain)
   =.  fuel  (dec fuel)
-  ?+  shape  $(pending t.pending)
+  ?+  shape  $(pending t.pending, complete |)
+    [%base *]  $(pending t.pending)
+    [%leaf *]  $(pending t.pending)
+    [%name *]  $(pending [q.shape t.pending])
     [%bccl *]
       =/  repeated=(unit (unit term))  (source-record-repeat p.shape ~ fuel)
       ?~  repeated  ~
-      ?^  u.repeated  repeated
+      ?^  u.repeated  `[u.repeated complete]
       $(pending (weld p.shape t.pending))
     [%bcts *]  $(pending [q.shape t.pending])
     [%bcsg *]  $(pending [q.shape t.pending])
@@ -313,7 +326,22 @@
     [%bckt *]  $(pending [p.shape q.shape t.pending])
     [%bccn *]  $(pending (weld p.shape t.pending))
     [%bcwt *]  $(pending (weld p.shape t.pending))
-    [%make *]  $(pending (weld q.shape t.pending))
+    [%make *]
+      =/  wing=(unit term)  (source-single-wing p.shape)
+      =/  standard=?
+        ?~  wing  |
+        (lien `(list term)`~[%map %set %qeu %list %unit %jar %jug] |=(n=term =(n u.wing)))
+      $(pending (weld q.shape t.pending), complete &(complete standard))
+    [%like *]
+      =/  name=(unit term)
+        ?.  &(?=([@ ~] p.shape) ?=(~ q.shape))  ~
+        `;;(term i.p.shape)
+      ?~  name  $(pending t.pending, complete |)
+      ?:  (lien seen |=(n=term =(n u.name)))  $(pending t.pending)
+      =/  arm=(unit hoon)  ?~(cor ~ (local-arm-source u.cor u.name))
+      =/  body=(unit spec)  ?~(arm ~ (local-mold-spec u.arm u.name))
+      ?~  body  $(pending t.pending, complete |)
+      $(pending [u.body t.pending], seen [u.name seen])
   ==
 ::
 ::  Inline mark samples retain record molds as Hoon cell trees, not specs.
@@ -372,71 +400,142 @@
   ?^  u.repeated  repeated
   $(pending (weld u.fields t.pending))
 ::
+::  The selected arm's evidence: a /sur mold that isn't written with +$
+::  shows no records.
 ++  source-repeated-field
   |=  [name=term cor=type]
-  ^-  (unit (unit term))
+  ^-  (unit source-faces)
   =/  selected=(unit hoon)  (local-arm-source cor name)
-  ?~  selected  `~
+  ?~  selected  `[~ |]
   =/  shape=(unit spec)  (local-mold-spec u.selected name)
-  ?~  shape  `~
-  (source-repeat-work ~[u.shape] 4.096)
+  ?~  shape  `[~ |]
+  (source-faces-work ~[u.shape] `cor ~[name] & 4.096)
 ::
-::  A direct mark payload's hold authenticates its own unexpanded mold.
+::  A direct mark payload's hold authenticates its own unexpanded mold. Its
+::  references can't be followed without the core it was built in, and an
+::  inline sample's Hoon cell tree shows none, so a hold with no repeat is
+::  incomplete evidence unless its spec names nothing.
 ++  hold-repeated-field
   |=  typ=type
-  ^-  (unit (unit term))
+  ^-  (unit source-faces)
   =/  raw=type  typ
-  |-  ^-  (unit (unit term))
+  |-  ^-  (unit source-faces)
   ?:  ?=([%face *] raw)  $(raw q.raw)
   ?.  ?=([%hold *] raw)  ~
   =/  original=hoon  q.raw
   =/  shape=(unit spec)  (source-direct-spec original)
-  ?^  shape  (source-repeat-work ~[u.shape] 4.096)
-  (source-hoon-repeat-work ~[original] 4.096)
+  ?^  shape  (source-faces-work ~[u.shape] ~ ~ & 4.096)
+  =/  repeated=(unit (unit term))  (source-hoon-repeat-work ~[original] 4.096)
+  ?~  repeated  ~
+  `[u.repeated |]
 ::
-++  type-cell-fields
-  |=  typ=type
-  ^-  (list type)
-  ?:  ?=([%cell *] typ)  [p.typ $(typ q.typ)]
-  ~[typ]
+::  +imported-face-repeat: a face repeated within one record of a read
+::  mold's graph, which alone can't always tell its records apart. Hoon
+::  keeps a cell's head apart, but merges a nested $: in a record's last
+::  field into the record's own right-nested cells. So the faces of a
+::  cell's head and of its tail, when that isn't a cell, are one record's
+::  however the source was written (definite); faces repeated only further
+::  along a spine of cells may be separate records', which only the source
+::  can tell. A faced body, each union case, each collection argument and
+::  a named mold begin scopes of their own. A definite repeat is reported
+::  before any other.
++$  face-repeat  [definite=? name=term]
+++  imported-face-repeat
+  |=  node=imported
+  ^-  (unit face-repeat)
+  =/  pending=(list imported)  ~[node]
+  =|  found=(unit face-repeat)
+  |-  ^-  (unit face-repeat)
+  ?~  pending  found
+  =/  x=imported  i.pending
+  ?+  x  $(pending t.pending)
+    [%face *]  $(pending [body.x t.pending])
+    [%named *]  $(pending [body.x t.pending])
+    [%fork *]  $(pending (weld cases.x t.pending))
+    [%apply *]  $(pending (weld args.x t.pending))
+    [%generic *]  $(pending [body.x t.pending])
+    [%generic-source *]  $(pending [body.x t.pending])
+    [%generic-ford *]  $(pending [body.x t.pending])
+    [%cell *]
+      =/  fields=(list imported)  (imported-spine x)
+      =/  last=(list imported)  (slag (sub (lent fields) 2) fields)
+      =/  definite=(unit term)
+        ?.  ?=([* * ~] last)  ~
+        =/  head=imported  i.last
+        =/  tail=imported  i.t.last
+        ?.  ?=([%face *] head)  ~
+        ?.  ?=([%face *] tail)  ~
+        ?.  =(name.head name.tail)  ~
+        `name.head
+      ?^  definite  `[& u.definite]
+      %=  $
+        pending  (weld (turn fields imported-field-body) t.pending)
+        found    ?^(found found (imported-sibling-repeat fields))
+      ==
+  ==
 ::
-++  type-face-name
-  |=  typ=type
-  ^-  (unit term)
-  ?.  ?=([%face *] typ)  ~
-  ?:  ?=(@tas p.typ)  `p.typ
-  ?:  =(~ p.typ)  ~
-  =/  head=*  -.p.typ
-  =/  name=*  -.head
-  ?.  ?=(@tas name)  ~
-  `name
+::  +imported-spine: a cell's right-nested cells' heads, then the last tail
+++  imported-spine
+  |=  node=imported
+  ^-  (list imported)
+  =|  out=(list imported)
+  |-  ^-  (list imported)
+  ?.  ?=([%cell *] node)  (flop `(list imported)`[node out])
+  $(node tail.node, out [head.node out])
 ::
-++  type-sibling-repeat
-  |=  [fields=(list type) seen=(list term)]
-  ^-  (unit term)
+++  imported-field-body
+  |=  field=imported
+  ^-  imported
+  ?:  ?=([%face *] field)  body.field
+  field
+::
+++  imported-sibling-repeat
+  |=  fields=(list imported)
+  ^-  (unit face-repeat)
+  =|  seen=(list term)
+  |-  ^-  (unit face-repeat)
   ?~  fields  ~
-  =/  current=type  i.fields
-  =/  name=(unit term)  (type-face-name current)
-  ?~  name  $(fields t.fields)
-  ?:  (lien seen |=(n=term =(n u.name)))  `u.name
-  $(fields t.fields, seen [u.name seen])
+  ?.  ?=([%face *] i.fields)  $(fields t.fields)
+  ?:  (lien seen |=(n=term =(n name.i.fields)))  `[| name.i.fields]
+  $(fields t.fields, seen [name.i.fields seen])
 ::
-++  type-repeated-field
-  |=  typ=type
-  ^-  (unit term)
-  =/  pending=(list type)  ~[typ]
-  =/  fuel=@ud  4.096
-  |-  ^-  (unit term)
-  ?~  pending  ~
-  ?:  =(0 fuel)  ~
-  =/  current=type  i.pending
-  ?:  ?=([%face *] current)
-    $(pending [q.current t.pending], fuel (dec fuel))
-  ?.  ?=([%cell *] current)  $(pending t.pending, fuel (dec fuel))
-  =/  fields=(list type)  (type-cell-fields current)
-  =/  repeated=(unit term)  (type-sibling-repeat fields ~)
-  ?^  repeated  repeated
-  $(pending (weld fields t.pending), fuel (dec fuel))
+::  +graph-faces: a read result, failed where its graph repeats a face in
+::  one record (+imported-face-repeat): at once if that is certain, else
+::  unless the source evidence, complete, shows every record it expands to
+++  graph-faces
+  |=  [result=(each imported @t) complete=?]
+  ^-  (each imported @t)
+  ?:  ?=(%| -.result)  result
+  =/  repeat=(unit face-repeat)  (imported-face-repeat p.result)
+  ?~  repeat  result
+  ?:  definite.u.repeat  [%| (repeated-field-message name.u.repeat)]
+  ?:  complete  result
+  [%| (unverified-field-message name.u.repeat)]
+::
+::  +graph-diagnostic: why a read failed, from its graph: definite reader
+::  evidence, or a face its graph certainly repeats in one record; else
+::  the failure stays unsupported, with its reason why
+++  graph-diagnostic
+  |=  [out=imported why=@t]
+  ^-  import-diagnostic
+  =/  evidence=(unit import-diagnostic)  (first-invalid out)
+  ?^  evidence  u.evidence
+  =/  repeat=(unit face-repeat)  (imported-face-repeat out)
+  ?:  &(?=(^ repeat) definite.u.repeat)
+    [%invalid %face (repeated-field-message name.u.repeat)]
+  [%unsupported why]
+::
+++  repeated-field-message
+  |=  name=term
+  ^-  @t
+  (crip "Hoon record repeats field `{(trip name)}`")
+::
+++  unverified-field-message
+  |=  name=term
+  ^-  @t
+  %-  crip
+  %+  weld  "Hoon record fields could not be verified: `{(trip name)}` repeats "
+  "along nested cells, and the source does not show which are one record"
 ::
 ++  safe-source-enum
   |=  [cases=(list spec) seen=(list @) fuel=@ud]
@@ -634,11 +733,11 @@
 ::
 ::  Positive overlap evidence only: false means no proof, not disjointness.
 ::  Fuel is shared across all examined nodes and sibling alternatives.
+::  Cases differ as nouns or not, whatever their auras (Overview, Importing
+::  Hoon types): an atom mold with no fixed value holds every atom, so it
+::  shares a noun with every other atom mold, and two constants share one
+::  exactly when they are equal.
 +$  overlap-proof-result  [found=? left=@ud]
-++  overlap-known-atom
-  |=  aura=term
-  ^-  ?
-  (lien `(list term)`~[%t %tas %ud %f] |=(n=term =(n aura)))
 ++  overlap-inhabited-list
   |=  [xs=(list imported) fuel=@ud]
   ^-  (unit overlap-proof-result)
@@ -656,7 +755,7 @@
   ?-  x
     [%noun *]  `[& fuel]
     [%void *]  `[| fuel]
-    [%atom *]  `[|(?=(^ value.x) (overlap-known-atom aura.x)) fuel]
+    [%atom *]  `[& fuel]
     [%face *]  $(x body.x)
     [%named *]  $(x body.x)
     [%fork *]  (overlap-inhabited-list cases.x fuel)
@@ -695,11 +794,8 @@
     ?.  found.u.p  p
     $(a tail.a, b tail.b, fuel left.u.p)
   ?.  &(?=([%atom *] a) ?=([%atom *] b))  `[| fuel]
-  ?^  value.a
-    ?^  value.b  `[=(u.value.a u.value.b) fuel]
-    `[&(=(u.value.a 0) (overlap-known-atom aura.b)) fuel]
-  ?^  value.b  `[&(=(u.value.b 0) (overlap-known-atom aura.a)) fuel]
-  `[&((overlap-known-atom aura.a) (overlap-known-atom aura.b)) fuel]
+  ?:  &(?=(^ value.a) ?=(^ value.b))  `[=(u.value.a u.value.b) fuel]
+  `[& fuel]
 ++  overlap-case-pairs
   |=  [xs=(list imported) fuel=@ud]
   ^-  (unit overlap-proof-result)
@@ -724,19 +820,20 @@
     [%| (crip "Hoon mold `{(trip name)}` is not declared")]
   ?.  =(typ (~(play ut cor) (ream (cat 3 '*' name))))
     [%| 'Hoon module provenance does not match the selected mold']
-  =/  repeated=(each (unit (unit term)) tang)  (mule |.((source-repeated-field name cor)))
+  =/  repeated=(each (unit source-faces) tang)  (mule |.((source-repeated-field name cor)))
   ?:  ?=(%| -.repeated)  [%| 'Hoon record fields could not be verified']
   ?~  p.repeated  [%| 'Hoon record fields could not be verified']
-  ?^  u.p.repeated  [%| (crip "Hoon record repeats field `{(trip u.u.p.repeated)}`")]
+  =/  faces=source-faces  u.p.repeated
+  ?^  repeat.faces  [%| (repeated-field-message u.repeat.faces)]
   =/  overlap=(each ? tang)  (mule |.((overlap-source-witness module name cor)))
   ?:  &(?=(%& -.overlap) p.overlap)  [%| 'Hoon union cases overlap']
   =/  result  (read-with module name typ [~ cor])
-  ?:  ?=([%& *] result)  result
+  ?:  ?=([%& *] result)  (graph-faces result complete.faces)
   =/  fallback=(each (unit (each imported @t)) tang)
     (mule |.((tagged-union-fallback module name cor)))
   ?:  ?=(%| -.fallback)  result
   ?~  p.fallback  result
-  u.p.fallback
+  (graph-faces u.p.fallback complete.faces)
 ::
 ::  +read-named is the source-aware entry point for callers that have
 ::  not selected a Hoon type yet. Check the core and the local arm
@@ -1330,13 +1427,21 @@
 ::
 ::  A named payload must reselect to the exact hold in its authenticated
 ::  build core; neither the mark spelling nor the expanded type is evidence.
+::  The hold's own source decides when it shows a repeat or every record;
+::  else the build core's source of the selected mold may show them all.
 ++  mark-repeated-field
   |=  [raw=type context=type]
-  ^-  (unit (unit term))
-  =/  direct=(unit (unit term))  (hold-repeated-field raw)
-  ?^  direct  direct
-  =/  structural=(unit term)  (type-repeated-field raw)
-  ?^  structural  `structural
+  ^-  (unit source-faces)
+  =/  direct=(unit source-faces)  (hold-repeated-field raw)
+  ?:  ?=([~ [^ *]] direct)  direct
+  ?:  ?=([~ [~ %&]] direct)  direct
+  =/  built=(unit source-faces)  (mark-built-faces raw context)
+  ?^  built  built
+  direct
+::
+++  mark-built-faces
+  |=  [raw=type context=type]
+  ^-  (unit source-faces)
   ?.  ?=([%cell [%face @ [%core *]] *] context)  ~
   ?.  =(q.context -:!>(..zuse))  ~
   =/  core=type  q.p.context
@@ -1351,13 +1456,15 @@
   ?.  =(p.selected raw)  ~
   (source-repeated-field u.selected-name core)
 ::
+::  What the source shows of a mark payload's records; nothing, when it
+::  can't be read
 ++  mark-repeated-field-evidence
   |=  [raw=type context=type]
-  ^-  (unit term)
-  =/  repeated=(each (unit (unit term)) tang)
+  ^-  source-faces
+  =/  repeated=(each (unit source-faces) tang)
     (mule |.((mark-repeated-field raw context)))
-  ?.  ?=(%& -.repeated)  ~
-  ?~  p.repeated  ~
+  ?.  ?=(%& -.repeated)  [~ |]
+  ?~  p.repeated  [~ |]
   u.p.repeated
 ::
 ++  read-mark
@@ -1369,11 +1476,10 @@
   ?.  (scope-safe q.p.cor %$)  [%| 'Hoon mark provenance is unavailable']
   =/  sample=type  p.p.cor
   =/  raw=type  ?:(?=([%face *] sample) q.sample sample)
-  =/  field=(unit term)  (mark-repeated-field-evidence raw q.p.cor)
-  ?^  field
-    [%| (crip "Hoon record repeats field `{(trip u.field)}`")]
+  =/  faces=source-faces  (mark-repeated-field-evidence raw q.p.cor)
+  ?^  repeat.faces  [%| (repeated-field-message u.repeat.faces)]
   =/  result  (read-with name name raw [~ q.p.cor])
-  ?:  ?=([%& *] result)  result
+  ?:  ?=([%& *] result)  (graph-faces result complete.faces)
   =/  fallback=(each (unit (each imported @t)) tang)
     (mule |.((mark-union-fallback raw q.p.cor)))
   ?:  ?=(%| -.fallback)  result
@@ -1386,12 +1492,12 @@
   =/  result=(each imported @t)  (read-named module name cor)
   =/  field=(unit term)
     ?.  &(?=([%core *] cor) !=(cor -:!>(..zuse)) (scope-safe cor %$))  ~
-    =/  repeated=(each (unit (unit term)) tang)  (mule |.((source-repeated-field name cor)))
+    =/  repeated=(each (unit source-faces) tang)  (mule |.((source-repeated-field name cor)))
     ?.  ?=(%& -.repeated)  ~
     ?~  p.repeated  ~
-    u.p.repeated
+    repeat.u.p.repeated
   ?^  field
-    [%invalid %face (crip "Hoon record repeats field `{(trip u.field)}`")]
+    [%invalid %face (repeated-field-message u.field)]
   ?:  ?=(%& -.result)  [%ok p.result]
   ?.  ?=([%core *] cor)  [%unsupported p.result]
   ?:  =(cor -:!>(..zuse))  [%unsupported p.result]
@@ -1405,9 +1511,7 @@
   ?:  &(?=(%& -.overlap) p.overlap)  [%invalid %overlap 'Hoon union cases overlap']
   =/  again=(each imported tang)  (mule |.((walk module p.selected catalog ~ [~ cor])))
   ?.  ?=(%& -.again)  [%unsupported p.result]
-  =/  evidence=(unit import-diagnostic)  (first-invalid p.again)
-  ?~  evidence  [%unsupported p.result]
-  u.evidence
+  (graph-diagnostic p.again p.result)
 ::
 ++  mark-source-declaration-of  |=  [input=[module=term at=path source=@t] raw=type context=type]
   ^-  (unit mark-source-declaration)
@@ -1515,6 +1619,9 @@
   ?.  =(' ' i.rest)  ~
   (mark-source-after-space rest col wanted)
 ::
+::  The declaration's site, when exactly one line declares the name. One
+::  pass over the lines, each step a tail call, so the cost is linear in
+::  the source and the stack stays flat however many lines match.
 ++  mark-source-text-site
   |=  [source=@t name=term]
   ^-  (unit mark-source-span)
@@ -1522,13 +1629,11 @@
   =/  wanted=tape  (trip name)
   =/  number=@ud  1
   =/  found=(list mark-source-span)  ~
-  |-
+  |-  ^-  (unit mark-source-span)
   ?~  lines  ?:(?=([* ~] found) `i.found ~)
   =/  hit=(unit @ud)  (mark-source-line-site (trip i.lines) wanted)
-  =/  rest=(unit mark-source-span)  $(lines t.lines, number +(number))
-  ?~  hit  rest
-  =/  site=mark-source-span  [[number u.hit] [number u.hit]]
-  $(lines t.lines, number +(number), found [site found])
+  =?  found  ?=(^ hit)  [[[number u.hit] [number u.hit]] found]
+  $(lines t.lines, number +(number))
 ::
 ++  mark-source-origin-of  |=  [sources=(list [module=term at=path source=@t]) cor=type]
   ^-  (unit mark-source-origin)
@@ -1579,14 +1684,12 @@
   ?.  (scope-safe q.p.cor %$)  [%unsupported p.result]
   =/  sample=type  p.p.cor
   =/  raw=type  ?:(?=([%face *] sample) q.sample sample)
-  =/  field=(unit term)  (mark-repeated-field-evidence raw q.p.cor)
-  ?^  field
-    [%invalid %face (crip "Hoon record repeats field `{(trip u.field)}`")]
+  =/  faces=source-faces  (mark-repeated-field-evidence raw q.p.cor)
+  ?^  repeat.faces
+    [%invalid %face (repeated-field-message u.repeat.faces)]
   =/  again=(each imported tang)  (mule |.((walk name raw catalog ~ [~ q.p.cor])))
   ?.  ?=(%& -.again)  [%unsupported p.result]
-  =/  evidence=(unit import-diagnostic)  (first-invalid p.again)
-  ?~  evidence  [%unsupported p.result]
-  u.evidence
+  (graph-diagnostic p.again p.result)
 ::
 ++  read-with
   |=  [module=term name=term typ=type context=(unit type)]

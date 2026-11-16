@@ -1,0 +1,1 @@
+(module tests/golden/parse-string-nul/source (def inside "nul\00end") (def leading "\00a") (def trailing "nul") (def only "") (def pieces (lam b (app (native join) (cons "" (cons "a" (cons b (cons "x\00y" (cons b (cons "\00c" ~))))))))) (def match (lam x (if (eq x "a\00b") 1 2))))

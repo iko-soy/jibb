@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-pattern-eqeq/source.jibb:3:8: the closer `==` is left out: indentation covers it
+    [a==1]  1
+       ^

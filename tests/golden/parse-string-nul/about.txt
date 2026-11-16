@@ -1,0 +1,5 @@
+source: Grammar, Expressions, Interpolation: "`\` with two lowercase hex digits writes that byte"; docs/compiler.md, The tree: "Strings keep their decoded text as a cord of its bytes in order"
+tests: a `\00` escape writes a zero byte inside a string, at its start, inside an interpolated string's text and in a string pattern, as Hoon's cord literal 'a\00b' keeps it; a zero byte at the end of a string, or of the text before a `{…}`, is lost, as in Hoon, where 'a\00' is 'a', since no atom ends in a zero byte. The tokens, tree and Core print each kept byte back as `\00`
+expect: parses
+expect-types: full checker result
+expect-core: the strings lowered to Core literals, each zero byte kept but the trailing ones

@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-mold-ref/source.jibb:1:10: the closer `==` is left out: indentation covers it
++$ x foo==
+         ^

@@ -1,0 +1,7 @@
+module kind: library
+++ inside: @t
+++ leading: @t
+++ trailing: @t
+++ only: @t
+++ pieces: $-(@t @t)
+++ match: $-(@t @ud)

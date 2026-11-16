@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-list-term/source.jibb:1:11: the closer `==` is left out: indentation covers it
+++ x ~[%a==]
+          ^

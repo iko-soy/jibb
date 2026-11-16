@@ -1,0 +1,3 @@
+/tests/golden/parse-tight-flines/source.jibb:2:6: expected the end of the line, found `=`; the closer `==` is left out: indentation covers it
+  a=@==
+     ^

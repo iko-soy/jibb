@@ -1,0 +1,4 @@
+++ keep: Hoon record repeats field `c`
+/tests/golden/parse-import-ref-faces/source.jibb:2:14: invalid imported mold
+++ keep |= x=rec.fixture x
+             ^
