@@ -93,6 +93,9 @@
   =/  api-iface=ifile:jibb  iface.p.api-result
   ?~  graph.api-iface  ~["real todo API evidence is missing"]
   =/  direct-subs=@t  '++ subs |= state=model\0a  ^- (list (sub msg))\0a    ~[[%watch (todos.api |=%got)]]\0a'
+  =/  request-mapper=@t  '++ map-requests |= requests=(list (ask msg))\0a  ^- (list (sub msg))\0a  ?- requests\0a  ~ ~\0a  [request rest] [[%watch request] (map-requests rest)]\0a'
+  =/  mapped-live=@t  '++ subs |= state=model\0a  ^- (list (sub msg))\0a    (map-requests ~[(todos.api |=%got) (todo-by-id.api 1 |=%one)])\0a'
+  =/  mapped-mixed=@t  '++ subs |= state=model\0a  ^- (list (sub msg))\0a    (map-requests ~[(todos.api |=%got) (pure %other)])\0a'
   =/  island=@t  (program-watch-source '' direct-subs)
   =/  at=path  /tests/program-watch/island/jibb
   =/  helper=@t  '/= api /ui/api/todo\0a++ request |= reply (todos.api reply)\0a'
@@ -200,6 +203,8 @@
         (program-watch-source '++ request ^- (ask msg) (todos.api |=%got)\0a' '++ subs |= state=model\0a  ^- (list (sub msg))\0a    ~[[%watch request]]\0a')
         :-  "request alias"
         (program-watch-source '++ request todos.api\0a' '++ subs |= state=model\0a  ^- (list (sub msg))\0a    ~[[%watch (request |=%got)]]\0a')
+        :-  "recursive live request mapper"
+        (program-watch-source request-mapper mapped-live)
     ==
   =.  valid
     %+  weld  valid
@@ -254,15 +259,28 @@
         :-  "bad concatenated request"
         (program-watch-source '' '++ subs |= state=model\0a  ^- (list (sub msg))\0a    (weld ~[[%watch (todos.api |=%got)]] ~[[%watch (pure %other)]])\0a')
     ==
-  %+  weld  valid-failures
-  %+  murn  negatives
-  |=  c=[label=tape src=@t]
-  =/  bad=jfile-detailed-result:jibb
-    (program-watch-detailed at src.c externals marks modules u.prepared)
-  ?:  ?=(%& -.bad)  `[(weld label.c ": accepted")]
-  ?.  &((contains (trip message.p.bad) "an island may watch only a request whose origin is proved watchable") &((contains (trip message.p.bad) "watch subscription") (contains (trip message.p.bad) "this request has no watchability proof")))
-    `[(weld label.c (weld ": wrong watch diagnostic: " (trip message.p.bad)))]
-  ~
+  =/  negative-failures=(list tape)
+    %+  murn  negatives
+    |=  c=[label=tape src=@t]
+    =/  bad=jfile-detailed-result:jibb
+      (program-watch-detailed at src.c externals marks modules u.prepared)
+    ?:  ?=(%& -.bad)  `[(weld label.c ": accepted")]
+    ?.  &((contains (trip message.p.bad) "an island may watch only a request whose origin is proved watchable") &((contains (trip message.p.bad) "watch subscription") (contains (trip message.p.bad) "this request has no watchability proof")))
+      `[(weld label.c (weld ": wrong watch diagnostic: " (trip message.p.bad)))]
+    ~
+  =/  mixed=jfile-detailed-result:jibb
+    (program-watch-detailed at (program-watch-source request-mapper mapped-mixed) externals marks modules u.prepared)
+  =/  mixed-failures=(list tape)
+    ?:  ?=(%& -.mixed)  ~["recursive mixed request mapper: accepted"]
+    =/  message=tape  (trip message.p.mixed)
+    ?.  (contains message "an island may watch only a request whose origin is proved watchable")
+      ~["recursive mixed request mapper: wrong watch diagnostic"]
+    ?.  (contains message "/tests/program-watch/island.jibb:19:41:")
+      ~[(weld "recursive mixed request mapper: wrong pure occurrence site: " message)]
+    ?.  (contains message "(map-requests ~[(todos.api |=%got) (pure %other)])")
+      ~["recursive mixed request mapper: pure occurrence excerpt is missing"]
+    ~
+  :(weld valid-failures negative-failures mixed-failures)
 ::
 ++  test-program-watch
   ^-  tang

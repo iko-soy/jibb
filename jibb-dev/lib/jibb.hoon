@@ -24760,10 +24760,16 @@
 +$  iav-frame  [bindings=(list [name=term value=iav-value]) defs=(list def)]
 +$  iav-scope  [file=path frames=(list iav-frame)]
 +$  iav-context  [files=(map path ifile) prelude=ifile graph=irequest-graph modules=(map path module)]
-+$  iav-active  (list [file=path at=span closure=* argument=*])
-::  Within one analysis's fixed context, a definition's value depends only
-::  on its scope, the remaining fuel and the active calls.
-+$  iav-memo  (map [scope=iav-scope name=term fuel=@ud active=iav-active] iav-value)
++$  iav-call-key  [file=path at=span closure=* argument=*]
++$  iav-active  (list iav-call-key)
++$  iav-dependency  [current=* key=iav-call-key recursive=? repeated=?]
++$  iav-memo-entry  [dependencies=(list iav-dependency) value=iav-value]
+::  Within one analysis's fixed context, a definition's base key identifies
+::  values whose recorded call dependencies agree under the active calls.
++$  iav-memo
+  $:  entries=(map [scope=iav-scope name=term fuel=@ud] (list iav-memo-entry))
+      recorder=(unit (list iav-dependency))
+  ==
 ++  iav-context-new
   |=  [files=(map path ifile) prelude=ifile graph=irequest-graph]
   ^-  iav-context
@@ -24951,8 +24957,39 @@
   =/  typ=(unit itype)  (scheme-display-type u.scheme)
   ?~  typ  [value memo]
   [[site.value %typed u.typ value] memo]
-::  References to a definition with the same memo key share one evaluation
-::  instead of re-evaluating the definition at each reference.
+++  iav-call-flags
+  |=  [current=* key=iav-call-key active=iav-active]
+  ^-  [recursive=? repeated=?]
+  :-  %+  lien  active
+      |=  k=iav-call-key
+      &(=(file.k file.key) =(at.k at.key) =(closure.k closure.key) (iav-argument-grows argument.k current))
+  (lien active |=(k=iav-call-key =(k key)))
+++  iav-dependency-valid
+  |=  [dependency=iav-dependency active=iav-active]
+  ^-  ?
+  =/  flags=[recursive=? repeated=?]
+    (iav-call-flags current.dependency key.dependency active)
+  &(=(recursive.dependency recursive.flags) =(repeated.dependency repeated.flags))
+++  iav-memo-hit
+  |=  [entries=(list iav-memo-entry) active=iav-active]
+  ^-  (unit iav-memo-entry)
+  ?~  entries  ~
+  ?:  (levy dependencies.i.entries |=(d=iav-dependency (iav-dependency-valid d active)))
+    `i.entries
+  $(entries t.entries)
+++  iav-merge-dependencies
+  |=  [dependencies=(list iav-dependency) memo=iav-memo]
+  ^-  iav-memo
+  ?~  recorder.memo  memo
+  =/  new=(list iav-dependency)
+    (skip dependencies |=(d=iav-dependency (lien u.recorder.memo |=(prior=iav-dependency =(prior d)))))
+  memo(recorder `(weld new u.recorder.memo))
+++  iav-record-dependency
+  |=  [dependency=iav-dependency memo=iav-memo]
+  ^-  iav-memo
+  (iav-merge-dependencies ~[dependency] memo)
+::  References to a definition share a complete value only when every call
+::  dependency has the same recursive and repeated classification.
 ++  iav-lookup
   |=  [name=term scope=iav-scope context=iav-context fuel=@ud active=iav-active fallback=? memo=iav-memo]
   ^-  [iav-value iav-memo]
@@ -24968,11 +25005,20 @@
     ?^  written
       =/  d=def  i.written
       ?>  ?=(%value -.d)
-      =/  key=[scope=iav-scope name=term fuel=@ud active=iav-active]  [scope name fuel active]
-      =/  known=(unit iav-value)  (~(get by memo) key)
-      ?^  known  [u.known memo]
+      =/  key=[scope=iav-scope name=term fuel=@ud]  [scope name fuel]
+      =/  entries=(list iav-memo-entry)
+        (fall (~(get by entries.memo) key) ~)
+      =/  hit=(unit iav-memo-entry)  (iav-memo-hit entries active)
+      ?^  hit
+        [value.u.hit (iav-merge-dependencies dependencies.u.hit memo)]
+      =/  parent=(unit (list iav-dependency))  recorder.memo
+      =.  memo  memo(recorder `~)
       =^  value=iav-value  memo  (iav-eval val.d scope context (dec fuel) active memo)
-      [value (~(put by memo) key value)]
+      =/  dependencies=(list iav-dependency)  (fall recorder.memo ~)
+      =.  memo  memo(recorder parent)
+      =.  memo  (iav-merge-dependencies dependencies memo)
+      =/  entry=iav-memo-entry  [dependencies value]
+      [value memo(entries (~(put by entries.memo) key [entry entries]))]
     $(scope scope(frames t.frames.scope), fuel (dec fuel))
   =/  parsed=(unit module)  (~(get by modules.context) file.scope)
   ?~  parsed  [(iav-unknown missing) memo]
@@ -25104,15 +25150,20 @@
       =/  identity=*  [sample.node.gate body.node.gate frames.node.gate]
       =/  current-key=*  (iav-value-key arg 32)
       =/  recursive=?
-        (lien active |=(k=[file=path at=span closure=* argument=*] &(=(file.k file.node.gate) =(at.k at.site.gate) =(closure.k identity) (iav-argument-grows argument.k current-key))))
+        %+  lien  active
+        |=  k=iav-call-key
+        &(=(file.k file.node.gate) =(at.k at.site.gate) =(closure.k identity) (iav-argument-grows argument.k current-key))
       ::  Re-evaluate a recursive closure once over all gate-free data.
       ::  Growing accumulators then reach the same abstract argument; all
       ::  branches remain possible and existing obligations are retained.
       =?  arg  &(recursive (iav-gate-free-value arg fuel))
         (iav-carry [site.arg %data ~] ~[arg] fuel)
-      =/  key=[file=path at=span closure=* argument=*]
+      =/  key=iav-call-key
         [file.node.gate at.site.gate identity (iav-value-key arg 32)]
-      ?:  (lien active |=(k=[file=path at=span closure=* argument=*] =(k key)))  [(iav-unknown site) memo]
+      =/  repeated=?  (lien active |=(k=iav-call-key =(k key)))
+      =/  dependency=iav-dependency  [current-key key recursive repeated]
+      =.  memo  (iav-record-dependency dependency memo)
+      ?:  repeated  [(iav-unknown site) memo]
       =/  outer=iav-scope  [file.node.gate frames.node.gate]
       =/  sampled=isample-result  (infer-sample sample.node.gate ~ (iav-mold-state outer context))
       =?  arg  ?=(%& -.sampled)
@@ -25532,7 +25583,7 @@
   =/  selected=(list ifile)  (turn imports |=(i=[face=term interface=ifile] interface.i))
   =/  files=(map path ifile)  (iav-add-files (weld cached (weld selected ~[prelude candidate])) *(map path ifile))
   =/  context=iav-context  (iav-context-new files prelude graph)
-  =/  memo=iav-memo  ~
+  =/  memo=iav-memo  [~ ~]
   =^  main=iav-value  memo  (iav-member at.candidate %main context 1.024 ~ memo)
   =/  kind=(unit checked-kind)  (checked-main-kind candidate `prelude)
   ?~  kind  ~

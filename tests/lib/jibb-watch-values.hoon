@@ -49,9 +49,43 @@
     =/  prelude=ifile  [~ ~ /lib/jibb/prelude/jibb ~ ~ ~ ~ ~ ~]
     =/  graph=irequest-graph  [~ ~ ~ ~ ~ ~ ~ ~ ~]
     =/  context=iav-context  (iav-context-new (~(put by *(map path ifile)) at iface) prelude graph)
-    =/  result=iav-value  -:(iav-member at %value context 256 ~ ~)
+    =/  result=iav-value  -:(iav-member at %value context 256 ~ [~ ~])
     =?  result  call
-      -:(iav-call result (iav-unknown [at *span]) [at *span] context 256 ~ ~)
+      -:(iav-call result (iav-unknown [at *span]) [at *span] context 256 ~ [~ ~])
     (iav-value-key result 32)
   --
+++  test-memo-validation
+  =>  jibb
+  ^-  tang
+  =/  site=iav-site  [/tests/memo/jibb *span]
+  =/  old=*  [%atom 0]
+  =/  grown=*  [%cell [%atom 0] [%atom 0]]
+  =/  key=iav-call-key  [/tests/memo/jibb *span %closure grown]
+  =/  growth=iav-call-key  key(argument old)
+  =/  abstract=iav-call-key  key(argument [%data ~])
+  =/  unrelated=iav-call-key  key(file /tests/unrelated/jibb)
+  =/  dependency=iav-dependency  [grown key | |]
+  =/  entry=iav-memo-entry  [~[dependency] [site %atom 1]]
+  ?~  (iav-memo-hit ~[entry] ~[unrelated])
+    ~[leaf+"unrelated active frame rejected a valid entry"]
+  ?^  (iav-memo-hit ~[entry] ~[growth])
+    ~[leaf+"matching argument growth did not invalidate an entry"]
+  ?^  (iav-memo-hit ~[entry] ~[unrelated growth])
+    ~[leaf+"non-head matching argument growth did not invalidate an entry"]
+  =/  flags=[recursive=? repeated=?]  (iav-call-flags grown abstract ~[growth])
+  =/  recursive-entry=iav-memo-entry
+    [~[[grown abstract flags]] [site %atom 1]]
+  ?^  (iav-memo-hit ~[recursive-entry] ~[abstract growth])
+    ~[leaf+"exact post-widening active key did not invalidate an entry"]
+  =/  parent=iav-dependency  [old unrelated | |]
+  =/  memo=iav-memo  [~ `~[parent]]
+  =/  hit=(unit iav-memo-entry)  (iav-memo-hit ~[entry] ~[unrelated])
+  ?~  hit  ~[leaf+"nested hit disappeared"]
+  =/  merged=iav-memo  (iav-merge-dependencies dependencies.u.hit memo)
+  ?.  =(recorder.merged `~[dependency parent])
+    ~[leaf+"nested hit dependencies were not propagated to the enclosing recorder"]
+  =/  repeated=iav-memo  (iav-merge-dependencies dependencies.u.hit merged)
+  ?.  =(recorder.repeated recorder.merged)
+    ~[leaf+"repeated hit dependencies were duplicated"]
+  ~
 --
