@@ -38,7 +38,17 @@
   |=  =path
   ^-  (unit (unit cage))
   ?+  path  [~ ~]
+    [%u %posts ~]  ``noun+!>(&)
+    [%u %post ?(%crash %malformed) ~]  ``noun+!>(&)
+    ::
+        [%u %post @ ~]
+      =/  found=(list post:blog)  (skim posts |=(p=post:blog =(slug.p i.t.t.path)))
+      ``noun+!>(?=(^ found))
+    ::
     [%x %posts ~]  ``posts+!>(posts)
+  ::
+      [%x %post %crash ~]
+    ~|('intentional blog peek crash' !!)
   ::
   ::  A post whose slug is a cell, which does not fit a post: the page that
   ::  reads it must refuse it rather than render it.

@@ -37,6 +37,15 @@
     ~[[%tree-diff [%& [%cell [%atom %ud ~] [%named %forest %chain body]]]]]
   =/  duplicate=imark-externals:jibb
     (weld (marked body) second)
+  =/  nested=*
+    [%fork ~[[%atom %n `0] [%cell [%face %value [%atom %ud ~]] [%cell [%face %value [%atom %ud ~]] [%face %next [%ref %forest %chain]]]]]]
+  =/  nested-result=(each itype:jibb @t)
+    (recursive-view:jibb-fact-types root ~ (marked nested))
+  =/  nested-expected=itype:jibb
+    :*  %union
+        ~[[%const [%null %n 0 '~']] [%cell [%slot %value [%atom %ud]] [%cell [%slot %value [%atom %ud]] [%slot %next root]]]]
+        ~  ~  ~
+    ==
   =/  results=(list (each itype:jibb @t))
     :~  (recursive-view:jibb-fact-types root external ~)
         (recursive-view:jibb-fact-types root alias ~)
@@ -44,7 +53,10 @@
         (recursive-view:jibb-fact-types root external duplicate)
     ==
   |-
-  ?~  results  ~
+  ?~  results
+    ?.  =(nested-result [%& nested-expected])
+      ~[leaf+"a valid nested recursive record was rejected"]
+    ~
   ?.  =(i.results [%& expected])
     ~[leaf+"authenticated recursive body changed its exact type"]
   $(results t.results)
@@ -79,7 +91,7 @@
   =/  conflict=imark-externals:jibb
     (weld (marked body) (marked changed))
   =/  repeated=*
-    [%fork ~[[%atom %n `0] [%cell [%face %value [%atom %ud ~]] [%cell [%face %value [%atom %ud ~]] [%face %next [%ref %forest %chain]]]]]]
+    [%fork ~[[%atom %n `0] [%cell [%face %value [%atom %ud ~]] [%face %value [%ref %forest %chain]]]]]
   =/  wrong=*
     [%fork ~[[%atom %n `0] [%cell [%face %value [%atom %ud ~]] [%face %next [%ref %other %chain]]]]]
   =/  checks=(list [got=(each itype:jibb @t) want=@t])
@@ -96,6 +108,8 @@
   |-
   ?~  checks  ~
   ?.  =(got.i.checks [%| want.i.checks])
-    ~[leaf+"invalid recursive evidence did not fail with its exact reason" leaf+(trip want.i.checks)]
+    =/  actual=@t
+      ?:(?=(%| -.got.i.checks) (rap 3 ~['error: ' p.got.i.checks]) 'accepted a type')
+    ~[leaf+"invalid recursive evidence did not fail with its exact reason" leaf+(trip (rap 3 ~['wanted: ' want.i.checks '; actual: ' actual]))]
   $(checks t.checks)
 --

@@ -1734,7 +1734,7 @@
     =/  try=(each (like coin) tang)
       ?.  (is-time run)  [%& (nuck:so [[lin col] run])]
       (mule |.((nuck:so [[lin col] run])))
-    =/  padded=(unit (like coin))  (padded-date lin col run)
+    =/  padded=(unit [read=(like coin) normalized=tape])  (padded-date lin col run)
     =.  try
       ?~  padded  try
       ?:  ?&  ?=(%& -.try)
@@ -1742,9 +1742,11 @@
               ?=(~ q.q.u.q.p.try)
           ==
         try
-      [%& u.padded]
+      [%& read.u.padded]
     ?:  ?=(%| -.try)  (err col "Jibb can't read this literal")
     =/  ed=(like coin)  p.try
+    =?  q.p.ed  ?=(^ padded)
+      (padded-position q.p.ed col run normalized.u.padded)
     ?~  q.ed  (err q.p.ed (literal-msg run %$))
     =/  used=@ud  (sub n (lent q.q.u.q.ed))
     =/  con=coin  p.u.q.ed
@@ -2036,26 +2038,38 @@
   ?~  month  ~
   ?.  ?=([%'.' *] rest.u.month)  ~
   =/  day=(unit [field=tape rest=tape padded=?])  (date-field t.rest.u.month)
-  ?~  day  ~
-  ?.  |(padded.u.month padded.u.day)  ~
+  =/  fields=[field=tape rest=tape padded=?]
+    ?~  day  [~ rest.u.month |]
+    u.day
+  ?.  |(padded.u.month padded.fields)  ~
   =/  out=tape
-    :(weld "~" year sign "." field.u.month "." field.u.day rest.u.day)
+    :(weld "~" year sign "." field.u.month "." field.fields rest.fields)
   `out
 ::
 ++  padded-date
   |=  [lin=@ud col=@ud run=tape]
-  ^-  (unit (like coin))
+  ^-  (unit [read=(like coin) normalized=tape])
   =/  normalized=(unit tape)  (unpad-date run)
   ?~  normalized  ~
   =/  try=(each (like coin) tang)
     (mule |.((nuck:so [[lin col] u.normalized])))
   ?:  ?=(%| -.try)  ~
   =/  ed=(like coin)  p.try
-  ?~  q.ed  ~
-  ?^  q.q.u.q.ed  ~
-  =/  con=coin  p.u.q.ed
-  ?.  &(?=([%$ *] con) =(%da p.p.con))  ~
-  `ed
+  ?~  q.ed  `[ed u.normalized]
+  `[ed u.normalized]
+::
+++  padded-position
+  |=  [at=@ud col=@ud original=tape normalized=tape]
+  ^-  @ud
+  =/  shift=@ud  0
+  |-
+  ?:  =(col at)  (add at shift)
+  ?~  normalized  (add at shift)
+  ?~  original  (add at shift)
+  ?:  =(i.original i.normalized)
+    $(original t.original, normalized t.normalized, col +(col))
+  ?>  =('0' i.original)
+  $(original t.original, shift +(shift))
 ::
 ::  +fifth-group: where in a ~ literal's run, counting from its ~, the
 ::  dot that begins a fifth sub-second group is, if the first four are

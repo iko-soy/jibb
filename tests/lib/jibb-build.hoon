@@ -913,10 +913,11 @@
         '  [%agent api="/ui/api/notes" case=%note agent=%notes path=~[%note slug] scry=~ receive=receive]'
         '++ receive |= input=[mark=@tas state=(unit *) fact=*]'
         '  ^- [state=* message=@t]'
-        '  ?- [mark.input fact.input]'
-        '    [%noun 42] [state=0 message="First from the agent"]'
-        '    [%noun 43] [state=0 message="Second from the agent"]'
-        '    [%noun 44] [state=0 message="crash"]'
+        '  ?- mark.input'
+        '    %first [state=0 message="First from the agent"]'
+        '    %second [state=0 message="Second from the agent"]'
+        '    %crash [state=0 message="crash"]'
+        '    %malformed !!'
         '    * !!'
         ''
         '++ view |= words=@t'
@@ -932,7 +933,7 @@
   =/  first=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['notes' 'hello']])
   ?.  ?=(%scry -.first)  ~[leaf+"an agent's ask did not ask the host to scry"]
   ?.  =([%notes /note/hello] [agent.first path.first])  ~[leaf+"the scry named another agent or path"]
-  =/  done=page-step:jibb-build  (page-request:jibb-build p.made [%receive receive.first %noun 42])
+  =/  done=page-step:jibb-build  (page-request:jibb-build p.made [%receive receive.first %first 42])
   ?.  ?=(%done -.done)  ~[leaf+"the agent's answer did not render"]
   ?.  =('First from the agent' title.done)  ~[leaf+(trip title.done)]
   ?.  (contains (trip html.done) "First from the agent</h1>")
@@ -942,7 +943,7 @@
   ?.  ?=(%scry -.second)  ~[leaf+"a repeated request reused data instead of scrying"]
   ?.  =([%notes /note/hello] [agent.second path.second])
     ~[leaf+"the repeated request changed its agent or path"]
-  =/  changed=page-step:jibb-build  (page-request:jibb-build p.made [%receive receive.second %noun 43])
+  =/  changed=page-step:jibb-build  (page-request:jibb-build p.made [%receive receive.second %second 43])
   ?.  ?=(%done -.changed)  ~[leaf+"the second answer did not render"]
   ?.  =('Second from the agent' title.changed)  ~[leaf+(trip title.changed)]
   ?.  (contains (trip html.changed) "Second from the agent</h1>")
@@ -954,7 +955,7 @@
   ?.  &(?=(%fail -.rejected) =(404 status.rejected) =(why message.rejected))
     ~[leaf+"a rejected path was not a 404"]
   =/  malformed=page-step:jibb-build
-    (page-request:jibb-build p.made [%receive receive.second %noun [42 43]])
+    (page-request:jibb-build p.made [%receive receive.second %malformed [42 43]])
   ?.  ?=(%fail -.malformed)  ~[leaf+"a malformed answer rendered"]
   ?.  =(500 status.malformed)  ~[leaf+"a malformed answer was not a 500"]
   ?.  =('the agent answered with data that does not fit its type, or the page crashed reading it' message.malformed)
@@ -964,7 +965,7 @@
   ?:  =(0 remaining)  ~
   =/  again=page-step:jibb-build  (page-request:jibb-build p.made [%load ~['notes' 'hello']])
   ?.  ?=(%scry -.again)  ~[leaf+"a failed view stopped a later request from scrying"]
-  =/  crashed=page-step:jibb-build  (page-request:jibb-build p.made [%receive receive.again %noun 44])
+  =/  crashed=page-step:jibb-build  (page-request:jibb-build p.made [%receive receive.again %crash 44])
   ?.  ?=(%fail -.crashed)  ~[leaf+"a crashing view rendered"]
   ?.  &(=(500 status.crashed) =('the page crashed in its view' message.crashed))
     ~[leaf+"a repeated view crash lost its 500 diagnostic"]

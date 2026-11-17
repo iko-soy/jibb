@@ -1810,9 +1810,9 @@
 ::  Pages with data.  Each request runs the page through the desk's own
 ::  +page-request, from the compiler of the revision that prepared it: a
 ::  page renders, fails with the desk's error page, or names an agent's
-::  path, which a thread on this desk scries, so that a path the agent
-::  rejects fails the thread, not this event.  The answer goes back to the
-::  page's receiver.  Nothing is cached.
+::  path, which a thread on this desk checks as %u and then scries as %gx,
+::  so that a missing path or a failed read does not crash this event.
+::  The answer goes back to the page's receiver. Nothing is cached.
 ++  page-step
   |=  [eyre-id=@ta wait=pending-page input=*]
   ^-  (quip card _state)

@@ -123,11 +123,11 @@ A module without `main` is a library. The host reads a few other names per file 
 **Loading.** A page with data renders in the host per request, from a fresh scry.
 
 - `load`, `page`'s first argument, maps route parameters to one `ask`: `++ load |=(~ (todos.todo same))` without parameters.
-- The host scries the ask's path per request, so the agent must answer a peek there; nothing is watched or kept. A path case can name a separate scry path.
+- The host checks the ask's path as `%u` before reading it as `%x` per request, so the agent must answer both peeks at that path; nothing is watched or kept. A path case can name a separate scry path.
 - Pages read full state only; folds matter only to islands.
 - Route parameters are `load`'s sample, bound by name and parsed by aura: `/ui/blog/_slug.jibb` has `++ load |=([slug=@ta] (post.api slug same))`.
 - `(pure x)` is an ask without an agent; an app's catch-all page passes its path with it.
-- A rejected path is a 404.
+- A false `%u` answer is a 404. On true, the host reads `%x`; an unsupported or crashing probe and a crashing read are 500s.
 
 Loads and renders run in Nock.
 

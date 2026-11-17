@@ -1154,6 +1154,9 @@ def main(args):
                    % (status, body))
             status, headers, _ = anonymous.request('GET', MY_APP_BASE + '/blog/hello-urbit')
             expect(status == 307, 'a logged-out reader of a page with data got HTTP %d' % status)
+            status, _, body = owner.request('GET', MY_APP_BASE + '/blog/crash')
+            expect(status == 500 and b'stopped-before-started' in body,
+                   'a crashing agent peek was HTTP %d: %r' % (status, body))
             status, _, body = owner.request('GET', MY_APP_BASE + '/blog/no-such-post')
             expect(status == 404 and b'did not answer /post/no-such-post' in body,
                    'a path the agent rejects was HTTP %d: %r' % (status, body))

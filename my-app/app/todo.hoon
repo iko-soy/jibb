@@ -1,6 +1,6 @@
 ::  Fixture for the documented examples; not supplied by the design doc.
-::  The ship's todos, which worked example 3 reads: the page scries
-::  /x/todos per request, and its island watches /todos, whose every fact
+::  The ship's todos, which worked example 3 reads: the page checks /u/todos
+::  and scries /x/todos per request, and its island watches /todos, whose every fact
 ::  is every todo, and pokes todo-action.  /changes gives every todo
 ::  first, then a todo-update per change; /x/todo/<id> gives one todo.
 /-  todo
@@ -56,6 +56,14 @@
   |=  =path
   ^-  (unit (unit cage))
   ?+  path  [~ ~]
+    [%u %todos ~]  ``noun+!>(&)
+  ::
+      [%u %todo @ ~]
+    =/  id=(unit @ud)  (slaw %ud i.t.t.path)
+    ?~  id  ``noun+!>(|)
+    =/  found=(list item:todo)  (skim todos |=(i=item:todo =(id.i u.id)))
+    ``noun+!>(?=(^ found))
+  ::
     [%x %todos ~]  ``todos+!>(todos)
   ::
       [%x %todo @ ~]
