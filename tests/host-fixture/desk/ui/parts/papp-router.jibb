@@ -1,0 +1,25 @@
+++ main (program init update view subs)
+
++$ model path
++$ msg [%moved to=path]
+
+++ init |= p=path p
+
+++ update |= [=msg m=model]
+  ?- msg
+  [%moved to]  [to ~]
+
+++ subs |= m=model ~[[%url |=(p=path [%moved p])]]
+
+++ view |= m=model
+  column ~[gap+%s1] ~[
+    heading 1 (where m)
+    (link %/papp/one "One")
+    (link %/papp/two "Two")
+    (link %/about "Away")
+
+++ where |= p=path
+  ^- @t
+  ?- p
+  ~  "Home"
+  [i t]  "At {i}"

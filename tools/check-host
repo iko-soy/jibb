@@ -102,8 +102,8 @@ FIXTURE_MODULES = {'/ui/about/jibb', '/ui/css-numbers/jibb', '/ui/prelude-ford/j
                    '/ui/bench/jibb', '/ui/bench-small/jibb', '/ui/parts/rows/jibb',
                    '/ui/template-demo/jibb', '/ui/parts/template-demo/jibb',
                    '/ui/fragile/jibb', '/ui/parts/fragile/jibb',
-                   '/ui/tests/sums/jibb', '/ui/app/__rest/jibb', '/ui/app/_user/__rest/jibb',
-                   '/ui/parts/router/jibb',
+                   '/ui/tests/sums/jibb', '/ui/app/__rest/jibb', '/ui/papp/_user/__rest/jibb',
+                   '/ui/parts/router/jibb', '/ui/parts/papp-router/jibb',
                    '/ui/theme/jibb', '/lib/jibb/renderer/jibb'}
 STYLESHEET = re.compile(rb'<link rel="stylesheet" href="([^"]+)">')
 IMAGE = re.compile(rb'<img src="([^"]+)" alt="([^"]*)" width="([0-9]+)" height="([0-9]+)">')
@@ -911,8 +911,8 @@ def main(args):
                        if '/~jibb/m/' in url or '/~jibb/r/' in url}
             library = [url for url in scripts if '/~jibb/r/' in url]
             modules = [url for url in scripts if '/~jibb/m/' in url]
-            expect(len(library) == 1 and len(modules) == 4,
-                   'the fixture published scripts %r, not one library and its four islands'
+            expect(len(library) == 1 and len(modules) == 5,
+                   'the fixture published scripts %r, not one library and its five islands'
                    % sorted(scripts))
             fetch_public(anonymous, library[0], 'text/javascript; charset=utf-8',
                          (ROOT / 'jibb-dev' / 'lib' / 'jibb' / 'runtime.js').read_bytes())

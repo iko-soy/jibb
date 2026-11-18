@@ -1,4 +1,4 @@
-/=  router  /ui/parts/router
+/=  router  /ui/parts/papp-router
 
 ++ main (page load view)
 ++ load |= [user=@ta rest=path] (pure rest)

@@ -759,16 +759,16 @@ async function appRoutes(session) {
 
 async function parameterizedAppRoutes(session) {
   const heading = `document.querySelector('[data-jibb-island] h1')?.textContent`;
-  await session.navigate(`${origin}/apps/jibb-host-fixture/app/alice/one`);
+  await session.navigate(`${origin}/apps/jibb-host-fixture/papp/alice/one`);
   await session.until('the parameterized app island to start', STARTED);
   expect(await session.evaluate(heading) === 'At one', 'the parameterized app did not start at its path');
   await session.evaluate('window.jibbParameterMarker = 1');
-  await session.click('[data-jibb-island] a[href$="/app/two"]');
+  await session.click('[data-jibb-island] a[href$="/papp/two"]');
   await session.until('the parameterized app to follow its link',
-    `location.pathname === '/apps/jibb-host-fixture/app/two'`);
+    `location.pathname === '/apps/jibb-host-fixture/papp/two'`);
   expect(await session.evaluate('window.jibbParameterMarker') === 1,
     'following a parameterized in-section link loaded a page');
-  expect(await session.evaluate(heading) === 'At root',
+  expect(await session.evaluate(heading) === 'Home',
     'the parameterized app did not retain its new catch-all path');
   await session.evaluate('history.back()');
   await session.until('the parameterized app to follow the back button', `${heading} === 'At one'`);
