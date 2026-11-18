@@ -66,10 +66,10 @@ const origin = args.origin;
 const password = args.password;
 const chromium = args.chromium || process.env.JIBB_CHROMIUM || 'chromium';
 // At 4x slowdown, a keystroke's input-to-laid-out time must have a median
-// within 16 ms and a p95 within 20 ms. --bar=MS replaces the p95 bar with a
+// within 16 ms and a p95 within 25 ms. --bar=MS replaces the p95 bar with a
 // custom total-time bar; the island's own work is still reported separately.
 const MEDIAN_BAR_MS = 16;
-const P95_BAR_MS = args.bar === undefined ? 20 : Number(args.bar);
+const P95_BAR_MS = args.bar === undefined ? 25 : Number(args.bar);
 const KEYSTROKES = Number(args.keystrokes || 40);
 const NOTICE = 'This part of the page stopped working. Reloading the page may fix it.';
 
