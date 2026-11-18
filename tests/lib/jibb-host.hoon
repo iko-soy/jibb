@@ -629,7 +629,7 @@
   ?.  =(~['apps' 'a b'] (target-site:jibb-host '/apps/a%20b'))
     ~[leaf+"a percent-encoded segment was not decoded"]
   ~
-::  An app's section is its catch-all route's literal prefix.
+::  An app's section is its catch-all route's prefix, including parameters.
 ++  test-app-sections
   ^-  tang
   ?.  =(`'/app' (page-section:jibb-host ~['app' '__rest']))
@@ -640,8 +640,10 @@
     ~[leaf+"a root catch-all's section was not the base"]
   ?.  =(~ (page-section:jibb-host ~['blog' '_slug']))
     ~[leaf+"a page with a parameter had a section"]
-  ?.  =(~ (page-section:jibb-host ~['user' '_id' '__rest']))
-    ~[leaf+"a catch-all after a parameter had a section"]
+  ?.  =(`'/user/_id' (page-section:jibb-host ~['user' '_id' '__rest']))
+    ~[leaf+"a catch-all after a parameter did not retain its section pattern"]
+  ?.  =(`'/org/_org/members/_member' (page-section:jibb-host ~['org' '_org' 'members' '_member' '__rest']))
+    ~[leaf+"a section did not retain multiple parameter segments"]
   ?.  =(~ (page-section:jibb-host ~))
     ~[leaf+"the index had a section"]
   ~

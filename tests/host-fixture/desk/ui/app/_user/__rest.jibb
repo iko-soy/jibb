@@ -1,0 +1,7 @@
+/=  router  /ui/parts/router
+
+++ main (page load view)
+++ load |= [user=@ta rest=path] (pure rest)
+++ view |= rest=path
+  column ~[pad+%s3] ~[
+    island main.router rest

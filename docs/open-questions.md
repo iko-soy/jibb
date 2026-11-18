@@ -9,7 +9,6 @@ From [spec/implementation-plan.md](spec/implementation-plan.md), Open questions:
 | Question | Needed by |
 | --- | --- |
 | Does the Eyre channel CSRF test reproduce on a fake ship? @iko has the write-up; if it does, it goes to Urbit privately. | Milestone 4 |
-| What is the benchmark's bar? Proposed: a keystroke in a 500-row list island renders within one 16 ms frame on a mid-range phone. Measured on 2026-11-10 in headless Chromium at a 4x CPU slowdown, on a machine shared with other builds: a median of 12.5 ms per keystroke and a p95 of 19.5 ms in the Nix sandbox, of which the island's own work took a median of 8.7 ms, and a median of 14.4 to 15.5 ms on a shared test ship; see [status.md](status.md#milestone-6-acceptance). `tools/check-browser --bar=16` checks a bar once one is agreed. | Milestone 6 |
 | Are the proposed loop rules adopted, along with no overlays in v1? | Milestone 6 |
 | What do controls look like by default: buttons, toggles and fields, with their focus and disabled states? | Milestone 6 |
 

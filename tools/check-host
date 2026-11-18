@@ -102,7 +102,8 @@ FIXTURE_MODULES = {'/ui/about/jibb', '/ui/css-numbers/jibb', '/ui/prelude-ford/j
                    '/ui/bench/jibb', '/ui/bench-small/jibb', '/ui/parts/rows/jibb',
                    '/ui/template-demo/jibb', '/ui/parts/template-demo/jibb',
                    '/ui/fragile/jibb', '/ui/parts/fragile/jibb',
-                   '/ui/tests/sums/jibb', '/ui/app/__rest/jibb', '/ui/parts/router/jibb',
+                   '/ui/tests/sums/jibb', '/ui/app/__rest/jibb', '/ui/app/_user/__rest/jibb',
+                   '/ui/parts/router/jibb',
                    '/ui/theme/jibb', '/lib/jibb/renderer/jibb'}
 STYLESHEET = re.compile(rb'<link rel="stylesheet" href="([^"]+)">')
 IMAGE = re.compile(rb'<img src="([^"]+)" alt="([^"]*)" width="([0-9]+)" height="([0-9]+)">')

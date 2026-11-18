@@ -139,8 +139,8 @@
 ::
 ::  The part of a catch-all page's route before its catch-all, as /app for
 ::  /ui/app/__rest: the section an app's links stay in (Decisions: Apps).
-::  ~ for other pages, and for a route with a parameter before its
-::  catch-all, whose section is not one address.
+::  A parameter segment in the section matches one address segment.
+::  ~ for other pages.
 ++  page-section
   |=  site=(list @t)
   ^-  (unit @t)
@@ -148,7 +148,6 @@
   ?~  parts  ~
   ?.  =('__' (end [3 2] i.parts))  ~
   =/  before=(list @t)  (flop t.parts)
-  ?:  (lien before |=(p=@t =('_' (end 3 p))))  ~
   `(rap 3 (turn before |=(p=@t (cat 3 '/' p))))
 ::  The reader's dependency proof is opaque to the host.  Exact manifest
 ::  source bytes and the compiler environment complete the prelude identity.

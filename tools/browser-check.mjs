@@ -14,7 +14,7 @@ import { arrayToList, cord } from '../js/natives/helpers.mjs';
 import { rawSeal } from '../js/natives/legacy.mjs';
 
 // The steps, in the order they run; --only=NAME,... runs some of them.
-const STEPS = [cssNumbers, exampleThree, storeExample, crashNotice, sharedModules, viewTemplates, rowTemplates, appRoutes, benchmark];
+const STEPS = [cssNumbers, exampleThree, storeExample, crashNotice, sharedModules, viewTemplates, rowTemplates, appRoutes, parameterizedAppRoutes, benchmark];
 const USAGE = 'usage: browser-check.mjs --origin=http://127.0.0.1:PORT --password=CODE'
   + ' [--chromium=PATH] [--only=STEP,...] [--bar=MS] [--keystrokes=N] [--profile=FILE]';
 
@@ -65,11 +65,11 @@ const args = parseArguments(process.argv.slice(2));
 const origin = args.origin;
 const password = args.password;
 const chromium = args.chromium || process.env.JIBB_CHROMIUM || 'chromium';
-// The proposed bar (Open questions) is a keystroke in a 500-row list island
-// within one 16 ms frame on a mid-range phone, which a 4x slowdown stands
-// for. Until a bar is agreed the benchmark reports its times; --bar=16
-// makes them pass or fail.
-const BAR_MS = args.bar === undefined ? undefined : Number(args.bar);
+// At 4x slowdown, a keystroke's input-to-laid-out time must have a median
+// within 16 ms and a p95 within 20 ms. --bar=MS replaces the p95 bar with a
+// custom total-time bar; the island's own work is still reported separately.
+const MEDIAN_BAR_MS = 16;
+const P95_BAR_MS = args.bar === undefined ? 20 : Number(args.bar);
 const KEYSTROKES = Number(args.keystrokes || 40);
 const NOTICE = 'This part of the page stopped working. Reloading the page may fix it.';
 
@@ -757,6 +757,26 @@ async function appRoutes(session) {
   console.log('ok   an app: in-section links and the back button move it without loading a page');
 }
 
+async function parameterizedAppRoutes(session) {
+  const heading = `document.querySelector('[data-jibb-island] h1')?.textContent`;
+  await session.navigate(`${origin}/apps/jibb-host-fixture/app/alice/one`);
+  await session.until('the parameterized app island to start', STARTED);
+  expect(await session.evaluate(heading) === 'At one', 'the parameterized app did not start at its path');
+  await session.evaluate('window.jibbParameterMarker = 1');
+  await session.click('[data-jibb-island] a[href$="/app/two"]');
+  await session.until('the parameterized app to follow its link',
+    `location.pathname === '/apps/jibb-host-fixture/app/two'`);
+  expect(await session.evaluate('window.jibbParameterMarker') === 1,
+    'following a parameterized in-section link loaded a page');
+  expect(await session.evaluate(heading) === 'At root',
+    'the parameterized app did not retain its new catch-all path');
+  await session.evaluate('history.back()');
+  await session.until('the parameterized app to follow the back button', `${heading} === 'At one'`);
+  const problems = session.takeProblems();
+  expect(problems.length === 0, `the parameterized app logged: ${problems.join('; ')}`);
+  console.log('ok   a parameterized app: in-section links and the back button move it without loading a page');
+}
+
 async function benchmark(session) {
   await session.navigate(`${origin}/apps/jibb-host-fixture/bench`);
   await session.until('the list island to start', STARTED);
@@ -800,14 +820,18 @@ async function benchmark(session) {
   expect(times.length === KEYSTROKES, `measured ${times.length} keystrokes, not ${KEYSTROKES}`);
   const at = q => times[Math.min(times.length - 1, Math.floor(q * times.length))];
   const median = list => list[Math.floor(list.length / 2)];
-  const summary = `median ${at(0.5).toFixed(1)} ms, p95 ${at(0.95).toFixed(1)} ms, max ${times.at(-1).toFixed(1)} ms; `
+  const totalMedian = at(0.5);
+  const totalP95 = at(0.95);
+  const summary = `median ${totalMedian.toFixed(1)} ms, p95 ${totalP95.toFixed(1)} ms, max ${times.at(-1).toFixed(1)} ms; `
     + `the island's own update, view and patch, median ${median(scripts).toFixed(1)} ms, the rest style and layout`;
   const problems = session.takeProblems();
   expect(problems.length === 0, `the benchmark logged: ${problems.join('; ')}`);
-  if (BAR_MS === undefined) {
-    console.log(`ok   the benchmark, measured: ${KEYSTROKES} keystrokes in a 500-row list island at 4x CPU slowdown: ${summary}`);
-  } else if (expect(at(0.95) <= BAR_MS, `a keystroke in the 500-row list island took ${summary} at 4x CPU slowdown, over the ${BAR_MS} ms bar`)) {
-    console.log(`ok   the benchmark: ${KEYSTROKES} keystrokes in a 500-row list island at 4x CPU slowdown: ${summary}, within the ${BAR_MS} ms bar`);
+  const withinMedian = expect(totalMedian <= MEDIAN_BAR_MS,
+    `the benchmark's input-to-laid-out times were ${summary} at 4x CPU slowdown, over the ${MEDIAN_BAR_MS} ms median bar`);
+  const withinP95 = expect(totalP95 <= P95_BAR_MS,
+    `the benchmark's input-to-laid-out times were ${summary} at 4x CPU slowdown, over the ${P95_BAR_MS} ms p95 bar`);
+  if (withinMedian && withinP95) {
+    console.log(`ok   the benchmark: ${KEYSTROKES} keystrokes in a 500-row list island at 4x CPU slowdown: ${summary}, within the ${MEDIAN_BAR_MS} ms median and ${P95_BAR_MS} ms p95 bars`);
   }
 }
 
