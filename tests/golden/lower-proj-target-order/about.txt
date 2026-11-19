@@ -1,0 +1,5 @@
+source: Decisions, Record projection: the expected result type selects exactly its fields in their declared order, even when that reorders the source fields
+tests: exact Core for a direct-literal and a parameter full reversal, a nested record selected with an outer subset and reorder, and a four-field source projected to three reordered fields; each source expression remains in one let binding
+expect: parses
+expect-types: full checker result
+expect-core: full checker lowering

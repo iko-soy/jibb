@@ -14,10 +14,8 @@ From [spec/implementation-plan.md](spec/implementation-plan.md), Open questions:
 
 ## Questions milestone 2 raises
 
-Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. Only the field-order detail in question 32 remains open. The prelude inventory selected in question 3 is now documented in [prelude-inventory.md](prelude-inventory.md), including its checked interfaces and deliberate omissions. The other settled answers are in [Decisions](spec/decisions.md#settled-milestone-2-questions), which keeps their numbers, so existing references stay valid.
+Found while writing [prompts/milestone-2.md](prompts/milestone-2.md), checking it against the doc's examples, and building the checker. Question 32 is now settled, including its field-order detail. The prelude inventory selected in question 3 is now documented in [prelude-inventory.md](prelude-inventory.md), including its checked interfaces and deliberate omissions. The other settled answers are in [Decisions](spec/decisions.md#settled-milestone-2-questions), which keeps their numbers, so existing references stay valid.
 
-
-**32. Partly settled: type-directed record projection.** On 2026-10-31, @iko chose an explicit `(proj record)` whose expected result type selects the fields. There is no automatic projection, and `proj` is reserved against definitions and imports. The result contains exactly the fields of its expected type. Whether the result may reorder fields from the source remains open.
 
 ## Questions milestone 4 raises
 

@@ -1,0 +1,66 @@
+(module
+  (value 1:1 direct
+    (body 2:3
+      (cast 2:3
+        (cell 2:6
+          (face 2:7 c (flag 2:9))
+          (face 2:11 b (aura 2:13 @p))
+          (face 2:16 a (aura 2:18 @t)))
+        (group 2:22
+          (call 2:23
+            (wing 2:23 proj)
+            (tuple 2:28
+              (face 2:29 a (str 2:31 "hi"))
+              (face 2:36 b (lit 2:38 ~zod))
+              (face 2:43 c (lit 2:45 %.y))))))))
+  (value 4:1 reversed
+    (gate 4:13
+      (face 4:16 x
+        (cell 4:18
+          (face 4:19 a (aura 4:21 @t))
+          (face 4:24 b (aura 4:26 @p))
+          (face 4:29 c (flag 4:31))))
+      (body 5:3
+        (cast 5:3
+          (cell 5:6
+            (face 5:7 c (flag 5:9))
+            (face 5:11 b (aura 5:13 @p))
+            (face 5:16 a (aura 5:18 @t)))
+          (group 5:22
+            (call 5:23 (wing 5:23 proj) (wing 5:28 x)))))))
+  (value 7:1 nested-subset
+    (gate 7:18
+      (face 7:21 x
+        (cell 7:23
+          (face 7:24 first (aura 7:30 @ud))
+          (face 7:34 inner
+            (cell 7:40
+              (face 7:41 left (aura 7:46 @t))
+              (face 7:49 right (aura 7:55 @p))))
+          (face 7:59 last (flag 7:64))))
+      (body 8:3
+        (cast 8:3
+          (cell 8:6
+            (face 8:7 inner
+              (cell 8:13
+                (face 8:14 left (aura 8:19 @t))
+                (face 8:22 right (aura 8:28 @p))))
+            (face 8:32 first (aura 8:38 @ud)))
+          (group 8:43
+            (call 8:44 (wing 8:44 proj) (wing 8:49 x)))))))
+  (value 10:1 subset
+    (gate 10:11
+      (face 10:14 x
+        (cell 10:16
+          (face 10:17 a (aura 10:19 @ud))
+          (face 10:23 b (aura 10:25 @ud))
+          (face 10:29 c (aura 10:31 @ud))
+          (face 10:35 d (aura 10:37 @ud))))
+      (body 11:3
+        (cast 11:3
+          (cell 11:6
+            (face 11:7 d (aura 11:9 @ud))
+            (face 11:13 b (aura 11:15 @ud))
+            (face 11:19 a (aura 11:21 @ud)))
+          (group 11:26
+            (call 11:27 (wing 11:27 proj) (wing 11:32 x))))))))

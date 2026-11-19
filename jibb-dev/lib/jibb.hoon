@@ -5119,10 +5119,12 @@
 ::
 ::  `proj` is a reserved, type-directed operation, not an ordinary gate.
 ::  The supported fragment selects uniquely faced fields from a known record
-::  in source order (reordering is a doc question). It records the original
-::  call, source and target types, and source axes with its definition;
-::  A single selected field keeps its face and uses one source axis.
+::  in expected-result order, including an order different from the source.
+::  It records the original call, source and target types, and source axes in
+::  target order with its definition; a single selected field keeps its face
+::  and uses one source axis.
 ::  Checked module interfaces retain that evidence and their source, including
+
 ::  the private prelude dependency. A later lowerer must replace the call by
 ::  an inline gate applied to the operand once; no lowering is implemented yet.
 ::  Ordinary fits never insert a projection. Unknown or variable-origin record
@@ -7562,13 +7564,6 @@
   =/  entry=iwfield  [name.head (mul 2 axis) body.head]
   ?:  ?=(^ (~(get by index) name.entry))  ~
   $(typ tal.typ, axis +((mul 2 axis)), fuel (dec fuel), order [entry order], index (~(put by index) name.entry entry))
-++  width-in-order
-  |=  [source=(list iwfield) target=(list iwfield)]
-  ^-  ?
-  ?~  target  &
-  ?~  source  |
-  ?:  =(name.i.source name.i.target)  $(source t.source, target t.target)
-  $(source t.source)
 ++  width-fit-fields
   |=  [source=(map term iwfield) target=(list iwfield) sub=isub next=@ud]
   ^-  (unit iwidth-result)
@@ -7631,7 +7626,6 @@
 ++  width-project
   |=  [shape=[source=iwfields target=iwfields] sub=isub next=@ud]
   ^-  (unit iwidth-result)
-  ?.  (width-in-order order.source.shape order.target.shape)  ~
   (width-fit-fields index.source.shape order.target.shape sub next)
 ::
 ::  Provisional, globally budgeted gate-free proof.  %no includes a
@@ -15236,10 +15230,7 @@
   ?~  source  ~
   ?~  target  ~
   ?:  (lth (lent order.u.source) (lent order.u.target))  ~
-  =/  inferred=iresult
-    ?.  (width-in-order order.u.source order.u.target)
-      (infer-simple-items items.e env state)
-    (width-infer-items items.e index.u.target env state context)
+  =/  inferred=iresult  (width-infer-items items.e index.u.target env state context)
   ?:  ?=(%| -.inferred)  `inferred
   =.  typ.p.inferred  (itype-value-root typ.p.inferred)
   `inferred

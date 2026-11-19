@@ -1055,20 +1055,20 @@
   =/  original=expr:jibb  original.plan.plan
   ?.  ?=(%call -.original)  [%| (fail "checked projection is not a call" `at.plan.plan)]
   ?.  ?=([* ~] args.original)  [%| (fail "checked projection does not have one source" `at.plan.plan)]
+  =/  source-layout=(unit iwfields:jibb)  (width-scan:jibb source.plan.plan ~ 1 4.096)
+  ?~  source-layout  [%| (fail "checked projection source has no determinate layout" `at.plan.plan)]
   =/  scanned=(unit iwfields:jibb)  (width-scan:jibb target.plan.plan ~ 1 4.096)
   ?~  scanned  [%| (fail "checked projection target has no determinate layout" `at.plan.plan)]
-  =/  target-order=(list term)  (turn order.u.scanned |=(f=iwfield:jibb name.f))
-  =/  source-order=(list term)  (turn steps.plan.plan |=(s=iwstep:jibb name.s))
-  ?.  =(target-order source-order)
-    [%| (fail "projection field reordering is undecided; refusing to guess" `at.plan.plan)]
   =/  source=lowered  (lower-expression i.args.original state)
   ?:  ?=(%| -.source)  source
   =/  made=[name:jibb-core lowering-state]  (fresh state.p.source)
   =/  var=expr:jibb-core  [%var -.made]
   =/  fields=(list expr:jibb-core)  ~
   =/  steps=(list iwstep:jibb)  steps.plan.plan
+  =/  targets=(list iwfield:jibb)  order.u.scanned
   |-
   ?~  steps
+    ?:  ?=(^ targets)  [%| (fail "checked projection plan does not match its target layout" `at.plan.plan)]
     ?:  ?=(~ fields)  [%| (fail "cannot project an empty record" `at.plan.plan)]
     =/  fixed=expr:jibb-core
       =/  remaining=(list expr:jibb-core)  fields
@@ -1077,9 +1077,14 @@
       ?~  t.remaining  i.remaining
       [%cons i.remaining $(remaining t.remaining)]
     [%& [[%let -.made value.p.source fixed] +.made]]
+  ?~  targets  [%| (fail "checked projection plan does not match its target layout" `at.plan.plan)]
+  =/  selected=(unit iwfield:jibb)  (~(get by index.u.source-layout) name.i.targets)
+  ?~  selected  [%| (fail "checked projection source field is missing" `at.plan.plan)]
+  ?.  =(i.steps [name.i.targets axis.u.selected])
+    [%| (fail "checked projection plan does not match its source and target layouts" `at.plan.plan)]
   =/  axis=(unit @)  (compose-steps ~[i.steps])
   ?~  axis  [%| (fail "invalid projection source axis" `at.plan.plan)]
-  $(steps t.steps, fields (weld fields ~[(make-slot u.axis var)]))
+  $(steps t.steps, targets t.targets, fields (weld fields ~[(make-slot u.axis var)]))
 ::
 ++  core-free-name
   |=  [wanted=name:jibb-core e=expr:jibb-core]

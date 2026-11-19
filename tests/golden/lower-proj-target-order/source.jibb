@@ -1,0 +1,11 @@
+++ direct
+  ^- [c=? b=@p a=@t] (proj [a="hi" b=~zod c=%.y])
+
+++ reversed |= x=[a=@t b=@p c=?]
+  ^- [c=? b=@p a=@t] (proj x)
+
+++ nested-subset |= x=[first=@ud inner=[left=@t right=@p] last=?]
+  ^- [inner=[left=@t right=@p] first=@ud] (proj x)
+
+++ subset |= x=[a=@ud b=@ud c=@ud d=@ud]
+  ^- [d=@ud b=@ud a=@ud] (proj x)

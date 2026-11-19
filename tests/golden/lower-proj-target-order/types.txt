@@ -1,0 +1,5 @@
+module kind: library
+++ direct: [c=? [b=@p a=@t]]
+++ reversed: $-([a=@t [b=@p c=?]] [c=? [b=@p a=@t]])
+++ nested-subset: $-([first=@ud [inner=[left=@t right=@p] last=?]] [inner=[left=@t right=@p] first=@ud])
+++ subset: $-([a=@ud [b=@ud [c=@ud d=@ud]]] [d=@ud [b=@ud a=@ud]])

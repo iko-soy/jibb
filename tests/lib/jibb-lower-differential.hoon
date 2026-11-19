@@ -232,6 +232,7 @@
       (lien references.artifact |=(ref=lowering-reference:jibb ?=(^ native.ref)))
     %wing   (lien all |=(artifact=checked-module:jibb ?=(^ wings.artifact)))
     %edit   (lien all |=(artifact=checked-module:jibb ?=(^ edits.artifact)))
+    %projection  (lien all |=(artifact=checked-module:jibb ?=(^ projections.artifact)))
     %match  (lien all |=(artifact=checked-module:jibb ?=(^ matches.artifact)))
     %import  ?=(^ imports.root)
     %local-rec
@@ -368,6 +369,24 @@
       ==
     [[42 'changed'] 7 'old']
   =.  needs.record  ~[%wing %edit]
+  =/  projection-reversal=fixture
+    %^  value-case  %projection-reversal
+      %-  text
+      :~  '++ source'
+          '  ~& "project-source"'
+          '    [a=1 b=2 c=3]'
+          '++ result ^- [c=@ud b=@ud a=@ud] (proj (source))'
+      ==
+    [3 2 1]
+  =.  traces.projection-reversal  `~['project-source']
+  =.  needs.projection-reversal  ~[%projection]
+  =/  projection-nested=fixture
+    %^  value-case  %projection-nested-subset-reorder
+      '++ result |= x=[a=@ud inner=[left=@ud right=@ud] b=@ud] ^- [inner=[left=@ud right=@ud] a=@ud] (proj x)\0a++ answer (result [a=1 inner=[left=2 right=3] b=4])\0a'
+    [2 3]
+  =.  entry.projection-nested  %answer
+  =.  expected.projection-nested  [%ok [[2 3] 1]]
+  =.  needs.projection-nested  ~[%projection]
   =/  constructors=fixture
     %^  value-case  %constructors-matches
       %-  text
@@ -540,6 +559,8 @@
       local-rec
       mutual
       record
+      projection-reversal
+      projection-nested
       constructors
       collection-match
       callback
@@ -763,7 +784,7 @@
     ==
   ?:  ?=(%| -.prepared)
     ~[leaf+(trip (cat 3 'feature artifact unavailable: ' p.prepared))]
-  ?.  =(28 (lent fixtures))  ~[leaf+"differential fixture inventory changed"]
+  ?.  =(30 (lent fixtures))  ~[leaf+"differential fixture inventory changed"]
   =/  bad=(list @t)  (run-fixtures fixtures p.prepared)
   (turn bad |=(reason=@t leaf+(trip reason)))
 --

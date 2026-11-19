@@ -68,6 +68,20 @@ fn evaluates_record_wings_changes_and_projection() {
 }
 
 #[test]
+fn projection_uses_the_expected_field_order() {
+    assert_eq!(
+        noun("++ main ^- [y=@ud x=@ud] (proj [x=1 y=2])\n"),
+        cell(atom(2), atom(1))
+    );
+    assert_eq!(
+        noun(
+            "++ main ^- [last=@ud pair=[left=@ud right=@ud]] (proj [pair=[left=1 right=2] middle=9 last=3])\n"
+        ),
+        cell(atom(3), cell(atom(1), atom(2)))
+    );
+}
+
+#[test]
 fn evaluates_constructors_units_and_lists() {
     let source = "+$ list |$ [A]\n  ~\n  [head=A tail=(list A)]\n+$ unit |$ [A]\n  ~\n  [~ value=A]\n+$ msg [%add n=@ud]\n++ main ^- msg (|=%add 42)\n";
     let tag = Rc::new(Noun::Atom(BigUint::from_bytes_le(b"add")));

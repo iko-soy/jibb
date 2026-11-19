@@ -14,6 +14,18 @@
       "outcome": {"atom": "2"}
     },
     {
+      "name": "lowered projection reversal",
+      "source": "(let source (cons 1 (cons 2 3)) (cons (slot 7 source) (cons (slot 6 source) (slot 2 source))))",
+      "natives": [],
+      "outcome": {"cell": [{"atom": "3"}, {"cell": [{"atom": "2"}, {"atom": "1"}]}]}
+    },
+    {
+      "name": "lowered projection nested subset reorder",
+      "source": "(let source (cons 1 (cons (cons 2 3) 4)) (cons (slot 6 source) (slot 2 source)))",
+      "natives": [],
+      "outcome": {"cell": [{"cell": [{"atom": "2"}, {"atom": "3"}]}, {"atom": "1"}]}
+    },
+    {
       "name": "immutable edit",
       "source": "(edit 6 (cons 1 (cons 2 3)) 42)",
       "natives": [],

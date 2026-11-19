@@ -29,6 +29,25 @@ fn traces_print_text_by_its_printer() {
 }
 
 #[test]
+fn projection_evaluates_its_source_once() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let file = directory.path().join("projection.jibb");
+    fs::write(
+        &file,
+        "++ source\n  ~&  \"once\"\n  [x=1 y=2]\n++ main ^- [y=@ud x=@ud] (proj source)\n",
+    )
+    .unwrap();
+    let output = jibb().arg("run").arg(&file).output().expect("run");
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(String::from_utf8(output.stdout).unwrap(), "[2 1]\n");
+    assert_eq!(String::from_utf8(output.stderr).unwrap(), "once\n");
+}
+
+#[test]
 fn a_file_without_a_final_newline_checks_runs_and_formats() {
     let directory = tempfile::tempdir().expect("temporary directory");
     let file = directory.path().join("main.jibb");

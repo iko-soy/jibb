@@ -1,0 +1,150 @@
+1:1 glyph ++
+1:4 name direct
+2:3 INDENT
+2:3 glyph ^-
+2:6 glyph [
+2:7 tight name c
+2:8 tight glyph =
+2:9 tight glyph ?
+2:11 name b
+2:12 tight glyph =
+2:13 tight aura @p
+2:16 name a
+2:17 tight glyph =
+2:18 tight aura @t
+2:20 tight glyph ]
+2:22 glyph (
+2:23 tight name proj
+2:28 glyph [
+2:29 tight name a
+2:30 tight glyph =
+2:31 tight str "hi"
+2:36 name b
+2:37 tight glyph =
+2:38 tight lit ~zod
+2:43 name c
+2:44 tight glyph =
+2:45 tight lit %.y
+2:48 tight glyph ]
+2:49 tight glyph )
+4:1 DEDENT
+4:1 NEWLINE
+4:1 glyph ++
+4:4 name reversed
+4:13 glyph |=
+4:16 name x
+4:17 tight glyph =
+4:18 tight glyph [
+4:19 tight name a
+4:20 tight glyph =
+4:21 tight aura @t
+4:24 name b
+4:25 tight glyph =
+4:26 tight aura @p
+4:29 name c
+4:30 tight glyph =
+4:31 tight glyph ?
+4:32 tight glyph ]
+5:3 INDENT
+5:3 glyph ^-
+5:6 glyph [
+5:7 tight name c
+5:8 tight glyph =
+5:9 tight glyph ?
+5:11 name b
+5:12 tight glyph =
+5:13 tight aura @p
+5:16 name a
+5:17 tight glyph =
+5:18 tight aura @t
+5:20 tight glyph ]
+5:22 glyph (
+5:23 tight name proj
+5:28 name x
+5:29 tight glyph )
+7:1 DEDENT
+7:1 NEWLINE
+7:1 glyph ++
+7:4 name nested-subset
+7:18 glyph |=
+7:21 name x
+7:22 tight glyph =
+7:23 tight glyph [
+7:24 tight name first
+7:29 tight glyph =
+7:30 tight aura @ud
+7:34 name inner
+7:39 tight glyph =
+7:40 tight glyph [
+7:41 tight name left
+7:45 tight glyph =
+7:46 tight aura @t
+7:49 name right
+7:54 tight glyph =
+7:55 tight aura @p
+7:57 tight glyph ]
+7:59 name last
+7:63 tight glyph =
+7:64 tight glyph ?
+7:65 tight glyph ]
+8:3 INDENT
+8:3 glyph ^-
+8:6 glyph [
+8:7 tight name inner
+8:12 tight glyph =
+8:13 tight glyph [
+8:14 tight name left
+8:18 tight glyph =
+8:19 tight aura @t
+8:22 name right
+8:27 tight glyph =
+8:28 tight aura @p
+8:30 tight glyph ]
+8:32 name first
+8:37 tight glyph =
+8:38 tight aura @ud
+8:41 tight glyph ]
+8:43 glyph (
+8:44 tight name proj
+8:49 name x
+8:50 tight glyph )
+10:1 DEDENT
+10:1 NEWLINE
+10:1 glyph ++
+10:4 name subset
+10:11 glyph |=
+10:14 name x
+10:15 tight glyph =
+10:16 tight glyph [
+10:17 tight name a
+10:18 tight glyph =
+10:19 tight aura @ud
+10:23 name b
+10:24 tight glyph =
+10:25 tight aura @ud
+10:29 name c
+10:30 tight glyph =
+10:31 tight aura @ud
+10:35 name d
+10:36 tight glyph =
+10:37 tight aura @ud
+10:40 tight glyph ]
+11:3 INDENT
+11:3 glyph ^-
+11:6 glyph [
+11:7 tight name d
+11:8 tight glyph =
+11:9 tight aura @ud
+11:13 name b
+11:14 tight glyph =
+11:15 tight aura @ud
+11:19 name a
+11:20 tight glyph =
+11:21 tight aura @ud
+11:24 tight glyph ]
+11:26 glyph (
+11:27 tight name proj
+11:32 name x
+11:33 tight glyph )
+11:34 DEDENT
+11:34 NEWLINE

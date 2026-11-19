@@ -93,6 +93,13 @@
   =/  expected=@t
     '(module tests/lower/case (def exact (lam x (let _1 x (cons (slot 2 _1) (slot 6 _1))))))'
   (expect-source src expected)
+++  test-projection-target-order-and-nested-subset
+  ^-  tang
+  =/  src=@t
+    '++ reversed |= x=[a=@t b=@p c=?] ^- [c=? b=@p a=@t] (proj x)\0a++ nested |= x=[a=@t inner=[left=@ud right=@t] b=@p] ^- [inner=[left=@ud right=@t] a=@t] (proj x)\0a'
+  =/  expected=@t
+    '(module tests/lower/case (def reversed (lam x (let _1 x (cons (slot 7 _1) (cons (slot 6 _1) (slot 2 _1)))))) (def nested (lam x (let _1 x (cons (slot 6 _1) (slot 2 _1))))))'
+  (expect-source src expected)
 ++  test-unavailable-printer-fails-closed
   ^-  tang
   =/  built=(each module:jibb-core @t)
@@ -399,7 +406,7 @@
   =/  unresolved=(each expr:jibb-core @t)  (link-entry:jibb-lower %answer root cache.p.built)
   ?.  ?=(%| -.unresolved)  ~[leaf+"unregistered prelude definition linked"]
   ~
-++  test-projection-reordering-fails-closed
+++  test-projection-malformed-plan-fails-closed
   ^-  tang
   =/  built=jlowering-result:jibb
     (check /tests/lower/reorder/jibb '++ exact ^- [a=@t b=@p] (proj [a="hi" b=~zod])\0a' ~)
@@ -411,9 +418,16 @@
     projection(plan plan.projection(steps (flop steps.plan.projection)))
   =/  lowered=(each module:jibb-core @t)
     (lower-checked-module:jibb-lower root(projections ~[changed]))
-  ?.  ?=(%| -.lowered)  ~[leaf+"projection reorder was guessed"]
-  ?.  =('projection field reordering is undecided; refusing to guess at 1:26' p.lowered)
+  ?.  ?=(%| -.lowered)  ~[leaf+"target-order and source-step disagreement was accepted"]
+  ?.  =('checked projection plan does not match its source and target layouts at 1:26' p.lowered)
     ~[leaf+(trip p.lowered)]
+  =/  wrong-axis=lowering-projection:jibb
+    projection(plan plan.projection(steps ~[[%a 3] [%b 2]]))
+  =/  invalid=(each module:jibb-core @t)
+    (lower-checked-module:jibb-lower root(projections ~[wrong-axis]))
+  ?.  ?=(%| -.invalid)  ~[leaf+"an unauthenticated projection source axis was accepted"]
+  ?.  =('checked projection plan does not match its source and target layouts at 1:26' p.invalid)
+    ~[leaf+(trip p.invalid)]
   ~
 ++  test-pair-lowers-from-checked-evidence
   ^-  tang
