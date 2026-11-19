@@ -5124,9 +5124,8 @@
 ::  target order with its definition; a single selected field keeps its face
 ::  and uses one source axis.
 ::  Checked module interfaces retain that evidence and their source, including
-
-::  the private prelude dependency. A later lowerer must replace the call by
-::  an inline gate applied to the operand once; no lowering is implemented yet.
+::  the private prelude dependency. Lowering replaces the call by an inline
+::  gate applied to the operand once.
 ::  Ordinary fits never insert a projection. Unknown or variable-origin record
 ::  spines, nested projected fields and projections in
 ::  recursive groups remain unsupported. Directional fits bound faced-spine

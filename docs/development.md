@@ -175,7 +175,7 @@ The `jibb-dev` desk holds `my-app`'s `ui/`, `sur/` and `mar/` under `/my-app` (r
 | `jibb-js-direct` | Strict direct-hole specialization, removed cell checks and local-recursion fallback | |
 | `jibb-view-template`, `jibb-view-template-source` | Authenticated template shapes and bounds, plus full checking and linking of text and realistic element-hole source views | `tests/view-template/` |
 | `jibb-lowering-artifacts` | Final occurrence/reference/axis/SCC/match/projection capture, prepared dependencies, and failed/provisional nonpublication | |
-| `jibb-lower` | Checked-tree lowering, exact documented `update`, linking, source-once controls, derived API calls, authenticated printers, and fail-closed projection reordering | |
+| `jibb-lower` | Checked-tree lowering, exact documented `update`, linking, source-once controls, derived API calls, authenticated printers, and target-order projection with malformed-plan controls | |
 | `jibb-store-lower` | Derived store state/poke shapes, runtime envelopes, full-state delivery and reply execution under the reference interpreter and Nock | |
 | `jibb-lower-differential` | Lowered Jibb programs executed through the Hoon reference interpreter and Nock with independently specified noun/crash outcomes | |
 | `jibb-import` | The partial Hoon importer's diagnostic trees and errors over the importer fixtures, and the structured values behind them; the projection is an internal tree, not the Jibb type printer | `tests/importer/tree.txt` |

@@ -1,6 +1,6 @@
 # Status
 
-As of 2026-11-17. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
+As of 2026-11-19. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
 
 ## Milestones
 
@@ -150,6 +150,12 @@ The approved benchmark requires 40 keystrokes in the host fixture's 500-row list
 
 App sections now preserve route parameters as `_` patterns. Literal-prefix behavior is unchanged; a pattern matches one nonempty URL segment per parameter, and `currentPath` strips the actual matched literal/parameter prefix. Real Chromium acceptance covers both the existing literal app and `/papp/_user/__rest`: in-pattern links and back/forward navigation retain the page and update the model without a reload.
 
+## Target-order projection (2026-11-19)
+
+`proj` now selects exactly the expected result type's fields in that type's order, including reordering from the source. Checked artifacts retain source axes in target order; lowering validates those axes against both layouts, evaluates the source once and constructs the exact result noun. Literal projection context also follows target-field names regardless of source order. Malformed plans, wrong axes and unauthenticated evidence still fail closed.
+
+The `lower-proj-target-order` golden covers direct-literal and parameter reversal, nested subsets and four-to-three-field reordering. Hoon reference and Nock execution agree on reversal and nested-subset outcomes, with one source trace; equivalent Core fixtures agree in JavaScript. The native CLI already implemented the rule and adds matching evaluation and single-trace regressions. Focused validation passed 51 lowering/artifact arms, 10 projection provenance/generic arms, 402 JavaScript tests, 15 Hoon/JavaScript Core outcomes and 166 native tests with clippy. The current runners enumerate 1,492 golden cases and 746 arms in 285 suites. Final `nix flake check -L -j 2 --keep-going` acceptance on `99465f4` passed all eval, fresh-ship, desk, native CLI and CLI-corpus groups.
+
 ## Parser and mark
 
 | Area | Status | Evidence |
@@ -238,14 +244,14 @@ Use `tools/bench-check` to reproduce the generated-module measurements. The desk
 
 ## Remaining work and open questions
 
-- Milestone 3 is complete. `proj` field reordering still fails closed pending its owner ruling. The additional provenance-checked backend preserves function identity through ordinary data, recursion, and explicit native adapters, with trace-preserving differential controls under eval.
+- Milestone 3 is complete. `proj` uses the expected result type's field order, including reordering from the source, through checked lowering and backend agreement. The additional provenance-checked backend preserves function identity through ordinary data, recursion, and explicit native adapters, with trace-preserving differential controls under eval.
 - Milestone 4's acceptance criteria hold on the fake ship. The plan's question of whether the Eyre channel CSRF test reproduces on a fake ship waits for @iko's write-up. The typography scale and the reading of failed builds are [Decisions](spec/decisions.md) rows of 2026-11-09 that @iko may revise. Generic `/sur` collection forwarders and manifest-declared prelude readers now accept transitive Hoon `/-` and `/+` imports. Successful prelude caching validates selected source bytes and current import choices, so unrelated `/sur` edits can retain prepared preludes and unaffected module checks. Failed preparation and older readers retain conservative invalidation; ordinary Hoon reader and mark caches still depend on all `/sur` sources. CSS `chars` and `fill` values now use plain decimal digits on both backends, including table headings. A changed static file still renders every static page of its desk again. Link and image errors retain the original element call's source site through imports and nesting.
 - Milestone 5 is complete. Render failures now report the original element call's file, line, column, excerpt and caret, including data pages and island first views; absent or ambiguous provenance retains the unlocated message. Recursive fact validation passed integrated acceptance; the remaining reader boundaries are recorded below. The `%blog` agent remains a fixture of the documented examples.
 - Milestone 6 is complete: the 16 ms median / 25 ms p95 bar is settled in Decisions and passes on a fresh ship. Application sections retain route parameters as `_` patterns, so catch-all routes after parameters support in-section navigation without a page load.
 - Milestone 7 is complete: the extended CI run for `633e0c9` passed. The Node harness runs its Nock in the repo's own interpreter rather than nockjs, whose published package has no interpreter.
 - Milestone 8 is complete: shared modules, direct view holes and the library size budget passed integrated eval and fresh-ship acceptance. Dynamic attributes and child-list tails deliberately retain whole-element rendering. [compiler.md](compiler.md#browser-dom-and-island-loop) records the boundary and fallback behavior.
 - The checked prelude's deliberate omissions are documented in [prelude-inventory.md](prelude-inventory.md); they are not silently implemented with different signatures.
-- Open language questions remain in [open-questions.md](open-questions.md), including `proj` field reordering and unconfirmed review proposals. Current checker diagnostics do not settle those proposals.
+- Open language questions remain in [open-questions.md](open-questions.md), including unconfirmed review proposals. Current checker diagnostics do not settle those proposals.
 - After the 2026-11-16 audit and its follow-up fixes, the host's reload paths (timer re-arm, binding sweep and re-reading every docket) passed explicit fresh-ship `tools/check-host` coverage. The eval/ship zero-padded date mismatch, nested forms, gate-valued `raw-poke` payloads, repeated `pure` watches, deferred-match capital generalization, imported `(set *)` diagnostics and the native CLI's `split-types-local-error-cast-positive` rejection have focused fixes or regression evidence below. Decisions' Crash notice row and overview.md's channel-404 note now agree.
 
 ## Checking it
