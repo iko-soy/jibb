@@ -1,0 +1,4 @@
+source: Decisions, Term literals: boolean terms such as %& fit ?.
+tests: A boolean term does not fit @ud; the full-checker message and both source sites are exact.
+expect: parses
+expect-types: full checker diagnostic

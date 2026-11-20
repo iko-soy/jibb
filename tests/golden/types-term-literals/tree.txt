@@ -1,0 +1,88 @@
+(module
+  (mold 1:1 code
+    (union 2:3 (const 2:3 %200) (const 3:3 %404) (const 4:3 %1.000)))
+  (mold 5:1 named
+    (union 6:3 (const 6:3 %add) (const 7:3 %remove)))
+  (mold 8:1 command
+    (union 9:3
+      (cell 9:3
+        (const 9:4 %200)
+        (face 9:9 text (aura 9:14 @t)))
+      (cell 10:3
+        (const 10:4 %404)
+        (face 10:9 text (aura 10:14 @t)))))
+  (value 11:1 decimal
+    (cast 11:12 (aura 11:15 @ud) (lit 11:19 %1.000)))
+  (value 12:1 unsigned
+    (cast 12:13 (aura 12:16 @u) (lit 12:19 %1.000)))
+  (value 13:1 atom
+    (cast 13:9 (aura 13:12 @) (lit 13:14 %1.000)))
+  (value 14:1 noun
+    (cast 14:9 (noun 14:12) (lit 14:14 %1.000)))
+  (value 15:1 sum
+    (group 15:8
+      (call 15:9 (wing 15:9 add) (lit 15:13 %40) (lit 15:17 %2))))
+  (value 16:1 predecessor
+    (group 16:16
+      (call 16:17 (wing 16:17 dec) (lit 16:21 %43))))
+  (value 17:1 true
+    (cast 17:9 (flag 17:12) (lit 17:14 %&)))
+  (value 18:1 false
+    (cast 18:10 (flag 18:13) (lit 18:15 %|)))
+  (value 19:1 branch
+    (gate 19:11
+      (face 19:14 flag (flag 19:19))
+      (cast 19:21
+        (aura 19:24 @ud)
+        (body 20:3
+          (branch 20:3
+            (wing 20:6 flag)
+            (arm 21:5 (lit 21:5 %&) (lit 21:8 42))
+            (arm 22:5 (lit 22:5 %|) (lit 22:8 0)))))))
+  (value 23:1 choose-true
+    (group 23:16
+      (call 23:17 (wing 23:17 branch) (lit 23:24 %&))))
+  (value 24:1 choose-false
+    (group 24:17
+      (call 24:18 (wing 24:18 branch) (lit 24:25 %|))))
+  (value 25:1 cord-text
+    (cast 25:14 (aura 25:17 @t) (lit 25:20 %add)))
+  (value 26:1 knot
+    (cast 26:9 (aura 26:12 @ta) (lit 26:16 %add)))
+  (value 27:1 term
+    (cast 27:9 (aura 27:12 @tas) (lit 27:17 %add)))
+  (value 28:1 text-atom
+    (cast 28:14 (aura 28:17 @) (lit 28:19 %add)))
+  (value 29:1 singleton-zero
+    (cast 29:19 (flag 29:22) (lit 29:24 %$)))
+  (value 30:1 singleton-one
+    (cast 30:18 (flag 30:21) (lit 30:23 %1)))
+  (value 31:1 code-value
+    (cast 31:15 (ref 31:18 code) (lit 31:23 %200)))
+  (value 32:1 name-value
+    (cast 32:15 (ref 32:18 named) (lit 32:24 %add)))
+  (value 33:1 make-code
+    (cast 33:14
+      (fn 33:17 (aura 33:20 @t) (ref 33:23 command))
+      (ctor 33:32 %200)))
+  (value 34:1 constructed
+    (cast 34:16
+      (ref 34:19 command)
+      (group 34:27
+        (call 34:28 (wing 34:28 make-code) (str 34:38 "ok")))))
+  (value 35:1 numeric-pattern
+    (gate 35:20
+      (face 35:23 n (aura 35:25 @ud))
+      (body 36:3
+        (branch 36:3
+          (wing 36:6 n)
+          (arm 37:5 (lit 37:5 %1.000) (lit 37:12 1))
+          (arm 38:5 (any 38:5) (lit 38:7 0))))))
+  (value 39:1 text-pattern
+    (gate 39:17
+      (face 39:20 t (aura 39:22 @t))
+      (body 40:3
+        (branch 40:3
+          (wing 40:6 t)
+          (arm 41:5 (lit 41:5 %add) (lit 41:10 1))
+          (arm 42:5 (any 42:5) (lit 42:7 0)))))))

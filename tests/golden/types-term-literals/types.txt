@@ -1,0 +1,27 @@
+module kind: library
++$ code: code
++$ named: named
++$ command: command
+++ decimal: @ud
+++ unsigned: @u
+++ atom: @
+++ noun: *
+++ sum: @ud
+++ predecessor: @ud
+++ true: ?
+++ false: ?
+++ branch: $-(? @ud)
+++ choose-true: @ud
+++ choose-false: @ud
+++ cord-text: @t
+++ knot: @ta
+++ term: @tas
+++ text-atom: @
+++ singleton-zero: ?
+++ singleton-one: ?
+++ code-value: code
+++ name-value: named
+++ make-code: $-(@t command)
+++ constructed: command
+++ numeric-pattern: $-(@ud @ud)
+++ text-pattern: $-(@t @ud)

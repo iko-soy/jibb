@@ -4,6 +4,13 @@ fn check_source(source: &str) -> Result<jibb::check::CheckedModule, jibb::Diagno
     check(&parse_ast(source).expect("source should lower"))
 }
 
+fn assert_check_error(source: &str, message: &str, excerpt: &str) {
+    let error = check_source(source).unwrap_err();
+    assert_eq!(error.message, message, "{error}");
+    let span = error.span.unwrap_or_else(|| panic!("{error} has no span"));
+    assert_eq!(&source[span.start..span.end], excerpt, "{error}");
+}
+
 #[test]
 fn checks_literal_auras_and_directional_widening() {
     let checked = check_source(
@@ -29,7 +36,7 @@ fn checks_literal_auras_and_directional_widening() {
 #[test]
 fn distinguishes_loobean_and_term_literal_fitting() {
     let checked = check_source(
-        "+$ yes %.y\n++ yes-flag ^- yes %.y\n++ yes-term ^- yes %$\n++ normal-flag ^- ? %.y\n++ normal-any ^- @ %.y\n++ literal-f ^- @f %.y\n++ numeric ^- @tas %1\n++ bit ^- @ta %&\n++ zero ^- ? %$\n++ one ^- ? %1\n",
+        "+$ yes %.y\n++ yes-flag ^- yes %.y\n++ yes-term ^- yes %$\n++ normal-flag ^- ? %.y\n++ normal-any ^- @ %.y\n++ literal-f ^- @f %.y\n++ numeric ^- @ud %1.000\n++ inferred-numeric %1.000\n++ singleton ^- %1.000 %1.000\n++ bit ^- ? %&\n++ inferred-boolean %&\n++ zero ^- ? %$\n++ one ^- ? %1\n++ name ^- @t %hello\n++ knot ^- @ta %hello\n++ term ^- @tas %hello\n",
     )
     .unwrap();
     assert_eq!(checked.values["yes-flag"].to_string(), "yes");
@@ -37,10 +44,16 @@ fn distinguishes_loobean_and_term_literal_fitting() {
     assert_eq!(checked.values["normal-flag"].to_string(), "?");
     assert_eq!(checked.values["normal-any"].to_string(), "@");
     assert_eq!(checked.values["literal-f"].to_string(), "@f");
-    assert_eq!(checked.values["numeric"].to_string(), "@tas");
-    assert_eq!(checked.values["bit"].to_string(), "@ta");
+    assert_eq!(checked.values["numeric"].to_string(), "@ud");
+    assert_eq!(checked.values["inferred-numeric"].to_string(), "@ud");
+    assert_eq!(checked.values["singleton"].to_string(), "%1.000");
+    assert_eq!(checked.values["bit"].to_string(), "?");
+    assert_eq!(checked.values["inferred-boolean"].to_string(), "?");
     assert_eq!(checked.values["zero"].to_string(), "?");
     assert_eq!(checked.values["one"].to_string(), "?");
+    assert_eq!(checked.values["name"].to_string(), "@t");
+    assert_eq!(checked.values["knot"].to_string(), "@ta");
+    assert_eq!(checked.values["term"].to_string(), "@tas");
 
     for source in [
         "+$ yes %.y\n++ wrong ^- yes %.n\n",
@@ -51,6 +64,48 @@ fn distinguishes_loobean_and_term_literal_fitting() {
     ] {
         assert!(check_source(source).is_err(), "{source}");
     }
+}
+
+#[test]
+fn rejects_terms_outside_their_hoon_auras_with_literal_diagnostics() {
+    for (source, message, excerpt) in [
+        (
+            "++ wrong ^- @tas %1\n",
+            "type mismatch: expected @tas, found %1",
+            "%1",
+        ),
+        (
+            "++ wrong ^- @ud %name\n",
+            "type mismatch: expected @ud, found %name",
+            "%name",
+        ),
+        (
+            "++ wrong ^- @t %1.000\n",
+            "type mismatch: expected @t, found %1.000",
+            "%1.000",
+        ),
+        (
+            "++ wrong ^- @t %&\n",
+            "type mismatch: expected @t, found ?",
+            "%&",
+        ),
+    ] {
+        assert_check_error(source, message, excerpt);
+    }
+}
+
+#[test]
+fn checks_boolean_terms_in_branches() {
+    let checked =
+        check_source("++ choose |= b=? ?- b\n  %& 1\n  %| 0\n++ answer (choose %&)\n").unwrap();
+    assert_eq!(checked.values["choose"].to_string(), "$-(? @ud)");
+    assert_eq!(checked.values["answer"].to_string(), "@ud");
+
+    assert_check_error(
+        "++ bad |= b=? ?- b\n  %2 1\n  * 0\n",
+        "pattern does not match the branch subject",
+        "%2",
+    );
 }
 
 #[test]
@@ -425,6 +480,30 @@ fn native_primitives_carry_static_constraints() {
     assert!(error.message.contains("type mismatch"), "{error}");
     let error = check_with_primitives("++ bad (raw-eq.core |=(x x) |=(y y))\n").unwrap_err();
     assert!(error.message.contains("containing no gates"), "{error}");
+}
+
+#[test]
+fn numeric_terms_are_arithmetic_atoms_but_boolean_terms_are_not() {
+    let checked = check_with_primitives(
+        "++ sum (raw-add.core %1.000 2)\n++ increment |= n=A (raw-add.core n %1.000)\n",
+    )
+    .unwrap();
+    assert_eq!(checked.values["sum"].to_string(), "@ud");
+    assert_eq!(
+        checked.values["increment"].to_string(),
+        "$-(A A) where A is an atom other than ?"
+    );
+
+    let source = "/= core /lib/jibb/primitives\n++ bad (raw-add.core %& %1)\n";
+    let error =
+        jibb::loader::check_source(source, std::path::Path::new("primitives.jibb"), &[], None)
+            .unwrap_err();
+    assert_eq!(
+        error.message,
+        "type constraint requires an atom other than ?, found ?"
+    );
+    let span = error.span.unwrap_or_else(|| panic!("{error} has no span"));
+    assert_eq!(&source[span.start..span.end], "raw-add.core", "{error}");
 }
 
 #[test]

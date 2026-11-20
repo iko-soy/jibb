@@ -27,8 +27,6 @@ The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language
 
 | # | Question | Proposed answer | Refs |
 | --- | --- | --- | --- |
-| [16](reviews/2026-11-02-questions.md) | Which auras may a term literal fit? Today `^- @tas %1.000` is accepted and `^- @ud %1.000` is rejected | Follow Hoon: `%1.000` is `@ud` and `%&` is `?` | A20 |
-| [17](reviews/2026-11-02-questions.md) | May a name term fit `@t`, as `@tas` nests in `@t` in Hoon? | Yes | A20 |
 | [19](reviews/2026-11-02-questions.md) | Where are `[]` and `m()`, both decided errors, rejected? | In the parser, at the closer, with golden cases | A6, A100 |
 | [20](reviews/2026-11-02-questions.md) | Is `[a=@ud [a=@t b=?]]` one record or two scopes? | One record: the duplicate `a` is an error | A30 |
 | [21](reviews/2026-11-02-questions.md) | May `/%  %foo` and `++ foo 1` share a name? | Yes: molds and values have separate namespaces | A25 |

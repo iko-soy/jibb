@@ -1,0 +1,7 @@
+++ bad: cast mold and expression type do not unify
+/tests/golden/types-term-literal-numeric-aura/source.jibb:1:11: cast mold has type @tas
+++ bad ^- @tas %1.000
+          ^
+/tests/golden/types-term-literal-numeric-aura/source.jibb:1:16: expression has type A; A remains unresolved for tag `%1.000`
+++ bad ^- @tas %1.000
+               ^

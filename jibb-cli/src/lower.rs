@@ -568,13 +568,10 @@ impl<'a> Lower<'a> {
 
     fn term_literal(&self, node: Node<'a>) -> LResult<TermLiteral> {
         let text = self.text(node)?;
-        let kind = if text
-            .get(1..)
-            .is_some_and(|body| body.starts_with(|c: char| c.is_ascii_digit()))
-        {
-            TermKind::Numeric
-        } else {
-            TermKind::Named
+        let kind = match text.get(1..) {
+            Some("&") | Some("|") => TermKind::Boolean,
+            Some(body) if body.starts_with(|c: char| c.is_ascii_digit()) => TermKind::Numeric,
+            _ => TermKind::Named,
         };
         Ok(TermLiteral {
             value: self.term(node)?,

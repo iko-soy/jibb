@@ -1,0 +1,4 @@
+source: Decisions, Term literals: numeric terms are @ud, boolean terms fit ?, and name terms fit @t through @tas.
+tests: Numeric-term widening, arithmetic, boolean terms as branch subjects and patterns, name terms as text, singleton-by-noun controls, and unchanged numeric/name union and constructor contexts.
+expect: parses
+expect-types: full checker report

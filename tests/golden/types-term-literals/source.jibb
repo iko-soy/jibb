@@ -1,0 +1,42 @@
++$ code
+  %200
+  %404
+  %1.000
++$ named
+  %add
+  %remove
++$ command
+  [%200 text=@t]
+  [%404 text=@t]
+++ decimal ^- @ud %1.000
+++ unsigned ^- @u %1.000
+++ atom ^- @ %1.000
+++ noun ^- * %1.000
+++ sum (add %40 %2)
+++ predecessor (dec %43)
+++ true ^- ? %&
+++ false ^- ? %|
+++ branch |= flag=? ^- @ud
+  ?- flag
+    %& 42
+    %| 0
+++ choose-true (branch %&)
+++ choose-false (branch %|)
+++ cord-text ^- @t %add
+++ knot ^- @ta %add
+++ term ^- @tas %add
+++ text-atom ^- @ %add
+++ singleton-zero ^- ? %$
+++ singleton-one ^- ? %1
+++ code-value ^- code %200
+++ name-value ^- named %add
+++ make-code ^- $-(@t command) |=%200
+++ constructed ^- command (make-code "ok")
+++ numeric-pattern |= n=@ud
+  ?- n
+    %1.000 1
+    * 0
+++ text-pattern |= t=@t
+  ?- t
+    %add 1
+    * 0

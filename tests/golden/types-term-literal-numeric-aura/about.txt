@@ -1,0 +1,4 @@
+source: Decisions, Term literals: a numeric term is @ud, not @tas.
+tests: The former numeric-term-as-@tas acceptance is rejected with its exact full-checker diagnostic.
+expect: parses
+expect-types: full checker diagnostic

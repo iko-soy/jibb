@@ -173,6 +173,22 @@ fn evaluates_private_native_primitives() {
 }
 
 #[test]
+fn evaluates_terms_with_their_hoon_auras() {
+    assert_eq!(
+        primitive_noun("++ main (raw-add.core %1.000 2)\n"),
+        atom(1_002)
+    );
+    assert_eq!(
+        noun("++ choose |= b=? ?- b\n  %& 1\n  %| 0\n++ main (choose %&)\n"),
+        atom(1)
+    );
+    assert_eq!(
+        primitive_noun("++ main (raw-crip.core (raw-trip.core %hello))\n"),
+        text_noun("hello")
+    );
+}
+
+#[test]
 fn rejects_runtime_crash_without_panicking() {
     let module = parse_ast("++ main !!\n").unwrap();
     let error = evaluate(&module, "main").unwrap_err();

@@ -1,0 +1,4 @@
+(module
+  (value 1:1 bad
+    (group 1:8
+      (call 1:9 (wing 1:9 add) (lit 1:13 %&) (lit 1:16 %1)))))

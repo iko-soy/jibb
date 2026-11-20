@@ -6188,6 +6188,31 @@
   ^-  ?
   (aura-prefix aura %ud)
 ::
+::  A numeric term has the decimal literal's @ud semantics, a name term has
+::  @tas's place in the @t/@ta family, and a boolean term is a loobean.
+::  Singleton and union fits still compare their literal nouns separately.
+::
+++  numeric-term
+  |=  l=lit
+  ^-  ?
+  &(=(%term form.l) =(%ud aura.l))
+++  term-literal-type
+  |=  l=lit
+  ^-  (unit itype)
+  ?.  =(%term form.l)  ~
+  ?:  (numeric-term l)  `[%atom %ud]
+  ?+  aura.l  ~
+    %tas  `[%atom %tas]
+    %f    `[%flag ~]
+  ==
+++  term-aura-fit
+  |=  [l=lit expected=@ta]
+  ^-  ?
+  ?.  =(%term form.l)  |
+  ?:  =(%ud aura.l)  (decimal-aura expected)
+  ?:  =(%tas aura.l)  (aura-prefix expected %tas)
+  |
+::
 ::  Related auras in a structural unification need a common-type rule;
 ::  until that rule is implemented, report an unknown rather than error.
 ::
@@ -7198,7 +7223,12 @@
       =/  u=(unit isub)  (itype-unify actual expected sub)
       ?~  u  [%bad ~]
       [%ok u.u next]
-    ?:  |(?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
+    ?:  ?=(?(%fvar %avar %rvar %nvar %rnvar) -.expected)
+      =/  known=(unit itype)  (term-literal-type literal.actual)
+      ?~  known  [%unknown ~]
+      =/  fitted=ifit  $(actual u.known)
+      ?.  ?=(%ok -.fitted)  fitted
+      [%ok (itype-bind id.actual u.known sub.fitted) next.fitted]
     ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
     ?:  constructor.actual
       ?.  ?=(%fn -.expected)  [%bad ~]
@@ -7219,7 +7249,11 @@
     ?:  ?=(%const -.expected)
       ?:(=(val.literal.actual val.literal.expected) [%ok (itype-bind id.actual expected sub) next] [%bad ~])
     ?:  ?=(%atom -.expected)
-      ?:  |(=(%tas aura.expected) =(%ta aura.expected))
+      ?:  =(%term form.literal.actual)
+        ?:  (term-aura-fit literal.actual aura.expected)
+          [%ok (itype-bind id.actual [%const literal.actual] sub) next]
+        [%bad ~]
+      ?:  &(=(%null form.literal.actual) |(?=(%tas aura.expected) ?=(%ta aura.expected)))
         [%ok (itype-bind id.actual [%const literal.actual] sub) next]
       [%bad ~]
     ?:  ?=(%flag -.expected)
@@ -7231,7 +7265,10 @@
       =/  u=(unit isub)  (itype-unify actual expected sub)
       ?~  u  [%bad ~]
       [%ok u.u next]
-    ?:  |(?=(%fvar -.expected) ?=(%avar -.expected) ?=(%rvar -.expected) |(?=(%nvar -.expected) ?=(%rnvar -.expected)))  [%unknown ~]
+    ?:  ?=(?(%fvar %avar %rvar %nvar %rnvar) -.expected)
+      =/  known=(unit itype)  (term-literal-type literal.actual)
+      ?~  known  [%unknown ~]
+      $(actual u.known)
     ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
     ?:  &(?=(%collection -.expected) (null-collection-name name.expected) =(0 val.literal.actual))
       [%unknown ~]
@@ -7242,7 +7279,10 @@
       ?:  =(%loobean form.literal.actual)
         ?:  =(%f aura.expected)  [%unknown ~]
         [%bad ~]
-      ?:  |(=(%tas aura.expected) =(%ta aura.expected))  [%ok sub next]
+      ?:  =(%term form.literal.actual)
+        ?:  (term-aura-fit literal.actual aura.expected)  [%ok sub next]  [%bad ~]
+      ?:  &(=(%null form.literal.actual) |(?=(%tas aura.expected) ?=(%ta aura.expected)))
+        [%ok sub next]
       [%bad ~]
     ?:  ?=(%flag -.expected)
       ?:(|(=(0 val.literal.actual) =(1 val.literal.actual)) [%ok sub next] [%bad ~])
@@ -13194,7 +13234,8 @@
     ?:  =(%number form.l)
       ?:  =(%ud aura.l)  `(decimal-aura aura.t)
       `(aura-prefix aura.t aura.l)
-    ?:  |(=(%term form.l) =(%null form.l))  `|(=(%tas aura.t) =(%ta aura.t))
+    ?:  =(%term form.l)  `(term-aura-fit l aura.t)
+    ?:  =(%null form.l)  `|(=(%tas aura.t) =(%ta aura.t))
     ?:  =(%loobean form.l)  `=(%f aura.t)
     `(aura-prefix aura.t aura.l)
   ?:  ?=(%collection -.t)

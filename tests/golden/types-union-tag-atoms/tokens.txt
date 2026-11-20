@@ -19,12 +19,12 @@
 4:1 glyph ++
 4:4 name numeric
 4:12 glyph ^-
-4:15 aura @tas
-4:20 lit %1
+4:15 aura @ud
+4:19 lit %1
 5:1 NEWLINE
 5:1 glyph ++
 5:4 name bit
 5:8 glyph ^-
-5:11 aura @ta
-5:15 lit %&
-5:17 NEWLINE
+5:11 glyph ?
+5:13 lit %&
+5:15 NEWLINE

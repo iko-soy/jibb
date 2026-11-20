@@ -369,6 +369,7 @@ impl<'a> Checker<'a> {
             MoldKind::Term(term) => Ok(match term.kind {
                 TermKind::Named => Type::Constant(term.value.clone()),
                 TermKind::Numeric => Type::NumericTerm(term.value.clone()),
+                TermKind::Boolean => Type::LoobeanConstant(term.value.clone()),
             }),
             MoldKind::Loobean(yes) => Ok(Type::LoobeanConstant(BigUint::from(u8::from(!yes)))),
             MoldKind::TypeVariable(name) => {
@@ -1363,6 +1364,9 @@ impl<'a> Checker<'a> {
                 } else {
                     Ok(())
                 }
+            }
+            Type::Constant(_) if kind == ConstraintKind::ArithmeticAtom => {
+                Err(constraint_mismatch(kind, &typ, span))
             }
             Type::Constant(_) | Type::NumericTerm(_) => Ok(()),
             Type::Noun | Type::Gate { .. } | Type::Cell(_) | Type::Path(_) => {
@@ -2616,18 +2620,7 @@ impl<'a> Checker<'a> {
                     // context fixes an aura it fits, or its `++` is generic
                     // over its aura.
                     if let Some(Type::Var(variable)) = resolved {
-                        if !self.unifier.is_rigid(variable)
-                            && !self.unifier.has_atom_constraint(variable)
-                        {
-                            self.unifier
-                                .constrain_variable(variable, ConstraintKind::Atom, span);
-                        }
-                        self.pending_numbers.push(PendingNumber {
-                            variable,
-                            value: number.value.clone(),
-                            span,
-                        });
-                        return Ok(Type::Var(variable));
+                        return Ok(self.defer_unsigned_literal(variable, &number.value, span));
                     }
                     if let Some(expected) = &resolved {
                         let expected = self.unifier.normalize(expected);
@@ -2654,12 +2647,31 @@ impl<'a> Checker<'a> {
                 }
                 Type::Flag
             }
+            Literal::Term(term) if term.kind == TermKind::Numeric => {
+                return match resolved {
+                    Some(Type::Var(variable)) => {
+                        Ok(self.defer_unsigned_literal(variable, &term.value, span))
+                    }
+                    // Unlike a name, a numeric term has Hoon's @ud type even
+                    // without a cast or a union to select.
+                    None => Ok(Type::Atom(Aura::new("ud"))),
+                    // Preserve a numeric singleton mold when one is expected.
+                    Some(_) => {
+                        self.fit_or_error(Type::NumericTerm(term.value.clone()), expected, span)
+                    }
+                };
+            }
+            Literal::Term(term) if term.kind == TermKind::Boolean => {
+                if let Some(resolved) = &resolved
+                    && self.loobean_fits_singleton(&term.value, resolved)
+                {
+                    return Ok(resolved.clone());
+                }
+                return self.fit_or_error(Type::Flag, expected, span);
+            }
             Literal::Term(_) | Literal::Null => {
                 let actual = match literal {
-                    Literal::Term(term) => match term.kind {
-                        TermKind::Named => Type::Constant(term.value.clone()),
-                        TermKind::Numeric => Type::NumericTerm(term.value.clone()),
-                    },
+                    Literal::Term(term) => Type::Constant(term.value.clone()),
                     _ => Type::Constant(BigUint::default()),
                 };
                 // A tag waits for its union: its variable must become a union
@@ -2681,6 +2693,19 @@ impl<'a> Checker<'a> {
             }
         };
         self.fit_or_error(actual, expected, span)
+    }
+
+    fn defer_unsigned_literal(&mut self, variable: TypeVar, value: &BigUint, span: Span) -> Type {
+        if !self.unifier.is_rigid(variable) && !self.unifier.has_atom_constraint(variable) {
+            self.unifier
+                .constrain_variable(variable, ConstraintKind::Atom, span);
+        }
+        self.pending_numbers.push(PendingNumber {
+            variable,
+            value: value.clone(),
+            span,
+        });
+        Type::Var(variable)
     }
 
     fn loobean_fits_singleton(&self, value: &BigUint, expected: &Type) -> bool {
@@ -2827,10 +2852,8 @@ impl<'a> Checker<'a> {
             (Type::Atom(actual), Type::Atom(expected)) => actual.fits(expected),
             (Type::Flag, Type::Atom(aura)) => aura.0 == "f",
             (Type::LoobeanConstant(_), Type::Atom(aura)) => aura.0 == "f",
-            (Type::Constant(_), Type::Atom(aura)) => aura.0 == "tas" || aura.0 == "ta",
-            (Type::NumericTerm(_), Type::Atom(aura)) => {
-                matches!(aura.0.as_str(), "tas" | "ta" | "ud" | "u")
-            }
+            (Type::Constant(_), Type::Atom(aura)) => Aura::new("tas").fits(aura),
+            (Type::NumericTerm(_), Type::Atom(aura)) => Aura::new("ud").fits(aura),
             (actual, Type::Flag) if constant_value(actual).is_some() => constant_value(actual)
                 .is_some_and(|value| *value == BigUint::default() || *value == BigUint::from(1u8)),
             (Type::Cell(actual), Type::Cell(expected)) => {
@@ -3096,7 +3119,7 @@ fn pending_tag_text(kind: &PendingTagKind) -> String {
     let constant = |value: &BigUint| TypeScheme::mono(Type::Constant(value.clone())).to_string();
     match kind {
         PendingTagKind::Literal(Literal::Term(term)) => match term.kind {
-            TermKind::Named => constant(&term.value),
+            TermKind::Named | TermKind::Boolean => constant(&term.value),
             TermKind::Numeric => format!("%{}", decimal_text(&term.value)),
         },
         PendingTagKind::Literal(_) => "~".to_string(),
@@ -3212,6 +3235,7 @@ fn literal_pattern_type(literal: &Literal) -> Type {
         Literal::Term(term) => match term.kind {
             TermKind::Named => Type::Constant(term.value.clone()),
             TermKind::Numeric => Type::NumericTerm(term.value.clone()),
+            TermKind::Boolean => Type::LoobeanConstant(term.value.clone()),
         },
         Literal::Loobean(yes) => Type::LoobeanConstant(BigUint::from(u8::from(!yes))),
         Literal::Null => Type::Constant(BigUint::default()),

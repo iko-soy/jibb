@@ -1,0 +1,7 @@
+++ bad: cast mold and expression type do not unify
+/tests/golden/types-term-literal-name-aura/source.jibb:1:11: cast mold has type @ud
+++ bad ^- @ud %add
+          ^
+/tests/golden/types-term-literal-name-aura/source.jibb:1:15: expression has type A; A remains unresolved for tag `%add`
+++ bad ^- @ud %add
+              ^

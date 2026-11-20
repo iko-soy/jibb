@@ -1,0 +1,4 @@
+source: Decisions, Term literals and arithmetic: %& fits ?, while arithmetic requires an atom other than ?.
+tests: Numeric terms work in arithmetic, but a boolean term is rejected with the exact argument diagnostic.
+expect: parses
+expect-types: full checker diagnostic

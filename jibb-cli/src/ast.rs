@@ -165,6 +165,7 @@ pub struct TermLiteral {
 pub enum TermKind {
     Named,
     Numeric,
+    Boolean,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

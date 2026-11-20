@@ -175,9 +175,8 @@ impl TypePrinter {
             Type::Noun => "*".to_string(),
             Type::Void => "!!".to_string(),
             Type::Flag => "?".to_string(),
-            Type::Constant(value) | Type::NumericTerm(value) | Type::LoobeanConstant(value) => {
-                constant_text(value)
-            }
+            Type::Constant(value) | Type::LoobeanConstant(value) => constant_text(value),
+            Type::NumericTerm(value) => format!("%{}", decimal_text(value)),
             Type::Cell(fields) => {
                 let fields = fields
                     .iter()
@@ -274,6 +273,10 @@ fn constant_text(value: &BigUint) -> String {
     {
         return format!("%{}", String::from_utf8_lossy(&bytes));
     }
+    format!("%{}", decimal_text(value))
+}
+
+fn decimal_text(value: &BigUint) -> String {
     let decimal = value.to_str_radix(10);
     let mut grouped = String::new();
     for (index, character) in decimal.chars().enumerate() {
@@ -282,7 +285,7 @@ fn constant_text(value: &BigUint) -> String {
         }
         grouped.push(character);
     }
-    format!("%{grouped}")
+    grouped
 }
 
 #[cfg(test)]

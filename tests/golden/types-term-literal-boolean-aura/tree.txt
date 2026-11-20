@@ -1,0 +1,3 @@
+(module
+  (value 1:1 bad
+    (cast 1:8 (aura 1:11 @ud) (lit 1:15 %&))))

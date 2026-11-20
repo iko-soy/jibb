@@ -1,4 +1,4 @@
 source: Grammar, Tag resolution: a tag may fit an atom type by its noun value; a loobean has the two atoms `%.y` and `%.n`.
-tests: `%$` and `%1` fit a loobean by value, `%2` does not, and `%1` and `%&` fit the requested atom auras.
+tests: `%$` and `%1` fit a loobean by value, `%2` does not, and the ruled numeric and boolean term fits use `@ud` and `?`.
 expect: parses
-expect-types: full checker reports the first error; independent split cases retain the other checks
+expect-types: full checker reports the first error; types-term-literals retains the positive checks

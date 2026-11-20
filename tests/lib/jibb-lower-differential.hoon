@@ -318,6 +318,18 @@
     %^  value-case  %literals
       '++ result ^- [@ud @ux @t @tas ? ~] [42 0x2a "ok" %yes %.y ~]\0a'
     [42 42 'ok' %yes 0 0]
+  =/  term-literals=fixture
+    %^  value-case  %term-literals
+      %-  text
+      :~  '++ choose |= flag=? ^- @ud'
+          '  ?- flag'
+          '    %& (add %40 %2)'
+          '    %| (dec %43)'
+          '++ result ^- [@ud @ud @u @t @tas @]'
+          '  [(choose %&) (choose %|) %1.000 %add %add %1.000]'
+      ==
+    [42 42 1.000 %add %add 1.000]
+  =.  needs.term-literals  ~[%native %match]
   =/  data=fixture
     %^  value-case  %lists-units
       '++ result ^- [(list @ud) (unit @ud) ~] [~[1 2 3] `9 ~]\0a'
@@ -553,6 +565,7 @@
     [7 42 [3 2] 3 2 1.024 1 0 4 0]
   =.  needs.arithmetic-natives  ~[%native]
   :~  literals
+      term-literals
       data
       arithmetic
       closure
@@ -784,7 +797,7 @@
     ==
   ?:  ?=(%| -.prepared)
     ~[leaf+(trip (cat 3 'feature artifact unavailable: ' p.prepared))]
-  ?.  =(30 (lent fixtures))  ~[leaf+"differential fixture inventory changed"]
+  ?.  =(31 (lent fixtures))  ~[leaf+"differential fixture inventory changed"]
   =/  bad=(list @t)  (run-fixtures fixtures p.prepared)
   (turn bad |=(reason=@t leaf+(trip reason)))
 --

@@ -1,0 +1,4 @@
+source: Decisions, Term literals: a name term is in the @tas/@ta/@t family.
+tests: A name term does not fit @ud; the full-checker message and both source sites are exact.
+expect: parses
+expect-types: full checker diagnostic

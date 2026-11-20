@@ -1,0 +1,6 @@
+1:1 glyph ++
+1:4 name bad
+1:8 glyph ^-
+1:11 aura @ud
+1:15 lit %&
+1:17 NEWLINE

@@ -6,6 +6,6 @@
   (value 3:1 two
     (cast 3:8 (flag 3:11) (lit 3:13 %2)))
   (value 4:1 numeric
-    (cast 4:12 (aura 4:15 @tas) (lit 4:20 %1)))
+    (cast 4:12 (aura 4:15 @ud) (lit 4:19 %1)))
   (value 5:1 bit
-    (cast 5:8 (aura 5:11 @ta) (lit 5:15 %&))))
+    (cast 5:8 (flag 5:11) (lit 5:13 %&))))

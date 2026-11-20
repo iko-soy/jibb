@@ -81,8 +81,8 @@ fn terms_constructors_and_knots_decode_to_runtime_values() {
         (BigUint::from_bytes_le(b"add"), TermKind::Named),
         (BigUint::from(1_000u16), TermKind::Numeric),
         (BigUint::default(), TermKind::Named),
-        (BigUint::default(), TermKind::Named),
-        (BigUint::from(1u8), TermKind::Named),
+        (BigUint::default(), TermKind::Boolean),
+        (BigUint::from(1u8), TermKind::Boolean),
     ];
     for (item, (value, kind)) in items.iter().zip(terms) {
         assert_eq!(
