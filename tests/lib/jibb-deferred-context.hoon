@@ -35,7 +35,7 @@
   ^-  tang
   =/  at=path  /ui/context/jibb
   =/  good=(list wain)  ~[rich plain simple]
-  =/  bad=(list wain)  ~[missing wrong duplicate dangling collision-early collision-late]
+  =/  bad=(list wain)  ~[missing duplicate dangling collision-early collision-late]
   ?.  (levy (weld good bad) |=(src=wain ?=(^ src)))  ~[leaf+"source missing"]
   =/  source=@t  (text rich)
   =/  parsed  (parse:jibb at source)
@@ -60,7 +60,7 @@
   ?.  ?=([%atom %p] typ.u.reveal-ship)  ~[leaf+"ship result changed"]
   =/  got=@t  report
   ?.  =((to-wain:format (cat 3 got '\0a')) expected)  ~[leaf+"report differs from committed types"]
-  =/  rest-good=(list wain)  ~[plain simple]
+  =/  rest-good=(list wain)  ~[plain simple wrong]
   =/  checked=?
     %+  levy  rest-good
     |=  src=wain

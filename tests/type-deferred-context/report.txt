@@ -47,13 +47,14 @@ missing
     %.n %absent
         ^
 wrong
-++ choose: branch arm does not fit its expected type
-/ui/context.jibb:9:3: expected branch result has type @t
-  ?- flag
-  ^
-/ui/context.jibb:10:9: branch arm has type A; A remains unresolved for tag `%none`
-    %.y %none
-        ^
+module kind: library
++$ message: message
++$ maybe: maybe
+++ final: $-(? @t)
+++ choose: $-(? @t)
+++ send: $-($-(@t A) $-(@t A))
+++ first: $-(@t message)
+++ fixed: $-(@t message)
 duplicate
 ++ choose: branch arm is covered by earlier arms
 /ui/context.jibb:10:5: covering arm
