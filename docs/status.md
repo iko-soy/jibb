@@ -1,6 +1,6 @@
 # Status
 
-As of 2026-11-19. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
+As of 2026-11-20. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
 
 ## Milestones
 
@@ -155,6 +155,12 @@ App sections now preserve route parameters as `_` patterns. Literal-prefix behav
 `proj` now selects exactly the expected result type's fields in that type's order, including reordering from the source. Checked artifacts retain source axes in target order; lowering validates those axes against both layouts, evaluates the source once and constructs the exact result noun. Literal projection context also follows target-field names regardless of source order. Malformed plans, wrong axes and unauthenticated evidence still fail closed.
 
 The `lower-proj-target-order` golden covers direct-literal and parameter reversal, nested subsets and four-to-three-field reordering. Hoon reference and Nock execution agree on reversal and nested-subset outcomes, with one source trace; equivalent Core fixtures agree in JavaScript. The native CLI already implemented the rule and adds matching evaluation and single-trace regressions. Focused validation passed 51 lowering/artifact arms, 10 projection provenance/generic arms, 402 JavaScript tests, 15 Hoon/JavaScript Core outcomes and 166 native tests with clippy. The current runners enumerate 1,492 golden cases and 746 arms in 285 suites. Final `nix flake check -L -j 2 --keep-going` acceptance on `99465f4` passed all eval, fresh-ship, desk, native CLI and CLI-corpus groups.
+
+## Hoon term-literal fitting (2026-11-20)
+
+Numeric terms now use their decimal literal's `@ud` semantics, including `@u`, `@` and `*` widening and arithmetic constraints. Boolean terms map to `?`, while name terms use `@tas` ancestry through `@ta`, `@t`, `@` and `*`. These rules apply to pending tags, constrained variables, singleton constants and pattern validation without changing constructor selection or noun-based singleton compatibility: `%1` still fits `?`. Exact negative goldens retain incompatible-aura and non-arithmetic diagnostics. The former deferred-context `%none`-as-`@t` negative control is now a positive checked result under the settled Q17 rule; all its unrelated negative controls remain.
+
+Five new/updated term goldens pass under eval and on fresh ships, as do focused typechecking/tag/singleton and lowering-differential suites. Native parsing and checking distinguish numeric, boolean and name terms, including deferred numeric constraints and text widening. The native suite passes 170 tests and clippy; 402 JavaScript tests and 15 Hoon/JavaScript Core outcomes pass. Current runners enumerate 1,497 golden cases and 746 arms in 285 suites. Final `nix flake check -L -j 2 --keep-going` acceptance on `7dd4d1d` passed all eval, fresh-ship, desk, native CLI and CLI-corpus groups.
 
 ## Parser and mark
 
