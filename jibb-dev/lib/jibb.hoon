@@ -22141,6 +22141,8 @@
   ^-  (unit idiag)
   ?~  items  ~
   =/  a=item  i.items
+  ?:  &(?=(~ face.a) ?=(%tuple -.val.a))
+    $(items (weld items.val.a t.items))
   =/  dup=(unit idiag)  ?~(face.a ~ (duplicate-written-field u.face.a at.a seen))
   ?^  dup  dup
   =/  inner  (duplicate-expr val.a)

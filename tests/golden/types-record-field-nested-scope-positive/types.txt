@@ -1,2 +1,3 @@
 module kind: library
 +$ fine: [a=@ud [b=@t c=?]]
+++ okay: [a=@ud [b=@t c=?]]

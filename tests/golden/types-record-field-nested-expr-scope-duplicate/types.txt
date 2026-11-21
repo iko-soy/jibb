@@ -1,0 +1,7 @@
+record field `a` is repeated
+/tests/golden/types-record-field-nested-expr-scope-duplicate/source.jibb:1:9: first field
+++ bad [a=1 [a="x" b=%.y]]
+        ^
+/tests/golden/types-record-field-nested-expr-scope-duplicate/source.jibb:1:14: repeated field
+++ bad [a=1 [a="x" b=%.y]]
+             ^

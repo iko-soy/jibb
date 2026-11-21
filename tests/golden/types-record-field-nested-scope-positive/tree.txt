@@ -4,4 +4,10 @@
       (face 1:10 a (aura 1:12 @ud))
       (cell 1:16
         (face 1:17 b (aura 1:19 @t))
-        (face 1:22 c (flag 1:24))))))
+        (face 1:22 c (flag 1:24)))))
+  (value 2:1 okay
+    (tuple 2:9
+      (face 2:10 a (lit 2:12 1))
+      (tuple 2:14
+        (face 2:15 b (str 2:17 "x"))
+        (face 2:21 c (lit 2:23 %.y))))))

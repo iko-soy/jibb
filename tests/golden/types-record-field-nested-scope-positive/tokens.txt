@@ -13,4 +13,20 @@
 1:24 tight glyph ?
 1:25 tight glyph ]
 1:26 tight glyph ]
-1:27 NEWLINE
+2:1 NEWLINE
+2:1 glyph ++
+2:4 name okay
+2:9 glyph [
+2:10 tight name a
+2:11 tight glyph =
+2:12 tight lit 1
+2:14 glyph [
+2:15 tight name b
+2:16 tight glyph =
+2:17 tight str "x"
+2:21 name c
+2:22 tight glyph =
+2:23 tight lit %.y
+2:26 tight glyph ]
+2:27 tight glyph ]
+2:28 NEWLINE

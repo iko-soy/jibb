@@ -1,0 +1,7 @@
+(module
+  (value 1:1 bad
+    (tuple 1:8
+      (face 1:9 a (lit 1:11 1))
+      (tuple 1:13
+        (face 1:14 a (str 1:16 "x"))
+        (face 1:20 b (lit 1:22 %.y))))))
