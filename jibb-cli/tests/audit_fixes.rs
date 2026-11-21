@@ -437,12 +437,10 @@ fn primitives_are_found_through_the_face_that_imports_them() {
 fn an_empty_cell_is_an_error() {
     let source = "++ main []\n";
     let error = check_source(source).unwrap_err();
-    assert_error(&error, source, "an empty `[]` is not a valid tuple", "[]");
-    // As a mold, `[]` does not parse.
+    assert_error(&error, source, "an empty `[]` is not a valid tuple", "]");
     let source = "+$ x []\n";
     let error = check_source(source).unwrap_err();
-    assert!(error.message.starts_with("invalid Jibb syntax"), "{error}");
-    assert_eq!(error.span.map(|span| span.start), Some(6));
+    assert_error(&error, source, "an empty `[]` is not a valid mold", "]");
 }
 
 #[test]

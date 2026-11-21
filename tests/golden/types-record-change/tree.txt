@@ -68,10 +68,6 @@
       (bind 14:15 x)
       (change 14:17 x
         (edit 14:19 name (str 14:24 "ok")))))
-  (value 15:1 empty
-    (gate 15:10
-      (face 15:13 s (ref 15:15 state))
-      (change 15:21 s)))
   (value 16:1 tag
     (gate 16:8
       (face 16:11 m (ref 16:13 model))

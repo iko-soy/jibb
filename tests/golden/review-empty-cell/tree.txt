@@ -1,2 +1,3 @@
-(module
-  (value 1:1 v (tuple 1:6)))
+/tests/golden/review-empty-cell/source.jibb:1:7: an empty `[]` is not a valid tuple
+++ v []
+      ^

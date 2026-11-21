@@ -12,7 +12,7 @@
 ++ mismatch |= s=state s(name=~zod)
 ++ wrong-list |= s=state s(items=[~zod items.s])
 ++ unknown |= x x(name="ok")
-++ empty |= s=state s()
+
 ++ tag |= m=model m(mode=%start data=~)
 ++ bad-tag |= m=model m(mode=%missing)
 ++ unfaced |= s=[@t @p] s(name="ok")

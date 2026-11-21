@@ -1,0 +1,4 @@
+source: Decisions, Nested record fields: an unnamed nested record shares the surrounding field-name scope
+tests: distinct names remain valid through an unnamed nested record
+expect: parses
+expect-types: exact full-checker report

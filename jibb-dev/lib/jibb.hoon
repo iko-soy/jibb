@@ -3940,6 +3940,10 @@
     ?~  ts  (bad ts "an item")
     =*  t  i.ts
     ?:  =(close lex.t)
+      ?:  &(?=(~ its) ?=(%tuple kind))
+        (bad-at beg.at.t "an empty `[]` is not a valid tuple")
+      ?:  &(?=(~ its) ?=(%change kind))
+        (bad-at beg.at.t "a change takes at least one field")
       [%& (bracket-node kind op target (flop its) end.at.t) t.ts]
     ?:  (is-closer t)  (unclosed op (trip close) ts)
     ?:  ?=(%indent lex.t)
@@ -4448,7 +4452,7 @@
     =|  fs=(list field)
     |-  ^-  (pare shape)
     ?:  ?=([[* * %']'] *] ts)
-      ?~  fs  (bad-at beg.at.op "an empty `[]` is not a valid cell mold")
+      ?~  fs  (bad-at beg.at.i.ts "an empty `[]` is not a valid cell mold")
       [%& [%cell [beg.at.op end.at.i.ts] (flop fs)] t.ts]
     ?:  ?=([[* * %indent] *] ts)
       ;<  [ls=(list field) more=(list token)]  then  (read-flines t.ts)
@@ -22032,7 +22036,8 @@
 ::  Preserve an imported overlap's original file and source across the graph.
 +$  jimports-detailed-result  (each [resolved=ijimports cache=jcache] jfile-failure)
 ::
-::  Written record fields each have their own lexical record scope.
+::  A named nested record has its own field scope. An unnamed nested cell
+::  continues the surrounding record's right-nested cell spine and scope.
 +$  written-fields  (map term span)
 ++  duplicate-written-field
   |=  [name=term at=span seen=written-fields]
@@ -22048,6 +22053,20 @@
   ?^  first  first
   $(xs t.xs)
 ++  duplicate-fields
+  |=  [fields=(list field) seen=written-fields]
+  ^-  (unit idiag)
+  (duplicate-record-fields (record-spine-fields fields) seen)
+::
+++  record-spine-fields
+  |=  fields=(list field)
+  ^-  (list field)
+  ?~  fields  ~
+  =/  f=field  i.fields
+  ?:  &(?=(%bare -.f) ?=(%cell -.shape.f))
+    (weld (record-spine-fields fields.shape.f) $(fields t.fields))
+  [f $(fields t.fields)]
+::
+++  duplicate-record-fields
   |=  [fields=(list field) seen=written-fields]
   ^-  (unit idiag)
   ?~  fields  ~

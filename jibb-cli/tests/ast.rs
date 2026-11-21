@@ -117,12 +117,45 @@ fn open_and_closed_containers_lower_identically() {
 }
 
 #[test]
-fn empty_cells_lower_and_survive_formatting() {
-    let expression = value("++ empty []\n");
-    assert!(matches!(expression.kind, ExprKind::Tuple(items) if items.is_empty()));
-    let formatted = format_source("++ empty []\n").expect("empty cell should format");
-    assert_eq!(formatted, "++  empty  []\n");
-    assert_same_surface("++ empty []\n", &formatted);
+fn empty_cells_and_changes_are_parser_errors_at_the_closing_delimiter() {
+    for (source, message, excerpt, start, caret) in [
+        (
+            "++ empty []\n",
+            "an empty `[]` is not a valid tuple",
+            "]",
+            10,
+            "          ^",
+        ),
+        (
+            "+$ empty []\n",
+            "an empty `[]` is not a valid mold",
+            "]",
+            10,
+            "          ^",
+        ),
+        (
+            "++ empty m()\n",
+            "a change takes at least one field",
+            ")",
+            11,
+            "           ^",
+        ),
+    ] {
+        let error = parse_ast(source).unwrap_err();
+        assert_eq!(error.message, message, "{error}");
+        let span = error.span.unwrap_or_else(|| panic!("{error} has no span"));
+        assert_eq!((span.start, span.end), (start, start + 1), "{error}");
+        assert_eq!(&source[span.start..span.end], excerpt, "{error}");
+        assert_eq!(" ".repeat(span.start) + "^", caret, "{error}");
+    }
+
+    for source in [
+        "++ nonempty [a=1]\n",
+        "+$ nonempty [a=@ud]\n",
+        "++ nonempty |= m=[a=@ud] m(a=1)\n",
+    ] {
+        module(source);
+    }
 }
 
 #[test]

@@ -1,0 +1,4 @@
+source: Decisions, Nested record fields: an unnamed nested record shares the surrounding field-name scope
+tests: the exact Q20 nested mold has a duplicate `a` at both field sites
+expect: parses
+expect-types: exact duplicate-field diagnostic

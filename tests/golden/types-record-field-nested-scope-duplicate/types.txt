@@ -1,0 +1,7 @@
+record field `a` is repeated
+/tests/golden/types-record-field-nested-scope-duplicate/source.jibb:1:9: first field
++$ bad [a=@ud [a=@t b=?]]
+        ^
+/tests/golden/types-record-field-nested-scope-duplicate/source.jibb:1:16: repeated field
++$ bad [a=@ud [a=@t b=?]]
+               ^

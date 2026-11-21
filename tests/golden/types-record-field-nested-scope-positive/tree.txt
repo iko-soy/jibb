@@ -1,0 +1,7 @@
+(module
+  (mold 1:1 fine
+    (cell 1:9
+      (face 1:10 a (aura 1:12 @ud))
+      (cell 1:16
+        (face 1:17 b (aura 1:19 @t))
+        (face 1:22 c (flag 1:24))))))

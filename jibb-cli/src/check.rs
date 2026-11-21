@@ -1,9 +1,9 @@
 use crate::{
     Diagnostic,
     ast::{
-        Definition, DefinitionKind, Expr, ExprKind, Literal, Module, Mold, MoldDefinition,
-        MoldKind, MoldPathSegment, NumberAura, Pattern, PatternKind, Sample, SampleKind, SourceId,
-        Span, TermKind, TypedSegmentMold,
+        Definition, DefinitionKind, Expr, ExprKind, Item, Literal, Module, Mold, MoldDefinition,
+        MoldField, MoldKind, MoldPathSegment, NumberAura, Pattern, PatternKind, Sample, SampleKind,
+        SourceId, Span, TermKind, TypedSegmentMold,
     },
     infer::Unifier,
     types::{
@@ -447,6 +447,7 @@ impl<'a> Checker<'a> {
                         mold.span,
                     ));
                 }
+                validate_record_mold_scope(fields)?;
                 let mut faces = BTreeMap::new();
                 let mut resolved = Vec::new();
                 for field in fields {
@@ -1716,6 +1717,7 @@ impl<'a> Checker<'a> {
                         expression.span,
                     ));
                 }
+                validate_record_item_scope(items)?;
                 let resolved_expected = expected.map(|typ| self.unifier.resolve(typ));
                 let expected_fields = resolved_expected
                     .as_ref()
@@ -3129,6 +3131,63 @@ fn pending_tag_text(kind: &PendingTagKind) -> String {
 
 fn is_atom_type(typ: &Type) -> bool {
     matches!(typ, Type::Atom(_) | Type::AnyAtom | Type::Noun)
+}
+
+/// An unnamed nested tuple is the surrounding record's tail, not a new record
+/// value. A faced tuple is a field's value and therefore starts its own scope.
+fn validate_record_item_scope(items: &[Item]) -> Result<(), Diagnostic> {
+    let mut faces = BTreeMap::new();
+    validate_record_items(items, &mut faces)
+}
+
+fn validate_record_items<'a>(
+    items: &'a [Item],
+    faces: &mut BTreeMap<&'a str, Span>,
+) -> Result<(), Diagnostic> {
+    for item in items {
+        if let Some(face) = &item.face
+            && let Some(previous) = faces.insert(face, item.span)
+        {
+            return Err(
+                Diagnostic::at(format!("duplicate record field `{face}`"), item.span)
+                    .with_note("first field", previous),
+            );
+        }
+        if item.face.is_none()
+            && let ExprKind::Tuple(nested) = &item.value.kind
+        {
+            validate_record_items(nested, faces)?;
+        }
+    }
+    Ok(())
+}
+
+/// The same record-scope rule applies to written cell molds.
+fn validate_record_mold_scope(fields: &[MoldField]) -> Result<(), Diagnostic> {
+    let mut faces = BTreeMap::new();
+    validate_record_molds(fields, &mut faces)
+}
+
+fn validate_record_molds<'a>(
+    fields: &'a [MoldField],
+    faces: &mut BTreeMap<&'a str, Span>,
+) -> Result<(), Diagnostic> {
+    for field in fields {
+        if let Some(face) = &field.face
+            && let Some(previous) = faces.insert(face, field.span)
+        {
+            return Err(
+                Diagnostic::at(format!("duplicate record field `{face}`"), field.span)
+                    .with_note("first field", previous),
+            );
+        }
+        if field.face.is_none()
+            && let MoldKind::Cell(nested) = &field.mold.kind
+        {
+            validate_record_molds(nested, faces)?;
+        }
+    }
+    Ok(())
 }
 
 fn duplicate_name(name: &str, span: Span, previous: Span) -> Diagnostic {

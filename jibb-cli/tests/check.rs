@@ -191,6 +191,37 @@ fn rejects_duplicate_names_and_fields_with_related_spans() {
 }
 
 #[test]
+fn nested_record_tails_share_the_surrounding_field_name_scope() {
+    for (source, repeated, first) in [
+        ("+$ bad [a=@ud [a=@t b=?]]\n", "a=@t", "a=@ud"),
+        ("++ bad [a=1 [a=\"x\" b=%.y]]\n", "a=\"x\"", "a=1"),
+    ] {
+        let error = check_source(source).unwrap_err();
+        assert_eq!(error.message, "duplicate record field `a`", "{error}");
+        let span = error.span.unwrap_or_else(|| panic!("{error} has no span"));
+        assert_eq!(&source[span.start..span.end], repeated, "{error}");
+        assert_eq!(error.notes.len(), 1, "{error}");
+        assert_eq!(error.notes[0].message, "first field", "{error}");
+        assert_eq!(
+            &source[error.notes[0].span.start..error.notes[0].span.end],
+            first,
+            "{error}"
+        );
+    }
+
+    for source in [
+        "+$ good [a=@ud [b=@t c=?]]\n",
+        "+$ good [a=@ud nested=[a=@t b=?]]\n",
+        "+$ good [left=[a=@ud] right=[a=@t]]\n",
+        "++ good [a=1 [b=\"x\" c=%.y]]\n",
+        "++ good [a=1 nested=[a=\"x\" b=%.y]]\n",
+        "++ good [left=[a=1] right=[a=\"x\"]]\n",
+    ] {
+        check_source(source).unwrap_or_else(|error| panic!("{source:?}: {error}"));
+    }
+}
+
+#[test]
 fn infers_and_instantiates_principal_gate_types() {
     let checked = check_source(
         "++ id |=(x x)\n++ named |= x=Msg x\n++ swap |= [a=Key b=Value] [b a]\n++ apply |= [f=$-(A B) x=A] (f x)\n++ text (id \"x\")\n++ number (id 1)\n",

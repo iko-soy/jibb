@@ -1,4 +1,3 @@
-source: split from types-record-change, preserving the original source lines
-tests: the independent empty diagnostic and its dependencies
-expect: parses
-expect-types: full checker diagnostic
+source: Decisions, Empty forms: `m()` is a parser error at the closing delimiter
+tests: an empty change is rejected by the parser at its closing parenthesis
+expect: error at 15:23 — the closing parenthesis

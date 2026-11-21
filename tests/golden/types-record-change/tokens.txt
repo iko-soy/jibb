@@ -178,16 +178,6 @@
 14:23 tight glyph =
 14:24 tight str "ok"
 14:28 tight glyph )
-15:1 NEWLINE
-15:1 glyph ++
-15:4 name empty
-15:10 glyph |=
-15:13 name s
-15:14 tight glyph =
-15:15 tight name state
-15:21 name s
-15:22 tight glyph (
-15:23 tight glyph )
 16:1 NEWLINE
 16:1 glyph ++
 16:4 name tag

@@ -1,0 +1,3 @@
+source: Decisions, Empty forms: `[]` is a parser error at the closing delimiter
+tests: an empty cell mold is rejected by the parser at its closing bracket
+expect: error at 1:9 — the closing bracket

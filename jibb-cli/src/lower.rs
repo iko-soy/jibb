@@ -22,6 +22,12 @@ pub(crate) fn validate(root: Node<'_>) -> LResult<()> {
     }
     let mut node = root;
     loop {
+        if let Some(closer) = empty_mold_closer(node) {
+            return Err(Diagnostic::at(
+                "an empty `[]` is not a valid mold",
+                node_span(closer),
+            ));
+        }
         if node.is_error() {
             return Err(Diagnostic::at("invalid Jibb syntax", node_span(node)));
         }
@@ -47,11 +53,47 @@ pub(crate) fn validate(root: Node<'_>) -> LResult<()> {
     }
 }
 
+/// Tree-sitter represents the missing mold in `[]` as a zero-width field and
+/// term. Point at the actual closer rather than that recovery node's empty span.
+fn empty_mold_closer(node: Node<'_>) -> Option<Node<'_>> {
+    if node.start_byte() != node.end_byte() {
+        return None;
+    }
+    let field = if node.kind() == "field" {
+        node
+    } else {
+        node.parent().filter(|parent| parent.kind() == "field")?
+    };
+    let mold = field
+        .parent()
+        .filter(|parent| parent.kind() == "mold_cell")?;
+    let closer = mold.child(mold.child_count() - 1)?;
+    (closer.kind() == "]" && !closer.is_missing()).then_some(closer)
+}
+
 /// Rejects zero-width named nodes, which only error recovery produces.
 fn reject_empty_nodes(root: Node<'_>) -> LResult<()> {
     let mut cursor = root.walk();
     loop {
         let node = cursor.node();
+        let empty_message = match node.kind() {
+            "tuple" if syntax_children(node).is_empty() => {
+                Some("an empty `[]` is not a valid tuple")
+            }
+            "mold_cell" if syntax_children(node).is_empty() => {
+                Some("an empty `[]` is not a valid mold")
+            }
+            "change" if syntax_children(node).len() == 1 => {
+                Some("a change takes at least one field")
+            }
+            _ => None,
+        };
+        if let Some(message) = empty_message {
+            let closer = node
+                .child(node.child_count() - 1)
+                .expect("a closed empty form has a closing delimiter");
+            return Err(Diagnostic::at(message, node_span(closer)));
+        }
         if node.is_named() && node.kind() != "source_file" && node.start_byte() == node.end_byte() {
             return Err(Diagnostic::at(
                 format!("invalid Jibb syntax: empty {} node", node.kind()),

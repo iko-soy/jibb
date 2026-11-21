@@ -120,7 +120,7 @@ fn scanner_state_survives_incremental_reuse() {
 
 #[test]
 fn parses_date_subseconds_and_implicitly_closed_rune_groups() {
-    assert_parses("++ d ~2026.10.23..14.30.00..ffff\n++ empty |= s=state s()\n");
+    assert_parses("++ d ~2026.10.23..14.30.00..ffff\n++ nonempty |= s=state s(a=1)\n");
     assert_parses(
         r#"++ scalar |= flag=?
   ^- [x=@t y=@p]

@@ -1,0 +1,3 @@
+/tests/golden/parse-empty-cell-mold/source.jibb:1:9: an empty `[]` is not a valid cell mold
++$ bad []
+        ^

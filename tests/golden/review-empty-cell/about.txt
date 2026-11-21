@@ -1,4 +1,3 @@
 source: 2026-11-03 milestone 2 review, error E25-empty-cell
-tests: an empty cell is diagnosed through the full checker
-expect: parses
-expect-types: exact full-checker error
+tests: an empty cell is rejected by the parser at its closing delimiter
+expect: error at 1:7 — the closing bracket
