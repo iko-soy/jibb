@@ -1,4 +1,4 @@
-++ missing: branch arm is covered by earlier arms
+++ missing: arm matches no case
 /tests/golden/types-union-patterns-generic/source.jibb:14:5: covering arm
     [%ok value] value
     ^

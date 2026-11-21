@@ -1,0 +1,5 @@
+(module
+  (mark 1:1 %foo)
+  (sur 2:1 bar)
+  (value 3:1 foo (lit 3:8 1))
+  (value 4:1 bar (lit 4:8 2)))

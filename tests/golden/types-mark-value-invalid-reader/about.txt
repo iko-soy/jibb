@@ -1,0 +1,4 @@
+source: Decisions, Mark and value names: a mark binds a mold, and molds and values have separate namespaces
+tests: a legal same-named value does not suppress the mark reader's exact invalid-mold diagnostic
+expect: parses
+expect-types: exact full-checker error

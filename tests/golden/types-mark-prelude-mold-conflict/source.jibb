@@ -1,0 +1,7 @@
+/%  %store
++$ state @ud
++$ poke %inc
+++ main (store init update)
+++ init 0
+++ update |= [a=poke s=state] s
+++ use |= x=store x

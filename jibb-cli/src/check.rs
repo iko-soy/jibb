@@ -1879,19 +1879,13 @@ impl<'a> Checker<'a> {
                 .iter()
                 .any(|previous| self.pattern_covers(previous, &arm.pattern))
             {
-                return Err(Diagnostic::at(
-                    "branch arm is covered by earlier arms",
-                    arm.pattern.span,
-                ));
+                return Err(Diagnostic::at("arm matches no case", arm.pattern.span));
             }
             if !remaining
                 .iter()
                 .any(|case| self.pattern_match(&arm.pattern, case) != PatternMatch::None)
             {
-                return Err(Diagnostic::at(
-                    "branch arm is covered by earlier arms",
-                    arm.pattern.span,
-                ));
+                return Err(Diagnostic::at("arm matches no case", arm.pattern.span));
             }
             let mut arm_environment = environment.clone();
             let binding_matching = binding_cases

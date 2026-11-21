@@ -1,0 +1,7 @@
+definition `bar` shadows an import
+/tests/golden/types-mark-value-scope-diagnostic/source.jibb:2:1: import
+/-  bar
+^
+/tests/golden/types-mark-value-scope-diagnostic/source.jibb:4:1: conflicting definition
+++ bar 2
+^

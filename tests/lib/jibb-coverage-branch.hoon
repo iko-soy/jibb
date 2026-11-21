@@ -24,7 +24,7 @@
   =/  dead-result=jfile-detailed-result:jibb  (infer-jibb-file-detailed:jibb at dead ~ ~ ~ ~[at] ~ ~ ~ ~)
   ?:  ?=(%& -.dead-result)  ~[leaf+"covered nested arm was accepted"]
   =/  dead-expected=@t
-    (of-wain:format ~['++ act: branch arm is covered by earlier arms' '/ui/probe.jibb:6:5: covering arm' '    [%move * *] 1' '    ^' '/ui/probe.jibb:7:5: covered arm' '    [%move %.y n] n' '    ^'])
+    (of-wain:format ~['++ act: arm matches no case' '/ui/probe.jibb:6:5: covering arm' '    [%move * *] 1' '    ^' '/ui/probe.jibb:7:5: covered arm' '    [%move %.y n] n' '    ^'])
   ?.  =(dead-expected message.p.dead-result)
     ~[leaf+"covering and covered arm sites differ: {(trip message.p.dead-result)}"]
   =/  cell=@t

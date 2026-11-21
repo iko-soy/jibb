@@ -1,0 +1,3 @@
+/%  %same
+++ use |= x=same x
+++ same-value |= x=@t (same x)

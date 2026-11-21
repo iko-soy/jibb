@@ -1,0 +1,5 @@
+|_  a=@s
+++  grab  |%  ++  noun  @s  --
+++  grow  |%  ++  noun  a  --
+++  grad  %noun
+--

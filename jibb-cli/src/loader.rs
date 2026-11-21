@@ -171,16 +171,17 @@ impl<'a> Loader<'a> {
             for definition in &mut prelude.definitions {
                 rewrite_definition(definition, "hoon", &BTreeMap::new());
             }
-            let existing = module
+            let existing_molds = module
                 .definitions
                 .iter()
                 .chain(&prelude.definitions)
+                .filter(|definition| matches!(&definition.kind, DefinitionKind::Mold(_)))
                 .map(|definition| definition.name.as_str())
                 .collect::<BTreeSet<_>>();
             let native = [native_hoon_molds(), primitive_opaque()]
                 .concat()
                 .into_iter()
-                .filter(|definition| !existing.contains(definition.name.as_str()))
+                .filter(|definition| !existing_molds.contains(definition.name.as_str()))
                 .collect::<Vec<_>>();
             module.definitions = [native, prelude.definitions, module.definitions].concat();
         }
@@ -228,6 +229,12 @@ impl<'a> Loader<'a> {
                 .iter()
                 .map(|definition| definition.name.clone())
                 .collect::<BTreeSet<_>>();
+            let own_molds = module
+                .definitions
+                .iter()
+                .filter(|definition| matches!(&definition.kind, DefinitionKind::Mold(_)))
+                .map(|definition| definition.name.clone())
+                .collect::<BTreeSet<_>>();
             for import in &module.imports {
                 match &import.kind {
                     ImportKind::Library { name } => {
@@ -244,7 +251,7 @@ impl<'a> Loader<'a> {
                         }
                     }
                     ImportKind::Mark { mark } => {
-                        if own_names.contains(mark) {
+                        if own_molds.contains(mark.strip_prefix('%').unwrap_or(mark)) {
                             return Err(Diagnostic::at(
                                 format!("mark type `{mark}` shadows a name"),
                                 import.span,

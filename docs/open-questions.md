@@ -27,8 +27,6 @@ The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language
 
 | # | Question | Proposed answer | Refs |
 | --- | --- | --- | --- |
-| [21](reviews/2026-11-02-questions.md) | May `/%  %foo` and `++ foo 1` share a name? | Yes: molds and values have separate namespaces | A25 |
-| [22](reviews/2026-11-02-questions.md) | Is a `?-` arm that matches no remaining case a definite error? | Yes: "arm matches no case" | A15 |
 | [23](reviews/2026-11-02-questions.md) | Should `(mop K V)` carry its comparator? | No, match Hoon | A55 |
 | [24](reviews/2026-11-02-questions.md) | Should Hoon's `each` mold be renamed, since the prelude has the element gate `each`? | No, keep both | A64 |
 | [26](reviews/2026-11-02-questions.md) | Which Hoon unions should the importer read? | `$%` with `%&`, `%\|` and `%0` tags now, then `each` and `json` as catalog entries | A50 |

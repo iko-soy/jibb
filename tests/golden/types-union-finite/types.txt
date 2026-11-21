@@ -1,4 +1,4 @@
-++ covered: branch arm is covered by earlier arms
+++ covered: arm matches no case
 /tests/golden/types-union-finite/source.jibb:25:5: covering arm
     [%p %.y *] "a"
     ^

@@ -1,4 +1,4 @@
-++ extra: branch arm is covered by earlier arms
+++ extra: arm matches no case
 /tests/golden/split-types-single-case-pattern-extra/source.jibb:32:5: covering arm
     [%go u] u
     ^

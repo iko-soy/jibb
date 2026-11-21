@@ -1,0 +1,7 @@
+(module
+  (mark 1:1 %foo)
+  (value 2:1 foo (lit 2:8 1))
+  (value 3:1 use
+    (gate 3:8
+      (face 3:11 x (ref 3:13 foo))
+      (wing 3:17 x))))

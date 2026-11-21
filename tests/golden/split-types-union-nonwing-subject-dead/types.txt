@@ -1,4 +1,4 @@
-++ dead: branch arm is covered by earlier arms
+++ dead: arm matches no case
 /tests/golden/split-types-union-nonwing-subject-dead/source.jibb:35:5: covering arm
     %none ~
     ^

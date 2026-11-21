@@ -1,0 +1,7 @@
+import `store` shadows a prelude name
+/tests/golden/types-mark-prelude-mold-conflict/source.jibb:1:1: conflicting import
+/%  %store
+^
+/lib/jibb/prelude.jibb:647:1: prelude declaration
++$ store |$ [S] [init=S update=*]
+^

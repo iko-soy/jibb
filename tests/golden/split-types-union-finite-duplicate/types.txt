@@ -1,4 +1,4 @@
-++ duplicate: branch arm is covered by earlier arms
+++ duplicate: arm matches no case
 /tests/golden/split-types-union-finite-duplicate/source.jibb:42:5: covering arm
     [%a %.y] "yes"
     ^

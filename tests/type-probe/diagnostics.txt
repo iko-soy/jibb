@@ -305,9 +305,7 @@
   "E09-covered-arm": {
     "reasons": [
       [
-        "covered",
-        "unreachable",
-        "dead"
+        "arm matches no case"
       ]
     ],
     "sites": [
@@ -324,9 +322,7 @@
   "E09b-covered-after-wild": {
     "reasons": [
       [
-        "covered",
-        "unreachable",
-        "dead"
+        "arm matches no case"
       ]
     ],
     "sites": [
@@ -973,9 +969,7 @@
   "S2-move-any-covered": {
     "reasons": [
       [
-        "covered",
-        "unreachable",
-        "dead"
+        "arm matches no case"
       ]
     ],
     "sites": [
@@ -992,9 +986,7 @@
   "S3-loobean-repeated": {
     "reasons": [
       [
-        "covered",
-        "unreachable",
-        "dead"
+        "arm matches no case"
       ]
     ],
     "sites": [
@@ -2006,9 +1998,7 @@
   "/ui/todo-list/jibb dead-arm-update": {
     "reasons": [
       [
-        "covered",
-        "unreachable",
-        "dead"
+        "arm matches no case"
       ]
     ],
     "sites": [

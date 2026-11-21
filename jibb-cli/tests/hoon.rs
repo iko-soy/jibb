@@ -1,7 +1,7 @@
 mod common;
 
 use jibb::{
-    loader::evaluate_path,
+    loader::{check_path, evaluate_path},
     value::{Noun, Value},
 };
 use num_bigint::BigUint;
@@ -83,4 +83,32 @@ fn imports_hoon_records_unions_and_marks() {
     let tag = Rc::new(Noun::Atom(BigUint::from_bytes_le(b"add")));
     let text = Rc::new(Noun::Atom(BigUint::from_bytes_le(b"hello")));
     assert_eq!(noun, Rc::new(Noun::Cell(tag, text)));
+}
+
+#[test]
+fn mark_molds_and_values_can_share_a_name() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let root = directory.path();
+    fs::create_dir(root.join("mar")).unwrap();
+    fs::write(
+        root.join("mar/foo.hoon"),
+        "|_  noun=@\n++  grow  |%  ++  noun  @ud  --\n++  grab  |%  ++  noun  @ud  --\n--\n",
+    )
+    .unwrap();
+    let main = root.join("main.jibb");
+    let source = "/% %foo\n++ foo 1\n++ marked ^- foo 42\n++ main [foo marked]\n";
+    fs::write(&main, source).unwrap();
+
+    let checked = check_path(&main, &[root.to_path_buf()], None).expect("mark and value coexist");
+    assert_eq!(checked.values["foo"].to_string(), "@ud");
+    assert!(checked.molds.contains_key("foo"));
+    let value = run(&main, root);
+    assert_eq!(value.to_string(), "[1 42]");
+
+    let source = "/% %foo\n+$ foo @ud\n++ main 0\n";
+    fs::write(&main, source).unwrap();
+    let error = check_path(&main, &[root.to_path_buf()], None).unwrap_err();
+    assert_eq!(error.message, "mark type `%foo` shadows a name");
+    let span = error.span.expect("mark conflict has a span");
+    assert_eq!(&source[span.start..span.end], "/% %foo");
 }

@@ -1,4 +1,4 @@
-++ dead: branch arm is covered by earlier arms
+++ dead: arm matches no case
 /tests/golden/split-types-union-pattern-result-controls-dead/source.jibb:17:5: covering arm
     %clear ~
     ^

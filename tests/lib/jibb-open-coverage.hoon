@@ -17,6 +17,27 @@
   =/  checked=(unit istate:jibb)  (icore-solve:jibb closed)
   ?~  checked  ~[leaf+"late coverage check failed without a diagnostic"]
   ?~  core-error.u.checked  ~[leaf+"late unreachable arm was accepted"]
+  ?.  =(msg.diag.u.core-error.u.checked "pattern cannot match the subject")
+    ~[leaf+"late impossible arm diagnostic differs: {msg.diag.u.core-error.u.checked}"]
+  ~
+++  test-late-useless-arm
+  ^-  tang
+  =/  site=span:jibb  *span:jibb
+  =/  subject=itype:jibb  [%var 0]
+  =/  pat=pattern:jibb  [%any site ~]
+  =/  branch=expr:jibb  [%branch site [%wing site ~[%x]] ~[[site pat [%crash site ~]] [site pat [%crash site ~]]]]
+  =/  edge=icore-edge:jibb  [%coverage subject branch site %probe]
+  =/  start=istate:jibb  *istate:jibb
+  =.  start  start(next 1, general-defer &, queue ~[edge])
+  =/  open=(unit istate:jibb)  (icore-solve:jibb start)
+  ?~  open  ~[leaf+"open useless-arm coverage did not wait"]
+  ?^  core-error.u.open  ~[leaf+"open useless arm was diagnosed prematurely"]
+  =/  closed=istate:jibb  u.open(sub (itype-bind:jibb 0 [%atom %ud] sub.u.open))
+  =/  checked=(unit istate:jibb)  (icore-solve:jibb closed)
+  ?~  checked  ~[leaf+"late useless-arm check failed without a diagnostic"]
+  ?~  core-error.u.checked  ~[leaf+"late useless arm was accepted"]
+  ?.  =(msg.diag.u.core-error.u.checked "arm matches no case")
+    ~[leaf+"late useless arm diagnostic differs: {msg.diag.u.core-error.u.checked}"]
   ~
 ++  test-late-invalid-literal
   ^-  tang

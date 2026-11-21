@@ -1,0 +1,11 @@
+(module
+  (mark 1:1 %same)
+  (value 2:1 use
+    (gate 2:8
+      (face 2:11 x (ref 2:13 same))
+      (wing 2:18 x)))
+  (value 3:1 same-value
+    (gate 3:15
+      (face 3:18 x (aura 3:20 @t))
+      (group 3:23
+        (call 3:24 (wing 3:24 same) (wing 3:29 x))))))

@@ -12786,7 +12786,7 @@
       ?~  covering
         (weld (turn previous |=(p=coverage-prior [at.p "earlier arm"])) ~[[at.pat.arm "covered arm"]])
       ~[[u.covering "covering arm"] [at.pat.arm "covered arm"]]
-    [%error ["branch arm is covered by earlier arms" sites] ~]
+    [%error ["arm matches no case" sites] ~]
   $(arms t.arms, previous [[at.pat.arm u.candidate] previous], matrix [[u.candidate ~] matrix], fuel (dec fuel))
 ::
 :: Replace unresolved domains by sound supersets for provisional coverage.
@@ -22292,18 +22292,27 @@
   =/  earlier=(unit span)  (~(get by seen) n)
   ?^  earlier
     [%| [["import `{(trip n)}` shadows an earlier import" ~[[u.earlier "earlier import"] [at.imp "conflicting import"]]] ~]]
-  ?:  |((lien prelude-values |=(x=term =(n x))) (lien prelude-molds |=(x=term =(n x))))
-    [%| [["import `{(trip n)}` shadows a prelude name" ~[[at.imp "conflicting import"]]] `[n %any]]]
+  =/  prelude-hit=?
+    ?:  ?=(%mark -.imp)
+      (lien prelude-molds |=(x=term =(n x)))
+    |((lien prelude-values |=(x=term =(n x))) (lien prelude-molds |=(x=term =(n x))))
+  ?:  prelude-hit
+    [%| [["import `{(trip n)}` shadows a prelude name" ~[[at.imp "conflicting import"]]] `[n ?:(?=(%mark -.imp) %mold %any)]]]
   $(imports t.imports, seen (~(put by seen) n at.imp))
 ++  scope-def-diagnostic
-  |=  [defs=(list def) imports=written-fields prelude-values=(list term) prelude-molds=(list term) values=written-fields molds=written-fields]
+  |=  [defs=(list def) imports=written-fields value-imports=(list term) prelude-values=(list term) prelude-molds=(list term) values=written-fields molds=written-fields]
   ^-  (unit iscope-diagnostic)
   ?~  defs  ~
   =/  d=def  i.defs
   =/  n=term  name.d
   ?:  (reserved-name n)
     `[["`{(trip n)}` is reserved and cannot be bound" ~[[at.d "reserved name"]]] ~]
-  =/  imported=(unit span)  (~(get by imports) n)
+  =/  found=(unit span)  (~(get by imports) n)
+  =/  imported=(unit span)
+    ?~  found  ~
+    ?:  ?=(%mold -.d)  found
+    ?:  (lien value-imports |=(x=term =(n x)))  found
+    ~
   ?^  imported
     `[["definition `{(trip n)}` shadows an import" ~[[u.imported "import"] [at.d "conflicting definition"]]] ~]
   =/  seen=written-fields  ?:(?=(%value -.d) values molds)
@@ -22389,7 +22398,7 @@
     (scope-import-diagnostic imports.mod prelude-values prelude-molds ~)
   ?:  ?=(%| -.imports)  `p.imports
   =/  ordinary=(unit iscope-diagnostic)
-    (scope-def-diagnostic defs.mod p.imports prelude-values prelude-molds ~ ~)
+    (scope-def-diagnostic defs.mod p.imports (api-import-faces imports.mod) prelude-values prelude-molds ~ ~)
   ?^  ordinary  ordinary
   =/  reserved=(unit [name=term at=span])  (reserved-defs-site defs.mod)
   ?~  reserved  ~
@@ -22423,13 +22432,17 @@
   |=  [mod=module prelude-values=(list term) prelude-molds=(list term)]
   ^-  ?
   =/  imported=(list term)  (import-binding-names imports.mod)
+  =/  value-imports=(list term)  (api-import-faces imports.mod)
   =/  vals=(list term)  (global-value-names defs.mod)
   =/  molds=imolds  (collect-simple-molds defs.mod)
   =/  mold-names=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
   ?:  (module-has-reserved mod)  |
   ?.  %+  levy  imported
       |=  n=term
-      &((unique-value-name n imported) !(lien vals |=(v=term =(n v))) !(lien mold-names |=(m=term =(n m))) !(lien prelude-values |=(v=term =(n v))) !(lien prelude-molds |=(m=term =(n m))))
+      =/  value-import=?  (lien value-imports |=(x=term =(n x)))
+      =/  value-conflict=?
+        &(value-import |((lien vals |=(v=term =(n v))) (lien prelude-values |=(v=term =(n v)))))
+      &((unique-value-name n imported) !(lien mold-names |=(m=term =(n m))) !(lien prelude-molds |=(m=term =(n m))) !value-conflict)
     |
   ?.  (levy vals |=(n=term &((unique-value-name n vals) !(lien prelude-values |=(v=term =(n v))))))  |
   (levy mold-names |=(n=term &((unique-value-name n mold-names) !(lien prelude-molds |=(m=term =(n m))))))
@@ -22697,7 +22710,7 @@
   =/  vals=(list term)  (global-value-names defs.mod)
   ?:  (lien vals |=(n=term =(n %main)))  ~
   =/  molds=imolds  (collect-simple-molds defs.mod)
-  =/  globals=(list term)  (weld (import-binding-names imports.mod) vals)
+  =/  globals=(list term)  (weld (api-import-faces imports.mod) vals)
   ::  The private source can use the public list and unit molds before the
   ::  prelude is otherwise prepared.  Re-read the trusted public source here
   ::  and admit only its validated canonical templates; do not accept schemes
@@ -22790,7 +22803,7 @@
   =/  vals=(list term)  (global-value-names defs.mod)
   ?:  (lien vals |=(n=term =(n %main)))  ~
   =/  molds=imolds  (collect-simple-molds defs.mod)
-  =/  globals=(list term)  (weld (import-binding-names imports.mod) vals)
+  =/  globals=(list term)  (weld (api-import-faces imports.mod) vals)
   ::  The private source can use the public list and unit molds before the
   ::  prelude is otherwise prepared.  Re-read the trusted public source here
   ::  and admit only its validated canonical templates; do not accept schemes
@@ -22882,7 +22895,7 @@
   =/  vals=(list term)  (global-value-names defs.mod)
   ?:  (lien vals |=(n=term =(n %main)))  ~
   =/  molds=imolds  (collect-simple-molds defs.mod)
-  =/  globals=(list term)  (weld (import-binding-names imports.mod) vals)
+  =/  globals=(list term)  (weld (api-import-faces imports.mod) vals)
   ::  The private source can use the public list and unit molds before the
   ::  prelude is otherwise prepared.  Re-read the trusted public source here
   ::  and admit only its validated canonical templates; do not accept schemes
@@ -24294,7 +24307,7 @@
     (resolve-jibb-imports imports.mod externals marks modules ~[file] values.prep molds.prep dependencies.evidence prelude)
   ?:  ?=(%| -.deps)  [%| p.deps]
   =/  molds=imolds  (collect-simple-molds ordinary)
-  =/  globals=(list term)  (weld values.prep (weld (import-binding-names imports.mod) vals))
+  =/  globals=(list term)  (weld values.prep (weld (api-import-faces imports.mod) vals))
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
@@ -24337,7 +24350,7 @@
     (resolve-jibb-imports imports.mod externals marks modules active values.prep molds.prep dependencies.evidence prelude)
   ?:  ?=(%| -.deps)  [%| p.deps]
   =/  molds=imolds  (collect-simple-molds ordinary)
-  =/  globals=(list term)  (weld values.prep (weld (import-binding-names imports.mod) vals))
+  =/  globals=(list term)  (weld values.prep (weld (api-import-faces imports.mod) vals))
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  reserved=(list term)  (weld molds.prep (turn resolved.p.deps |=(j=[face=term interface=ifile] face.j)))
   =/  top=(list term)  (turn molds |=(m=[name=term body=shape] name.m))
@@ -24473,7 +24486,7 @@
   ?.  ?=([@ ~] names.sh)  [%| 'API poke mold needs unsupported inference']
   =/  n=term  i.names.sh
   ?.  (unique-value-name n marks)  [%| 'API poke mold needs unsupported inference']
-  ?:  |((lien prelude-values |=(x=term =(n x))) (lien prelude-molds |=(x=term =(n x))))  [%| 'API poke mold needs unsupported inference']
+  ?:  (lien prelude-molds |=(x=term =(n x)))  [%| 'API poke mold needs unsupported inference']
   =/  results=@ud  (lent (skim mark-externals |=(e=[mark=term result=*] =(n mark.e))))
   ?:  =(0 results)  [%| (crip "API poke mark %{(trip n)} has no reader result")]
   ?.  =(1 results)  [%| (crip "API poke mark %{(trip n)} has duplicate reader results")]
@@ -24689,7 +24702,7 @@
   =/  builder=?
     ?&  (lien prelude-values |=(x=term =(x %store)))
         !(lien (global-value-names ds) |=(x=term =(x %store)))
-        !(lien (import-binding-names imports.mod) |=(x=term =(x %store)))
+        !(lien (api-import-faces imports.mod) |=(x=term =(x %store)))
     ==
   ?:  &(?=(^ clashes) builder (lien outer |=(x=term =(x i.clashes))))
     =/  from=span  ?:(=(%state i.clashes) at.state at.poke)
@@ -26971,7 +26984,7 @@
   =/  js=jimports-lowering-result  (resolve-group-private-imports-capture imports.mod externals mark-externals modules active inherited-values inherited-molds cache prelude `[at src] private lowering)
   ?:  ?=(%| -.js)  [%| p.js]
   =/  molds=imolds  (collect-simple-molds ds)
-  =/  globals=(list term)  (weld prelude-values (weld (import-binding-names imports.mod) vals))
+  =/  globals=(list term)  (weld prelude-values (weld (api-import-faces imports.mod) vals))
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  marks=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld prelude-molds (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))
@@ -27175,7 +27188,7 @@
   ?:  ?=(%| -.js)  [%| p.js]
   =/  ms=imolds  (collect-simple-molds defs.mod)
   =/  vals=(list term)  (global-value-names defs.mod)
-  =/  globals=(list term)  (weld values.u.prepared (weld (import-binding-names imports.mod) vals))
+  =/  globals=(list term)  (weld values.u.prepared (weld (api-import-faces imports.mod) vals))
   =/  surs=(list term)  (collect-sur-imports imports.mod)
   =/  declared=(list term)  (collect-mark-imports imports.mod)
   =/  reserved=(list term)  (weld molds.u.prepared (turn resolved.p.js |=(j=[face=term interface=ifile] face.j)))

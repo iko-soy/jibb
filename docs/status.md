@@ -168,6 +168,14 @@ The parser rejects `[]` in expressions and molds at `]`, and rejects `m()` at `)
 
 Four new goldens cover the empty cell mold, exact nested mold and expression duplicates, and distinct-name, faced and non-tail positive controls; existing empty-form goldens moved from checker diagnostics to parser diagnostics. Focused validation passed all seven Q19/Q20 goldens, four span/import-face arms, all 448 split-golden checks, documentation checks and manifest freshness. The native suite passed 171 tests with one ignored, and clippy passed. Current runners enumerate 1,501 golden cases and 746 arms in 285 suites. The integrated `jibb-empty-tuple` arm and `E16-empty-change`/`E25-empty-cell` strict probes assert the parser reports on both backends. Final `nix flake check -L -j 2 --keep-going` acceptance on `c2a3b1c` passed all eval, fresh-ship, desk, native CLI and CLI-corpus groups, rebuilding the affected arm and probe checks and reusing the other passing outputs from the complete `b23889e` run.
 
+## Mark/value namespaces and useless branch arms (2026-11-21)
+
+A `/%` mark binds only a mold. Its name may coexist with local values, value samples and prelude values, while imported-face, local-mold and prelude-mold conflicts remain errors. The split applies to ordinary and API scope checks, value-only globals, reader diagnostics and store-builder recognition. Native loading and mold injection follow the same namespaces.
+
+A `?-` arm with no remaining case now reports the definite `arm matches no case` diagnostic through the existing usefulness analysis, retaining the covering and covered arm sites. Initially impossible patterns keep their separate `pattern cannot match the subject` diagnostic, and deferred coverage reports the same distinction after the subject closes.
+
+Five new namespace goldens and 12 updated useless-arm goldens pass alongside the API and shadow controls: 19 selected goldens in all. Focused validation passed 17 Hoon arms, 74 strict probes in the affected groups, all 448 split-golden checks, documentation checks and manifest freshness. The native suite passed 172 tests with one ignored, and clippy passed. Current runners enumerate 1,506 golden cases and 748 arms in 285 suites.
+
 ## Parser and mark
 
 | Area | Status | Evidence |

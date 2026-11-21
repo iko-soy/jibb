@@ -1,4 +1,4 @@
-++ duplicate: branch arm is covered by earlier arms
+++ duplicate: arm matches no case
 /tests/golden/split-types-unit-patterns-duplicate/source.jibb:25:5: covering arm
     ~ !!
     ^

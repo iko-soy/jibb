@@ -1,0 +1,4 @@
+++ use: signed and float auras cannot be imported
+/tests/golden/types-mark-value-invalid-reader/source.jibb:3:13: invalid imported mold
+++ use |= x=foo x
+            ^

@@ -56,7 +56,7 @@ module kind: library
 ++ first: $-(@t message)
 ++ fixed: $-(@t message)
 duplicate
-++ choose: branch arm is covered by earlier arms
+++ choose: arm matches no case
 /ui/context.jibb:10:5: covering arm
     %.y %none
     ^

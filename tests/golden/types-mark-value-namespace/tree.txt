@@ -1,0 +1,11 @@
+(module
+  (mark 1:1 %foo)
+  (mark 2:1 %label)
+  (value 3:1 foo (lit 3:8 1))
+  (value 4:1 sample
+    (gate-wide 4:11 (bind 4:14 label) (wing 4:20 label)))
+  (value 5:1 use
+    (gate 5:8
+      (face 5:11 x (ref 5:13 foo))
+      (wing 5:17 x)))
+  (value 6:1 value (wing 6:10 foo)))

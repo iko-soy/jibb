@@ -1,0 +1,4 @@
+source: Decisions, Mark and value names: a mark binds a mold, and molds and values have separate namespaces
+tests: a mark named `same` coexists with the prelude value and resolves independently as a mold
+expect: parses
+expect-types: exact full-checker report

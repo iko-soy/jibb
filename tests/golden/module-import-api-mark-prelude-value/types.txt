@@ -1,1 +1,2 @@
-API module needs unsupported inference: /ui/api/demo/jibb: API import scope needs unsupported inference
+module kind: library
+++ x: @ud

@@ -1,0 +1,6 @@
+/%  %foo
+/%  %label
+++ foo 1
+++ sample |=(label label)
+++ use |= x=foo x
+++ value foo

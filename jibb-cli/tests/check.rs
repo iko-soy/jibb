@@ -341,13 +341,12 @@ fn checks_nested_pattern_coverage_and_covered_arms() {
         check_source("++ both |= [a=? b=?] ?- [a b]\n  [%.y *] 1\n  [%.n *] 0\n").unwrap();
     assert_eq!(checked.values["both"].to_string(), "$-([a=? b=?] @ud)");
 
-    for source in [
-        "++ bad |= b=? ?- b\n  * 1\n  %.y 0\n",
-        "++ bad |= n=@ud ?- n\n  0 1\n  0 2\n  * 3\n",
-        "++ bad |= b=? ?- b\n  %.y 1\n  %.y 0\n  %.n 1\n",
+    for (source, second_arm) in [
+        ("++ bad |= b=? ?- b\n  * 1\n  %.y 0\n", "%.y"),
+        ("++ bad |= n=@ud ?- n\n  0 1\n  0 2\n  * 3\n", "0"),
+        ("++ bad |= b=? ?- b\n  %.y 1\n  %.y 0\n  %.n 1\n", "%.y"),
     ] {
-        let error = check_source(source).unwrap_err();
-        assert!(error.message.contains("covered by earlier"), "{error}");
+        assert_check_error(source, "arm matches no case", second_arm);
     }
 
     let error = check_source("++ bad |= n=@ud ?- n\n  0 1\n").unwrap_err();

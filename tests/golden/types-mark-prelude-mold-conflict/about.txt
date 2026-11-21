@@ -1,0 +1,4 @@
+source: Decisions, Mark and value names: a mark binds a mold, and molds and values have separate namespaces
+tests: a mark named `store` still conflicts with the prelude mold, with the import and prelude declaration sites
+expect: parses
+expect-types: exact scope diagnostic and both sites

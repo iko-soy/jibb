@@ -1,0 +1,4 @@
+source: Decisions, Mark and value names: a mark binds a mold, and molds and values have separate namespaces
+tests: an unrelated imported-face conflict is reported without blaming the legal mark/value pair
+expect: parses
+expect-types: exact scope diagnostic and both sites

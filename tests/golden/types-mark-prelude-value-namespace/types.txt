@@ -1,0 +1,3 @@
+module kind: library
+++ use: $-(@t @t)
+++ same-value: $-(@t @t)
