@@ -22062,8 +22062,8 @@
   ^-  (list field)
   ?~  fields  ~
   =/  f=field  i.fields
-  ?:  &(?=(%bare -.f) ?=(%cell -.shape.f))
-    (weld (record-spine-fields fields.shape.f) $(fields t.fields))
+  ?:  &(?=(~ t.fields) ?=(%bare -.f) ?=(%cell -.shape.f))
+    (record-spine-fields fields.shape.f)
   [f $(fields t.fields)]
 ::
 ++  duplicate-record-fields
@@ -22141,8 +22141,8 @@
   ^-  (unit idiag)
   ?~  items  ~
   =/  a=item  i.items
-  ?:  &(?=(~ face.a) ?=(%tuple -.val.a))
-    $(items (weld items.val.a t.items))
+  ?:  &(?=(~ t.items) ?=(~ face.a) ?=(%tuple -.val.a))
+    $(items items.val.a)
   =/  dup=(unit idiag)  ?~(face.a ~ (duplicate-written-field u.face.a at.a seen))
   ?^  dup  dup
   =/  inner  (duplicate-expr val.a)

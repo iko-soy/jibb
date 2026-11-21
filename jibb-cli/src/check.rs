@@ -3133,8 +3133,8 @@ fn is_atom_type(typ: &Type) -> bool {
     matches!(typ, Type::Atom(_) | Type::AnyAtom | Type::Noun)
 }
 
-/// An unnamed nested tuple is the surrounding record's tail, not a new record
-/// value. A faced tuple is a field's value and therefore starts its own scope.
+/// Only an unnamed tuple in tail position continues the surrounding record's
+/// field scope. A faced or non-tail tuple is a value with its own scope.
 fn validate_record_item_scope(items: &[Item]) -> Result<(), Diagnostic> {
     let mut faces = BTreeMap::new();
     validate_record_items(items, &mut faces)
@@ -3144,7 +3144,7 @@ fn validate_record_items<'a>(
     items: &'a [Item],
     faces: &mut BTreeMap<&'a str, Span>,
 ) -> Result<(), Diagnostic> {
-    for item in items {
+    for (index, item) in items.iter().enumerate() {
         if let Some(face) = &item.face
             && let Some(previous) = faces.insert(face, item.span)
         {
@@ -3153,7 +3153,8 @@ fn validate_record_items<'a>(
                     .with_note("first field", previous),
             );
         }
-        if item.face.is_none()
+        if index + 1 == items.len()
+            && item.face.is_none()
             && let ExprKind::Tuple(nested) = &item.value.kind
         {
             validate_record_items(nested, faces)?;
@@ -3172,7 +3173,7 @@ fn validate_record_molds<'a>(
     fields: &'a [MoldField],
     faces: &mut BTreeMap<&'a str, Span>,
 ) -> Result<(), Diagnostic> {
-    for field in fields {
+    for (index, field) in fields.iter().enumerate() {
         if let Some(face) = &field.face
             && let Some(previous) = faces.insert(face, field.span)
         {
@@ -3181,7 +3182,8 @@ fn validate_record_molds<'a>(
                     .with_note("first field", previous),
             );
         }
-        if field.face.is_none()
+        if index + 1 == fields.len()
+            && field.face.is_none()
             && let MoldKind::Cell(nested) = &field.mold.kind
         {
             validate_record_molds(nested, faces)?;

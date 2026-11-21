@@ -228,7 +228,7 @@ Every node is `[%tag at=span …]`, so `+span-of` finds its span in one place; t
 - **Literals** (`lit`) keep the form they matched, their aura and value, and their text as written, which the printers show.
 - **Strings** keep their decoded text as a cord of its bytes in order, as Hoon's cord literal reads it, so `"a\00b"` is the three bytes of `'a\00b'` and prints back with its escape. No atom ends in a zero byte, so a NUL at the end of a string or of the text before a `{…}` is lost, as in Hoon, where `'a\00'` is `'a'`: `"a\00"` is `"a"`, and `"a\00{b}"` joins `'a'` and `b`.
 
-The parser accepts type holes and retains each hole's span. The checker diagnoses an unresolved hole before its definition can generalize. A separate syntax-tree pass reports repeated record fields at both written sites, including in unused definitions. An unnamed nested cell continues the surrounding record's field-name scope; a faced nested cell has its own scope.
+The parser accepts type holes and retains each hole's span. The checker diagnoses an unresolved hole before its definition can generalize. A separate syntax-tree pass reports repeated record fields at both written sites, including in unused definitions. An unnamed cell in tail position continues the surrounding record's field-name scope; a faced or non-tail nested cell has its own scope.
 
 The tree keeps everything the checker needs to report an error at the code as written: open and closed brackets give the same node, but every node keeps its span.
 

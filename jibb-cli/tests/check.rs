@@ -211,9 +211,11 @@ fn nested_record_tails_share_the_surrounding_field_name_scope() {
 
     for source in [
         "+$ good [a=@ud [b=@t c=?]]\n",
+        "+$ good [a=@ud [a=@t c=?] b=?]\n",
         "+$ good [a=@ud nested=[a=@t b=?]]\n",
         "+$ good [left=[a=@ud] right=[a=@t]]\n",
         "++ good [a=1 [b=\"x\" c=%.y]]\n",
+        "++ good [a=1 [a=\"x\" c=%.n] b=%.y]\n",
         "++ good [a=1 nested=[a=\"x\" b=%.y]]\n",
         "++ good [left=[a=1] right=[a=\"x\"]]\n",
     ] {

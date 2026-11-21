@@ -1,2 +1,4 @@
 +$ fine [a=@ud [b=@t c=?]]
++$ separate [a=@ud [a=@t c=?] b=?]
 ++ okay [a=1 [b="x" c=%.y]]
+++ independent [a=1 [a="x" c=%.n] b=%.y]

@@ -5,9 +5,23 @@
       (cell 1:16
         (face 1:17 b (aura 1:19 @t))
         (face 1:22 c (flag 1:24)))))
-  (value 2:1 okay
-    (tuple 2:9
-      (face 2:10 a (lit 2:12 1))
-      (tuple 2:14
-        (face 2:15 b (str 2:17 "x"))
-        (face 2:21 c (lit 2:23 %.y))))))
+  (mold 2:1 separate
+    (cell 2:13
+      (face 2:14 a (aura 2:16 @ud))
+      (cell 2:20
+        (face 2:21 a (aura 2:23 @t))
+        (face 2:26 c (flag 2:28)))
+      (face 2:31 b (flag 2:33))))
+  (value 3:1 okay
+    (tuple 3:9
+      (face 3:10 a (lit 3:12 1))
+      (tuple 3:14
+        (face 3:15 b (str 3:17 "x"))
+        (face 3:21 c (lit 3:23 %.y)))))
+  (value 4:1 independent
+    (tuple 4:16
+      (face 4:17 a (lit 4:19 1))
+      (tuple 4:21
+        (face 4:22 a (str 4:24 "x"))
+        (face 4:28 c (lit 4:30 %.n)))
+      (face 4:35 b (lit 4:37 %.y)))))

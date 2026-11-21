@@ -1,3 +1,5 @@
 module kind: library
 +$ fine: [a=@ud [b=@t c=?]]
++$ separate: [a=@ud [[a=@t c=?] b=?]]
 ++ okay: [a=@ud [b=@t c=?]]
+++ independent: [a=@ud [[a=@t c=?] b=?]]

@@ -164,7 +164,7 @@ Five new/updated term goldens pass under eval and on fresh ships, as do focused 
 
 ## Empty forms and nested record scopes (2026-11-21)
 
-The parser rejects `[]` in expressions and molds at `]`, and rejects `m()` at `)`; the diagnostics include the source excerpt and caret at that delimiter. In both record expressions and molds, an unnamed nested cell continues the surrounding field-name scope, so `[a=@ud [a=@t b=?]]` reports the first and repeated `a` sites. Faced nested cells retain independent scopes. The Hoon and native implementations share these rules.
+The parser rejects `[]` in expressions and molds at `]`, and rejects `m()` at `)`; the diagnostics include the source excerpt and caret at that delimiter. In both record expressions and molds, an unnamed cell in tail position continues the surrounding field-name scope, so `[a=@ud [a=@t b=?]]` reports the first and repeated `a` sites. Faced and non-tail nested cells retain independent scopes. The Hoon and native implementations share these rules.
 
 Four new goldens cover the empty cell mold, exact nested mold and expression duplicates, and a distinct-name positive control; existing empty-form goldens moved from checker diagnostics to parser diagnostics. Focused validation passed all seven Q19/Q20 goldens, four span/import-face arms, all 448 split-golden checks, documentation checks and manifest freshness. The native suite passed 171 tests with one ignored, and clippy passed. Current runners enumerate 1,501 golden cases and 746 arms in 285 suites.
 
