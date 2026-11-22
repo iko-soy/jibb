@@ -1,5 +1,5 @@
 module kind: library
-++ render: $-([day=@da [n=@ud [ship=@p words=@t]]] @t)
+++ render: $-([day=@da n=@ud ship=@p words=@t] @t)
 ++ bare: $-(@ @t)
 ++ repeat: $-(@ud @t)
 ++ nested: $-(@t @t)

@@ -2,6 +2,6 @@
 /tests/golden/split-inline-decimal-sites-timer-pair/source.jibb:21:34: decimal
 ++ timer-pair ^- (cmd msg) wait+[30 [%done 1]]
                                  ^
-/tests/golden/split-inline-decimal-sites-timer-pair/source.jibb:21:18: expected type has type [%wait [gap=@dr msg=msg]]
+/tests/golden/split-inline-decimal-sites-timer-pair/source.jibb:21:18: expected type has type [%wait gap=@dr msg=msg]
 ++ timer-pair ^- (cmd msg) wait+[30 [%done 1]]
                  ^

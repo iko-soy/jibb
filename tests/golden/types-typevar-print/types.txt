@@ -5,6 +5,6 @@ module kind: library
 ++ twice: $-(* [$-(A A) $-(B B)])
 ++ pass: $-(Msg Msg)
 ++ two: $-(* [$-(Msg Msg) $-(A A)])
-++ letters: $-(Msg [Msg [$-(A A) $-(B B)]])
+++ letters: $-(Msg [Msg $-(A A) $-(B B)])
 ++ digits: $-([x=T2 y=A1] [A1 T2])
 ++ outer: $-(Item Item)

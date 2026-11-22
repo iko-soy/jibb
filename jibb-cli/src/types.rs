@@ -43,6 +43,16 @@ pub enum Type {
     Union(Vec<Type>),
 }
 
+pub(crate) fn display_mold_name(name: &str) -> String {
+    if let Some(name) = name.strip_prefix("hoon__") {
+        return name.to_string();
+    }
+    if let Some((face, name)) = name.split_once("__") {
+        return format!("{name}.{face}");
+    }
+    name.to_string()
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct TypeField {
     pub face: Option<String>,
@@ -178,18 +188,9 @@ impl TypePrinter {
             Type::Constant(value) | Type::LoobeanConstant(value) => constant_text(value),
             Type::NumericTerm(value) => format!("%{}", decimal_text(value)),
             Type::Cell(fields) => {
-                let fields = fields
-                    .iter()
-                    .map(|field| {
-                        let typ = self.typ(&field.typ);
-                        match &field.face {
-                            Some(face) => format!("{face}={typ}"),
-                            None => typ,
-                        }
-                    })
-                    .collect::<Vec<_>>()
-                    .join(" ");
-                format!("[{fields}]")
+                let mut items = Vec::new();
+                self.cell_items(fields, &mut items);
+                format!("[{}]", items.join(" "))
             }
             Type::Gate { sample, product } => {
                 format!("$-({} {})", self.typ(sample), self.typ(product))
@@ -197,6 +198,7 @@ impl TypePrinter {
             Type::Named {
                 name, arguments, ..
             } => {
+                let name = display_mold_name(name);
                 if arguments.is_empty() {
                     name.clone()
                 } else {
@@ -229,6 +231,23 @@ impl TypePrinter {
                     .join("/");
                 format!("/{segments}")
             }
+        }
+    }
+
+    fn cell_items(&mut self, fields: &[TypeField], items: &mut Vec<String>) {
+        for (index, field) in fields.iter().enumerate() {
+            if index + 1 == fields.len()
+                && field.face.is_none()
+                && let Type::Cell(nested) = &field.typ
+            {
+                self.cell_items(nested, items);
+                continue;
+            }
+            let typ = self.typ(&field.typ);
+            items.push(match &field.face {
+                Some(face) => format!("{face}={typ}"),
+                None => typ,
+            });
         }
     }
 
@@ -325,5 +344,48 @@ mod tests {
             scheme.to_string(),
             "$-([n=Num] Num) where Num is an atom other than ?"
         );
+    }
+
+    #[test]
+    fn flattens_only_unfaced_tail_cells_and_displays_mold_names() {
+        let field = |typ| TypeField { face: None, typ };
+        let flat = Type::Cell(vec![
+            field(Type::Atom(Aura::new("ud"))),
+            field(Type::Cell(vec![
+                field(Type::Atom(Aura::new("t"))),
+                field(Type::Cell(vec![
+                    field(Type::Flag),
+                    field(Type::Atom(Aura::new("p"))),
+                ])),
+            ])),
+        ]);
+        assert_eq!(TypeScheme::mono(flat).to_string(), "[@ud @t ? @p]");
+
+        let faced = Type::Cell(vec![TypeField {
+            face: Some("rest".to_string()),
+            typ: Type::Cell(vec![field(Type::Atom(Aura::new("t"))), field(Type::Flag)]),
+        }]);
+        assert_eq!(TypeScheme::mono(faced).to_string(), "[rest=[@t ?]]");
+        let non_tail = Type::Cell(vec![
+            field(Type::Cell(vec![
+                field(Type::Atom(Aura::new("ud"))),
+                field(Type::Atom(Aura::new("t"))),
+            ])),
+            field(Type::Flag),
+        ]);
+        assert_eq!(TypeScheme::mono(non_tail).to_string(), "[[@ud @t] ?]");
+
+        for (name, expected) in [
+            ("todo__item", "item.todo"),
+            ("theme", "theme"),
+            ("hoon__list", "list"),
+        ] {
+            let named = Type::Named {
+                module: SourceId(0),
+                name: name.to_string(),
+                arguments: Vec::new(),
+            };
+            assert_eq!(TypeScheme::mono(named).to_string(), expected);
+        }
     }
 }

@@ -2,6 +2,6 @@
 /tests/golden/types-api-scry-wrong-param/source.jibb:2:24: actual type has type @p
 ++ bad (separate.other ~zod same)
                        ^
-/tests/golden/types-api-scry-wrong-param/source.jibb:2:9: call context has type [@ud $-((list [id=@ud [done=? text=@t]]) A)]
+/tests/golden/types-api-scry-wrong-param/source.jibb:2:9: call context has type [@ud $-((list [id=@ud done=? text=@t]) A)]
 ++ bad (separate.other ~zod same)
         ^

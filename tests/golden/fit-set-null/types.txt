@@ -1,4 +1,4 @@
 module kind: library
-++ none: (set @tas)
-++ is-none: $-((set @tas) ?)
-++ none-is: $-((set @tas) ?)
+++ none: tags.fixture
+++ is-none: $-(tags.fixture ?)
+++ none-is: $-(tags.fixture ?)

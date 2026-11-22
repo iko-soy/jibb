@@ -1,5 +1,5 @@
 ++ bad: cast mold and expression type do not unify
-/tests/golden/types-generic-repeated/source.jibb:3:11: cast mold has type [left=@t right=@t]
+/tests/golden/types-generic-repeated/source.jibb:3:11: cast mold has type (twin @t)
 ++ bad ^- (twin @t) [left="hi" right=~zod]
           ^
 /tests/golden/types-generic-repeated/source.jibb:3:21: expression has type [left=@t right=@p]

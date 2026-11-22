@@ -1,5 +1,5 @@
 module kind: library
 ++ foo: @ud
 ++ sample: $-(A A)
-++ use: $-(@t @t)
+++ use: $-(foo foo)
 ++ value: @ud

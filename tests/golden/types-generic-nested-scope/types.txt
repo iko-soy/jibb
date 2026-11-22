@@ -1,4 +1,4 @@
 module kind: library
-+$ inner: [payload=A count=@ud]
-+$ outer: [fixed=[payload=@t count=@ud] bound=A]
-++ ship: [fixed=[payload=@t count=@ud] bound=@p]
++$ inner: (inner A)
++$ outer: (outer A)
+++ ship: (outer @p)

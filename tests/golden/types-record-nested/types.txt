@@ -1,5 +1,5 @@
 module kind: library
-+$ outer: [inner=[x=@t y=@p] enabled=?]
-++ extract: $-([inner=[x=@t y=@p] enabled=?] @t)
++$ outer: outer
+++ extract: $-(outer @t)
 ++ keep: $-(A A)
 ++ saved: [inner=[x=@t y=@p] enabled=?]

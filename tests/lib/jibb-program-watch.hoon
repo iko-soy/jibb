@@ -129,7 +129,10 @@
   =/  subs-result=(unit itype:jibb)  (template-apply:jibb u.list-template ~[u.message-sub])
   ?~  subs-result  ~["subscription list type did not instantiate"]
   =/  expected-subs=itype:jibb  [%fn typ.u.model u.subs-result]
-  ?.  =(typ.u.subs expected-subs)  ~["subs interface has the wrong exact type"]
+  ?.  =((itype-slots-as-faces:jibb typ.u.subs) (itype-slots-as-faces:jibb expected-subs))
+    ~["subs interface has the wrong exact type"]
+  ?.  =("$-(model (list (sub msg)))" (show-itype:jibb typ.u.subs ~))
+    ~["subs interface lost its visible mold names"]
   ?.  =((lent requests.u.graph.checked) (lent requests.u.graph.api-iface))  ~["merged API evidence count differs"]
   ?.  (levy requests.u.graph.checked |=(r=irequest-evidence:jibb (lien requests.u.graph.api-iface |=(a=irequest-evidence:jibb =(r a)))))  ~["merged API evidence differs"]
   =/  matching=(list irequest-evidence:jibb)

@@ -23,11 +23,7 @@ None remain open. The typography scale and whether a build that finishes with er
 
 ## Review rulings waiting for @iko
 
-The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language and spec questions. Montelot answered them on 2026-11-02 as proposals. Each waits for @iko to confirm before it goes in [Decisions](spec/decisions.md) and the code changes. Question 18 was settled on 2026-11-16 and moved there, as Gates in `*`. Full-checker diagnostics for a proposal's examples do not settle the separate language question.
-
-| # | Question | Proposed answer | Refs |
-| --- | --- | --- | --- |
-| [28](reviews/2026-11-02-questions.md) | Should the printer flatten `[a [b c]]` and print named molds by name, such as `theme`? | Yes | A136 |
+The [2026-11-02 review](reviews/2026-11-02-repo-review.md) language and spec rulings are settled; their decisions are in [Decisions](spec/decisions.md). Full-checker diagnostics for a proposal's examples did not settle the separate language question before confirmation.
 
 ## Grammar questions never put to the doc's author
 

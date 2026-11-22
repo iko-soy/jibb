@@ -5,6 +5,6 @@ module kind: library
 ++ nest: $-([data=[payload=msg xs=(list @t)] z=@p] [data=[payload=msg xs=(list @t)] z=@p])
 ++ nested: [data=[payload=msg xs=(list @t)] z=@p]
 ++ generic: $-([left=A right=A] [left=A right=A])
-+$ typed: [%typed text=@t]
-++ use-ctor: $-([f=$-(@t [%typed text=@t]) payload=@t] [f=$-(@t [%typed text=@t]) payload=@t])
-++ constructor: [f=$-(@t [%typed text=@t]) payload=@t]
++$ typed: typed
+++ use-ctor: $-([f=$-(@t typed) payload=@t] [f=$-(@t typed) payload=@t])
+++ constructor: [f=$-(@t typed) payload=@t]

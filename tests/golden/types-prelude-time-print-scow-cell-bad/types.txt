@@ -1,5 +1,5 @@
 ++ wrong: call's sample and argument types do not unify
-/tests/golden/types-prelude-time-print-scow-cell-bad/source.jibb:1:11: called gate has type $-([p=@ta q=@] (list @tD))
+/tests/golden/types-prelude-time-print-scow-cell-bad/source.jibb:1:11: called gate has type $-(dime (list @tD))
 ++ wrong (scow [%ud [1 2]])
           ^
 /tests/golden/types-prelude-time-print-scow-cell-bad/source.jibb:1:21: argument has type [@ud @ud]

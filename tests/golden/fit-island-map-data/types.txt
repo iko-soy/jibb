@@ -1,8 +1,8 @@
 module kind: island
-+$ model: [counts=(map @t @ud)]
-+$ msg: %ok
-++ main: [init=$-((map @t @ud) [counts=(map @t @ud)]) [update=$-([%ok counts=(map @t @ud)] [counts=(map @t @ud) (list (cmd %ok))]) [view=$-([counts=(map @t @ud)] (element %ok)) subs=$-([counts=(map @t @ud)] (list (sub %ok)))]]]
-++ init: $-((map @t @ud) [counts=(map @t @ud)])
-++ update: $-([m=%ok s=[counts=(map @t @ud)]] [counts=(map @t @ud) (list (cmd %ok))])
-++ view: $-([counts=(map @t @ud)] (element %ok))
-++ subs: $-([counts=(map @t @ud)] (list (sub %ok)))
++$ model: model
++$ msg: msg
+++ main: (program (map @t @ud) [counts=(map @t @ud)] %ok)
+++ init: $-((map @t @ud) model)
+++ update: $-([m=msg s=model] [model (list (cmd msg))])
+++ view: $-(model (element msg))
+++ subs: $-(model (list (sub msg)))

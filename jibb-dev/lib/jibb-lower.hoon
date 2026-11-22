@@ -449,6 +449,7 @@
   ?:  =(0 left.state)  (fact-error typ "validator construction exceeds its node budget")
   =.  state  state(left (dec left.state))
   ?-  -.typ
+    %named          $(typ body.typ)
     ?(%face %slot)  $(typ body.typ)
     %noun           [%& [fact-yes state]]
     %empty          [%& [fact-no state]]
@@ -704,6 +705,7 @@
   |=  typ=itype:jibb
   ^-  ?
   ?-  -.typ
+    %named          $(typ body.typ)
     ?(%face %slot)  $(typ body.typ)
     %atom           =('t' (end 3 aura.typ))
     %const          =('t' (end 3 aura.literal.typ))
@@ -713,6 +715,7 @@
   |=  typ=itype:jibb
   ^-  ?
   ?-  -.typ
+    %named          $(typ body.typ)
     ?(%face %slot)  $(typ body.typ)
     %collection     &(=(%list name.typ) ?=([* ~] args.typ) (atom-text-type i.args.typ))
     *               |
@@ -722,6 +725,7 @@
   |=  typ=itype:jibb
   ^-  (unit @ta)
   ?-  -.typ
+    %named          $(typ body.typ)
     ?(%face %slot)  $(typ body.typ)
     %atom           `(print-aura aura.typ)
     %any-atom       `%ud
@@ -759,6 +763,7 @@
   |=  typ=itype:jibb
   ^-  ?
   ?-  -.typ
+    %named          $(typ body.typ)
     ?(%face %slot)  $(typ body.typ)
     %atom           (raw-path-aura aura.typ)
     %const          (raw-path-aura aura.literal.typ)
@@ -938,6 +943,7 @@
   =/  typ=itype:jibb  typ.u.checked
   =.  typ
     |-  ^-  itype:jibb
+    ?:  ?=(%named -.typ)  $(typ body.typ)
     ?:  ?=(?(%face %slot) -.typ)  $(typ body.typ)
     ?:  ?=(%refined -.typ)  $(typ proof.typ)
     typ
@@ -1622,6 +1628,7 @@
   |=  typ=itype:jibb
   ^-  ?
   ?-  -.typ
+    %named          $(typ body.typ)
     ?(%face %slot)  $(typ body.typ)
     %flag           &
     *               |

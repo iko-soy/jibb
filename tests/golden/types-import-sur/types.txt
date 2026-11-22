@@ -1,3 +1,3 @@
 module kind: library
-++ identity: $-(@t @t)
-++ pair-identity: $-([@ud @t] [@ud @t])
+++ identity: $-(title.fixture title.fixture)
+++ pair-identity: $-(pair.fixture pair.fixture)

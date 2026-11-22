@@ -124,11 +124,16 @@
   ::  The builder's variables keep the names the prelude writes, S and A.
   =/  s=@ud  (named-var:jibb 'S' 0)
   =/  a=@ud  (named-var:jibb 'A' 1)
+  =/  store-result=(unit itype:jibb)  (template-apply:jibb u.store-mold ~[[%var s]])
+  ?~  store-result  ~["store result mold did not instantiate"]
   =/  expected-builder=itype:jibb
-    [%fn [%cell [%face %init [%var s]] [%face %update [%fn [%cell [%var a] [%var s]] [%var s]]]] [%cell [%face %init [%var s]] [%face %update [%noun ~]]]]
+    [%fn [%cell [%face %init [%var s]] [%face %update [%fn [%cell [%var a] [%var s]] [%var s]]]] u.store-result]
   =/  builder-display=(unit itype:jibb)  (scheme-display-type:jibb u.store-value)
   ?~  builder-display  ~["store builder scheme did not realize"]
-  ?.  &(?=([@ @ ~] vars.u.store-value) =((show-itype:jibb u.builder-display ~) (show-itype:jibb expected-builder ~)))  ~["store builder scheme differs"]
+  ?.  &(?=([@ @ ~] vars.u.store-value) =((show-itype:jibb u.builder-display ~) (show-itype:jibb expected-builder ~)))
+    ~["store builder scheme differs"]
+  ?.  =("$-([init=S update=$-([A S] S)] (store S))" (show-itype:jibb u.builder-display ~))
+    ~["store builder lost its visible result mold" leaf+(show-itype:jibb u.builder-display ~)]
   =/  expected-mold=itype:jibb  [%cell [%face %init [%var 0]] [%face %update [%noun ~]]]
   =/  mold-display=(unit itype:jibb)  (scheme-display-type:jibb u.store-mold)
   ?~  mold-display  ~["store mold scheme did not realize"]
@@ -146,7 +151,7 @@
   =/  cart-main=(unit ischeme:jibb)  (ienv-lookup:jibb %main values.cart)
   ?~  cart-main  ~["cart main is missing"]
   =/  actual-main=@t  (crip (show-itype:jibb typ.u.cart-main ~))
-  ?.  =(actual-main '[init=[items=(list @t) open=?] update=*]')  ~["cart main type differs"]
+  ?.  =(actual-main '[init=state update=*]')  ~["cart main type differs" leaf+(trip actual-main)]
   ?.  &(?=(~ vars.u.cart-main) ?=(~ (itype-vars:jibb typ.u.cart-main)))  ~["cart main is open"]
   =/  state=(unit ischeme:jibb)  (find-jibb-mold:jibb %state cart)
   =/  action=(unit ischeme:jibb)  (find-jibb-mold:jibb %poke cart)
@@ -209,7 +214,7 @@
   ?.  =(values.basket values.iface.p.basket-legacy)  ~["detailed and legacy basket values differ"]
   =/  basket-main=(unit ischeme:jibb)  (ienv-lookup:jibb %main values.basket)
   ?~  basket-main  ~["basket main is missing"]
-  =/  expected-basket=@t  '[init=$-(~ [cart=[items=(list @t) open=?] note=@t]) [update=$-([msg [cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))]) [view=$-([cart=[items=(list @t) open=?] note=@t] (element msg)) subs=$-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))]]]'
+  =/  expected-basket=@t  '(program ~ [cart=[items=(list @t) open=?] note=@t] msg)'
   =/  actual-basket=@t  (crip (show-itype:jibb typ.u.basket-main ~))
   ?.  =(actual-basket expected-basket)  ~["basket main type differs"]
   ?~  graph.basket  ~["basket request graph is missing"]
@@ -228,7 +233,9 @@
   ?~  local-action  ~["downstream action mold is missing"]
   =/  imported-state=itype:jibb  (itype-in-import:jibb typ.u.state cart %cart `iface.u.prepared)
   =/  imported-action=itype:jibb  (itype-in-import:jibb typ.u.action cart %cart `iface.u.prepared)
-  ?.  &(=(typ.u.local-state imported-state) =(typ.u.local-action imported-action))  ~["downstream molds differ"]
+  =/  state-fit=ifit:jibb  (direct-invariant:jibb typ.u.local-state imported-state ~ 100)
+  =/  action-fit=ifit:jibb  (direct-invariant:jibb typ.u.local-action imported-action ~ 100)
+  ?.  &(?=(%ok -.state-fit) ?=(%ok -.action-fit))  ~["downstream molds differ"]
   ?~  (ienv-lookup:jibb %imported-request values.consumer)  ~["downstream state request is missing"]
   ?~  (ienv-lookup:jibb %imported-poke values.consumer)  ~["downstream action constructor is missing"]
   =/  direct=jfile-detailed-result:jibb

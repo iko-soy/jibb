@@ -2,6 +2,6 @@
 /tests/golden/types-proj-nested-no-implicit/source.jibb:2:14: expected unit payload has type [a=@t b=B]
 ++ unit-bad (sink-unit `[a="x" b=~zod c=%.y])
              ^
-/tests/golden/types-proj-nested-no-implicit/source.jibb:2:25: payload has type [a=@t [b=@p c=?]]
+/tests/golden/types-proj-nested-no-implicit/source.jibb:2:25: payload has type [a=@t b=@p c=?]
 ++ unit-bad (sink-unit `[a="x" b=~zod c=%.y])
                         ^

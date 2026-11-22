@@ -490,7 +490,7 @@ fn hoon_constant_terms_are_their_atoms() {
     fs::write(&main, "/- mk\n++ main ^- marks.mk %.n\n").unwrap();
     let error =
         loader::check_path(&main, &[root.to_path_buf(), dev()], Some(&prelude)).unwrap_err();
-    assert_eq!(error.message, "union `mk__marks` has overlapping cases");
+    assert_eq!(error.message, "union `marks.mk` has overlapping cases");
 }
 
 #[test]

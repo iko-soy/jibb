@@ -170,23 +170,6 @@ fn excerpt(case: &Case, span: jibb::ast::Span) -> &str {
 
 #[test]
 fn audited_golden_cases_match_the_full_checker() {
-    // Valid programs the native checker rejected. Where the full checker
-    // writes a non-union alias out and the native one keeps its name, only
-    // the printing differs.
-    let alias_printing = [
-        ("split-types-constructor-context-positive", "named-alias"),
-        (
-            "split-types-loobean-singleton-source-positive",
-            "loobean-constructor",
-        ),
-        (
-            "split-types-loobean-singleton-source-positive",
-            "named-value",
-        ),
-        ("split-types-loobean-singleton-source-positive", "yes-flag"),
-        ("split-types-loobean-singleton-source-positive", "yes-term"),
-        ("types-record-nested", "extract"),
-    ];
     for name in [
         "split-types-constructor-context-later-use",
         "split-types-constructor-context-positive",
@@ -210,9 +193,6 @@ fn audited_golden_cases_match_the_full_checker() {
         assert!(expected_valid(&case.types), "{name} is a valid case");
         let checked = check_case(&case).unwrap_or_else(|error| panic!("{name}: {error}"));
         for (value, expected) in expected_values(&case.types) {
-            if alias_printing.contains(&(name, value.as_str())) {
-                continue;
-            }
             assert_eq!(
                 checked.values[&value].to_string(),
                 expected,

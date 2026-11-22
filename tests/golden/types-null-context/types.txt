@@ -1,7 +1,7 @@
 module kind: library
 +$ maybe: maybe
-+$ dollar: [%$ value=@t]
++$ dollar: dollar
 ++ empty: maybe
 ++ present: maybe
 ++ null-constructor: $-(@t maybe)
-++ dollar-constructor: $-(@t [%$ value=@t])
+++ dollar-constructor: $-(@t dollar)

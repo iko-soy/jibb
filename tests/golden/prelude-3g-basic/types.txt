@@ -9,7 +9,7 @@ module kind: library
 ++ need: $-((unit A) A)
 ++ weld: $-([(list A) (list A)] (list A))
 ++ turn: $-([(list A) $-(A B)] (list B))
-+$ dime: [p=@ta q=@]
-+$ hair: [p=@ud q=@ud]
-+$ pint: [p=[p=@ q=@] q=[p=@ q=@]]
++$ dime: dime
++$ hair: hair
++$ pint: pint
 +$ coin: coin

@@ -1,8 +1,8 @@
 module kind: library
-++ pack-time: $-([[a=? y=@ud] [m=@ud t=[d=@ud [h=@ud [m=@ud [s=@ud f=(list @ux)]]]]]] @da)
-++ unpack-time: $-(@da [[a=? y=@ud] [m=@ud t=[d=@ud [h=@ud [m=@ud [s=@ud f=(list @ux)]]]]]])
-++ print-knot: $-([p=@ta q=@] @ta)
-++ print-tape: $-([p=@ta q=@] (list @tD))
+++ pack-time: $-(date @da)
+++ unpack-time: $-(@da [[a=? y=@ud] m=@ud t=[d=@ud h=@ud m=@ud s=@ud f=(list @ux)]])
+++ print-knot: $-(dime @ta)
+++ print-tape: $-(dime (list @tD))
 ++ parse-atom: $-([@tas @ta] (unit @))
 ++ need-atom: $-([@tas @ta] @)
 ++ when: @da

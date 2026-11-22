@@ -2,6 +2,6 @@
 /tests/golden/types-proj-list-no-implicit/source.jibb:2:14: expected item has type [a=@t b=B]
 ++ list-bad (sink-list ~[[a="x" b=~zod c=%.y]])
              ^
-/tests/golden/types-proj-list-no-implicit/source.jibb:2:26: list item has type [a=@t [b=@p c=?]]
+/tests/golden/types-proj-list-no-implicit/source.jibb:2:26: list item has type [a=@t b=@p c=?]
 ++ list-bad (sink-list ~[[a="x" b=~zod c=%.y]])
                          ^

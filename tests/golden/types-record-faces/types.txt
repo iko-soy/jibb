@@ -2,6 +2,6 @@
 /tests/golden/types-record-faces/source.jibb:8:27: cast mold has type [a=@t b=@p]
 ++ mismatch |= p=point ^- [a=@t b=@p] p
                           ^
-/tests/golden/types-record-faces/source.jibb:8:39: expression has type [x=@t y=@p]
+/tests/golden/types-record-faces/source.jibb:8:39: expression has type point
 ++ mismatch |= p=point ^- [a=@t b=@p] p
                                       ^

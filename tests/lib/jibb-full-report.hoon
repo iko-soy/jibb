@@ -14,7 +14,7 @@
   ?:  ?=(%| -.checked)  ~[leaf+"valid fixture failed" leaf+(trip message.p.checked)]
   =/  actual=@t  (render-full-types:jibb at src checked)
   ?.  =(actual (golden-types:jibb at src))  ~[leaf+"golden type entry point did not use the full checker"]
-  =/  expected=@t  'module kind: library\0a+$ word: @t\0a++ value: @t'
+  =/  expected=@t  'module kind: library\0a+$ word: word\0a++ value: @t'
   ?.  =(actual expected)  ~[leaf+"checked report differs" leaf+(trip actual)]
   =/  bad=@t  '++ broken missing'
   =/  rejected=jfile-detailed-result:jibb
@@ -140,7 +140,7 @@
   =/  actual=@t  (golden-types-with-reader-diagnostics:jibb file src external ~)
   ?.  =(actual (render-full-types:jibb file src checked))
     ~[leaf+"reader diagnostic type entry did not report the full checker result" leaf+(trip actual)]
-  ?.  (contains-text (trip actual) "@uw")  ~[leaf+"imported aura missing from full report"]
+  ?.  (contains-text (trip actual) "$-(wide.fixture wide.fixture)")  ~[leaf+"imported mold name missing from full report" leaf+(trip actual)]
   ~
 
 ++  test-full-report-api

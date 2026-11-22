@@ -299,6 +299,28 @@ fn checks_record_samples_and_calls() {
 }
 
 #[test]
+fn prints_flat_cells_and_resolved_mold_names() {
+    let checked = check_source(
+        "+$ theme [color=@t dark=?]\n+$ palette theme\n++ use |= value=theme value\n++ alias |= value=palette value\n++ inferred [color=\"blue\" dark=%.y]\n",
+    )
+    .unwrap();
+    assert_eq!(checked.values["use"].to_string(), "$-(theme theme)");
+    assert_eq!(checked.values["alias"].to_string(), "$-(palette palette)");
+    assert_eq!(checked.values["inferred"].to_string(), "[color=@t dark=?]");
+
+    assert_check_error(
+        "++ bad ^- [@ud [@t ?]] 0\n",
+        "type mismatch: expected [@ud @t ?], found @ud",
+        "0",
+    );
+    assert_check_error(
+        "+$ theme [color=@t dark=?]\n++ bad ^- theme 0\n",
+        "type mismatch: expected theme, found @ud",
+        "0",
+    );
+}
+
+#[test]
 fn checks_local_polymorphism_recursion_and_capital_scopes() {
     let checked = check_source(
         "++ use\n  ++ id |=(x x)\n  [(id 1) (id \"x\")]\n++ outer |= x=A\n  ++ inner |= y=A y\n  (inner x)\n++ independent |= x=@ud\n  ++ inner |= y=A y\n  inner\n",

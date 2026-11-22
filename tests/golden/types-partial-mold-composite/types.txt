@@ -1,5 +1,5 @@
 module kind: library
-+$ text-pair: [@t @t]
-+$ text-fn: $-(@t @t)
-++ a-pair: [@t @t]
-++ a-gate: $-($-(@t @t) $-(@t @t))
++$ text-pair: text-pair
++$ text-fn: text-fn
+++ a-pair: text-pair
+++ a-gate: $-(text-fn text-fn)

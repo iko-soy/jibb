@@ -10,7 +10,7 @@
   =/  src=@t  '++ exported island\0a'
   =/  at=path  /tests/island-signature/jibb
   =/  report=@t  (golden-types-with-prepared-prelude:jibb at src ~ ~ ~ prepared)
-  =/  expected=@t  'module kind: library\0a++ exported: $-([p=[init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] data=Data] (element !!)) where Data contains no gates, Model contains no gates'
+  =/  expected=@t  'module kind: library\0a++ exported: $-([p=(program Data Model Msg) data=Data] (element !!)) where Data contains no gates, Model contains no gates'
   ?.  =(report expected)  ~[leaf+"island lost its published gate-free constraints" leaf+(trip report)]
   ~
 --

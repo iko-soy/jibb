@@ -1,5 +1,5 @@
 module kind: library
 +$ msg: msg
-+$ alias: msg
++$ alias: alias
 ++ direct: $-(msg msg)
-++ via: $-(msg msg)
+++ via: $-(alias alias)

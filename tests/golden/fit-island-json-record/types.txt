@@ -1,8 +1,8 @@
 module kind: island
-+$ model: [body=json]
-+$ msg: %ok
-++ main: [init=$-(json [body=json]) [update=$-([%ok body=json] [body=json (list (cmd %ok))]) [view=$-([body=json] (element %ok)) subs=$-([body=json] (list (sub %ok)))]]]
-++ init: $-(json [body=json])
-++ update: $-([m=%ok s=[body=json]] [body=json (list (cmd %ok))])
-++ view: $-([body=json] (element %ok))
-++ subs: $-([body=json] (list (sub %ok)))
++$ model: model
++$ msg: msg
+++ main: (program doc.fixture [body=doc.fixture] %ok)
+++ init: $-(doc.fixture model)
+++ update: $-([m=msg s=model] [model (list (cmd msg))])
+++ view: $-(model (element msg))
+++ subs: $-(model (list (sub msg)))

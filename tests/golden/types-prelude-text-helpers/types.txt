@@ -1,8 +1,8 @@
 module kind: library
-++ lower: $-((list @tD) (list @tD))
-++ upper: $-((list @tD) (list @tD))
+++ lower: $-(tape (list @tD))
+++ upper: $-(tape (list @tD))
 ++ split: $-([@ud (list A)] [p=(list A) q=(list A)])
-++ pack: $-((list @tD) @t)
+++ pack: $-(tape @t)
 ++ encode: $-((list @c) (list @tD))
 ++ lower-text: @t
 ++ upper-text: @t

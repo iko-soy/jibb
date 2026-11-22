@@ -1,11 +1,11 @@
 module kind: island
-+$ model: @ud
++$ model: model
 +$ msg: msg
-++ main: [init=$-(@t @ud) [update=$-([msg @ud] [@ud (list (cmd msg))]) [view=$-(@ud (element msg)) subs=$-(@ud (list (sub msg)))]]]
-++ init: $-(@t @ud)
-++ update: $-([m=msg s=@ud] [@ud (list (cmd msg))])
-++ view: $-(@ud (element msg))
-++ subs: $-(@ud (list (sub msg)))
+++ main: (program @t @ud msg)
+++ init: $-(@t model)
+++ update: $-([m=msg s=model] [model (list (cmd msg))])
+++ view: $-(model (element msg))
+++ subs: $-(model (list (sub msg)))
 ++ fst: $-([A B] A)
 ++ r0: (ask msg)
 ++ r1: (ask msg)

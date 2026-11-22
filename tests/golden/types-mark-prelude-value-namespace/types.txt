@@ -1,3 +1,3 @@
 module kind: library
-++ use: $-(@t @t)
+++ use: $-(same same)
 ++ same-value: $-(@t @t)

@@ -1,6 +1,6 @@
 module kind: library
 +$ msg: msg
-+$ wrapped: [state=msg title=@t]
-+$ handler: $-(msg msg)
-++ echo: $-([state=msg title=@t] [state=msg title=@t])
-++ keep: $-($-(msg msg) $-(msg msg))
++$ wrapped: wrapped
++$ handler: handler
+++ echo: $-(wrapped wrapped)
+++ keep: $-(handler handler)

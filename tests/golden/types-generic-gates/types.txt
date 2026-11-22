@@ -1,7 +1,7 @@
 module kind: library
-+$ mapper: $-(A B)
-+$ duo: [left=A right=B]
-++ gate: $-(@t @t)
-++ pair: [left=@t right=@p]
-+$ map: [first=A second=B]
-++ named-map: [first=$-(@t @t) second=@t]
++$ mapper: (mapper A B)
++$ duo: (duo A B)
+++ gate: (mapper @t @t)
+++ pair: (duo @t @p)
++$ map: (map A B)
+++ named-map: (map $-(@t @t) @t)

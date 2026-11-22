@@ -1,2 +1,2 @@
 module kind: library
-++ identity: $-(@t @t)
+++ identity: $-(title.lib title.lib)

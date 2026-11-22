@@ -2,6 +2,6 @@
 /tests/golden/types-import-hoon-narrow/source.jibb:2:31: cast mold has type @t
 ++ narrow |= x=any.fixture ^- @t x
                               ^
-/tests/golden/types-import-hoon-narrow/source.jibb:2:34: expression has type *
+/tests/golden/types-import-hoon-narrow/source.jibb:2:34: expression has type any.fixture
 ++ narrow |= x=any.fixture ^- @t x
                                  ^

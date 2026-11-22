@@ -1,4 +1,4 @@
 module kind: library
-+$ entry: [key=A value=B]
-++ swap: $-([key=Msg value=T2] [T2 Msg])
++$ entry: (entry A B)
+++ swap: $-((entry Msg T2) [T2 Msg])
 ++ same-one: $-(A A)

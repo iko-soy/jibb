@@ -1,3 +1,3 @@
 module kind: library
-+$ packet: [%go url=@t]
-++ extract-ok: $-([%go url=@t] @t)
++$ packet: packet
+++ extract-ok: $-(packet @t)

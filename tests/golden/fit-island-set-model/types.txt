@@ -1,8 +1,8 @@
 module kind: island
-+$ model: [seen=(set @tas)]
-+$ msg: %ok
-++ main: [init=$-(@t [seen=(set @tas)]) [update=$-([%ok seen=(set @tas)] [seen=(set @tas) (list (cmd %ok))]) [view=$-([seen=(set @tas)] (element %ok)) subs=$-([seen=(set @tas)] (list (sub %ok)))]]]
-++ init: $-(@t [seen=(set @tas)])
-++ update: $-([m=%ok s=[seen=(set @tas)]] [seen=(set @tas) (list (cmd %ok))])
-++ view: $-([seen=(set @tas)] (element %ok))
-++ subs: $-([seen=(set @tas)] (list (sub %ok)))
++$ model: model
++$ msg: msg
+++ main: (program @t [seen=(set @tas)] %ok)
+++ init: $-(@t model)
+++ update: $-([m=msg s=model] [model (list (cmd msg))])
+++ view: $-(model (element msg))
+++ subs: $-(model (list (sub msg)))

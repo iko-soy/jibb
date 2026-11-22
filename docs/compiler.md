@@ -252,6 +252,8 @@ Note 4 has examples of each.
 
 `tools/golden` runs `+golden` under `urbit eval` on every case and compares `tokens.txt` and `tree.txt`; opted-in cases also compare `+golden-types` with `types.txt`. `tools/ship gen-tests` writes a `-test` arm per case that does the same on the ship. The type output comes from the full checker: checked definition types and module kind, or its diagnostic with source excerpts. Rendering selects visible mold aliases from the module, its direct imports and the prepared prelude. A separate print view reconstructs alias arguments without changing the checked scheme, including aliases that reverse, repeat or fix parameters. A nongeneric specialization prints without spurious type arguments; an inaccessible nominal type is reported rather than losing its identity.
 
+Transparent resolved-mold references carry a visible name, exact generic arguments and the expanded semantic body. Inference, identity, witnesses and lowering use the expanded body; only display walks and printers retain the reference. Cell printing flattens unfaced right-nested tails, while faced and non-tail nested cells retain their brackets.
+
 ## Speed
 
 `tools/bench-check` measures startup and a full 2,000-line module in both dependency orders with `tools/hoon --no-debug`. `tools/check-my-app` measures checking the desk after its Clay types have built. Current verified timings and the exact tested snapshot belong in [status](status.md); historical recovery-path microbenchmarks are retained in git.

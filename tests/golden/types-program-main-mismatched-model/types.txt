@@ -1,5 +1,5 @@
 ++ main: call's sample and argument types do not unify
-/ui/program-check.jibb:5:10: called gate has type $-([init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]] [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]])
+/ui/program-check.jibb:5:10: called gate has type $-([init=$-(@t @ud) update=$-([message @ud] [@ud (list (cmd message))]) view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))] (program @t @ud message))
 ++ main (program init update view subs)
          ^
 /ui/program-check.jibb:5:23: argument has type @p

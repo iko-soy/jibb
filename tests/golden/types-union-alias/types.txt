@@ -1,4 +1,4 @@
 module kind: library
 +$ msg: msg
-+$ alias: msg
-++ via: msg
++$ alias: alias
+++ via: alias

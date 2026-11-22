@@ -2,6 +2,6 @@
 /tests/golden/split-types-loobean-singleton-source-named-as-tas/source.jibb:15:20: cast mold has type @tas
 ++ named-as-tas ^- @tas named-value
                    ^
-/tests/golden/split-types-loobean-singleton-source-named-as-tas/source.jibb:15:25: expression has type %.y
+/tests/golden/split-types-loobean-singleton-source-named-as-tas/source.jibb:15:25: expression has type yes
 ++ named-as-tas ^- @tas named-value
                         ^

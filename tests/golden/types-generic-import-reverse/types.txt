@@ -1,3 +1,3 @@
 module kind: library
-++ make: $-([x=A y=B] [left=B right=A])
-++ concrete: [left=@p right=@t]
+++ make: $-([x=A y=B] (reverse.lib A B))
+++ concrete: (reverse.lib @t @p)

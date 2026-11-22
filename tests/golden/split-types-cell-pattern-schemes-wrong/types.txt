@@ -1,5 +1,5 @@
 ++ wrong: call's sample and argument types do not unify
-/tests/golden/split-types-cell-pattern-schemes-wrong/source.jibb:18:11: called gate has type $-([@t [@t @t]] [@t [@t @t]])
+/tests/golden/split-types-cell-pattern-schemes-wrong/source.jibb:18:11: called gate has type $-([@t @t @t] [@t @t @t])
 ++ wrong (shared "hi" ~zod "ok")
           ^
 /tests/golden/split-types-cell-pattern-schemes-wrong/source.jibb:18:23: argument has type @p

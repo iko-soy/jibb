@@ -1,4 +1,4 @@
 module kind: page
-++ main: [load=$-(~ (ask (list [title=@t slug=@ta]))) view=$-((list [title=@t slug=@ta]) (element !!))]
+++ main: (page ~ (list [title=@t slug=@ta]))
 ++ load: $-(~ (ask (list [title=@t slug=@ta])))
-++ view: $-((list [title=@t slug=@ta]) (element M))
+++ view: $-((list post.blog) (element M))

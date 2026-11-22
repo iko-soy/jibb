@@ -1,10 +1,10 @@
 module kind: library
-+$ state: [items=(list @t) [open=? [name=@t nested=[word=@t]]]]
++$ state: state
 +$ actions: actions
-+$ model: [mode=actions data=(unit @t)]
-++ flip: $-([items=(list @t) [open=? [name=@t nested=[word=@t]]]] [items=(list @t) [open=? [name=@t nested=[word=@t]]]])
-++ put: $-([s=[items=(list @t) [open=? [name=@t nested=[word=@t]]]] item=@t] [items=(list @t) [open=? [name=@t nested=[word=@t]]]])
-++ clear: $-([items=(list @t) [open=? [name=@t nested=[word=@t]]]] [items=(list @t) [open=? [name=@t nested=[word=@t]]]])
-++ multiple: $-([items=(list @t) [open=? [name=@t nested=[word=@t]]]] [items=(list @t) [open=? [name=@t nested=[word=@t]]]])
-++ nested: $-([items=(list @t) [open=? [name=@t nested=[word=@t]]]] [word=@t])
-++ tag: $-([mode=actions data=(unit @t)] [mode=actions data=(unit @t)])
++$ model: model
+++ flip: $-(state state)
+++ put: $-([s=state item=@t] state)
+++ clear: $-(state state)
+++ multiple: $-(state state)
+++ nested: $-(state [word=@t])
+++ tag: $-(model model)

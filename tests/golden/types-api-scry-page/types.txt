@@ -1,4 +1,4 @@
 module kind: page
-++ load: $-(@ud (ask (list [id=@ud [done=? text=@t]])))
-++ view: $-((list [id=@ud [done=? text=@t]]) (element !!))
-++ main: [load=$-(@ud (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]
+++ load: $-(@ud (ask (list [id=@ud done=? text=@t])))
+++ view: $-(todos.other (element !!))
+++ main: (page @ud (list [id=@ud done=? text=@t]))

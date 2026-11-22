@@ -5207,6 +5207,9 @@
       [%flag ~]
       [%noun ~]
       [%refined proof=itype]
+      ::  A resolved mold reference's display view. The expanded body remains
+      ::  authoritative for inference, identity, lowering and witnesses.
+      [%named origin=(unit [at=path name=term]) label=(unit @t) args=(list itype) body=itype]
       [%opaque origin=[at=path name=term] label=(unit @t) args=(list itype) body=itype]
       [%empty ~]
       [%tag id=@ud literal=lit constructor=?]
@@ -5568,7 +5571,7 @@
   ?~  sub  ~
   (~(get by index.u.sub) n)
 ::
-++  itype-walk
+++  itype-display-walk
   |=  [t=itype sub=isub]
   ^-  itype
   ?+  -.t  t
@@ -5602,6 +5605,34 @@
       ?~  found  t
       ?:  &(|(?=(%fvar -.u.found) ?=(%rvar -.u.found) ?=(%rnvar -.u.found)) =(id.t +.u.found))  u.found
       $(t u.found)
+  ==
+::  Semantic consumers expand transparent display references. Printers use
+::  +itype-display-walk so a variable bound to a reference retains its name.
+++  itype-walk
+  |=  [t=itype sub=isub]
+  ^-  itype
+  =.  t  (itype-display-walk t sub)
+  ?:  ?=(%named -.t)  $(t body.t)
+  t
+++  itype-display-body
+  |=  t=itype
+  ^-  itype
+  ?:  ?=(%named -.t)  $(t body.t)
+  t
+::  Lowering and abstract witnesses use only the expanded representation.
+++  itype-erase-display
+  |=  t=itype
+  ^-  itype
+  ?+  -.t  t
+    %named   $(t body.t)
+    %refined  t(proof $(t proof.t))
+    %opaque  t(body $(t body.t), args (turn args.t |=(c=itype (itype-erase-display c))))
+    ?(%face %slot)  t(body $(t body.t))
+    %cell  t(hed $(t hed.t), tal $(t tal.t))
+    %fn  t(sample $(t sample.t), product $(t product.t))
+    %collection  t(args (turn args.t |=(c=itype (itype-erase-display c))))
+    %mrec  t(args (turn args.t |=(c=itype (itype-erase-display c))))
+    %union  t(cases (turn cases.t |=(c=itype (itype-erase-display c))), args (turn args.t |=(c=itype (itype-erase-display c))))
   ==
 ::
 ::  Find a substitution root and compress the path in the returned state.
@@ -5741,6 +5772,7 @@
   ^-  ?
   =.  t  (itype-walk t sub)
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (itype-occurs n c sub))))
     %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-occurs n c sub))))
     %refined  $(t proof.t)
     %var   =(n id.t)
@@ -5855,6 +5887,9 @@
   =/  root-b=[typ=itype sub=isub]  (itype-find b sub.root-a)
   =.  b  typ.root-b
   =.  sub  sub.root-b
+  ::  Reference labels and display arguments are not type identity.
+  ?:  ?=(%named -.a)  $(a body.a)
+  ?:  ?=(%named -.b)  $(b body.b)
   ?:  &(|(open-a open-b) ?=(%face -.a) ?=(%face -.b))
     ?.  =(name.a name.b)  ~
     $(a body.a, b body.b)
@@ -6143,6 +6178,7 @@
   ^-  ?
   =.  t  (itype-walk t sub)
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
     %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-has-any-atom c sub))))
     %refined  $(t proof.t)
     %var       |
@@ -6256,6 +6292,7 @@
   |=  typ=itype
   ^-  ?
   ?-  -.typ
+    %named   |($(typ body.typ) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
     %opaque  |($(typ body.typ) (lien args.typ |=(c=itype (itype-has-fixed-atom c))))
     %refined  $(typ proof.typ)
     %var       |
@@ -6577,8 +6614,13 @@
 ++  itype-merge-faces-inner
   |=  [actual=itype expected=itype sub=isub retain=?]
   ^-  itype
-  =.  actual  (itype-walk actual sub)
-  =.  expected  (itype-walk expected sub)
+  =.  actual  (itype-display-walk actual sub)
+  =.  expected  (itype-display-walk expected sub)
+  ::  The expected reference supplies display metadata at every merged
+  ::  position, including a gate product. Its recursively merged body remains
+  ::  authoritative; an actual-side reference alone supplies no target name.
+  ?:  ?=(%named -.expected)  expected(body $(expected body.expected))
+  ?:  ?=(%named -.actual)  $(actual body.actual)
   ?:  &(!retain ?=(%refined -.expected))  expected
   =?  expected  ?=(%refined -.expected)  [%noun ~]
   ?:  &(retain ?=(%noun -.expected) !?=(?(%noun %refined) -.actual))  [%refined actual]
@@ -7595,6 +7637,7 @@
   =/  index=(map term iwfield)  *(map term iwfield)
   |-
   ?:  =(0 fuel)  ~
+  ?:  ?=(%named -.typ)  $(typ body.typ)
   ?:  |(?=(%var -.typ) ?=(%avar -.typ) ?=(%rvar -.typ) ?=(%nvar -.typ) ?=(%rnvar -.typ))  ~
   ?:  ?=(?(%face %slot) -.typ)
     =/  entry=iwfield  [name.typ axis body.typ]
@@ -7622,12 +7665,15 @@
   |=  [t=itype fuel=@ud]
   ^-  ?
   ?:  =(0 fuel)  &
+  ?:  ?=(%named -.t)  $(t body.t)
   ?.  ?=(%cell -.t)  |
   ?.  ?=(?(%face %slot) -.hed.t)  |
   $(t tal.t, fuel (dec fuel))
 ++  width-known-shape
   |=  [actual=itype expected=itype sub=isub]
   ^-  (unit [source=iwfields target=iwfields])
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
   ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
   =/  source=(unit iwfields)  (width-scan actual sub 1 1.024)
   =/  target=(unit iwfields)  (width-scan expected sub 1 1.024)
@@ -7646,6 +7692,8 @@
 ++  width-shape
   |=  [actual=itype expected=itype sub=isub]
   ^-  (unit [source=iwfields target=iwfields])
+  =.  actual  (itype-walk actual sub)
+  =.  expected  (itype-walk expected sub)
   ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
   =/  source=(unit iwfields)  (width-scan actual sub 1 4.096)
   =/  target=(unit iwfields)  (width-scan expected sub 1 4.096)
@@ -7656,8 +7704,8 @@
 ++  width-proj-shape
   |=  [actual=itype expected=itype sub=isub]
   ^-  (unit [source=iwfields target=iwfields])
-  =.  actual  (itype-normalize actual sub)
-  =.  expected  (itype-normalize expected sub)
+  =.  actual  (itype-walk (itype-normalize actual sub) sub)
+  =.  expected  (itype-walk (itype-normalize expected sub) sub)
   ?.  &(|(?=(%cell -.actual) ?=(?(%face %slot) -.actual)) |(?=(%cell -.expected) ?=(?(%face %slot) -.expected)))  ~
   =/  source=(unit iwfields)  (width-scan actual sub 1 4.096)
   =/  target=(unit iwfields)  (width-scan expected sub 1 4.096)
@@ -7732,6 +7780,7 @@
   ?:  =(0 fuel)  [%unknown | 0 ~]
   =.  fuel  (dec fuel)
   ?-  -.typ
+    %named      $(typ body.typ)
     %opaque  [%unknown & fuel ~]
     %refined  [%unknown & fuel ~]
     %fn         [%no & fuel `(flop path)]
@@ -7812,13 +7861,13 @@
   ?.  lowering.state  state
   ?:  (lien lowering-suppress.state |=(id=lowering-occurrence-id =(id [at role])))
     state
-  =/  entry=lowering-occurrence  [[at role] owner.state typ]
+  =/  entry=lowering-occurrence  [[at role] owner.state (itype-erase-display typ)]
   state(lowering-occurrences [entry lowering-occurrences.state])
 ++  lowering-record-binder
   |=  [at=span role=lowering-occurrence-role name=term typ=itype axis=@ud state=istate]
   ^-  istate
   ?.  lowering.state  state
-  =/  entry=lowering-binder  [[at role] owner.state name [%local name at] typ axis]
+  =/  entry=lowering-binder  [[at role] owner.state name [%local name at] (itype-erase-display typ) axis]
   state(lowering-binders [entry lowering-binders.state])
 ++  lowering-record-reference
   |=  [at=span target=lowering-reference-target state=istate]
@@ -7830,13 +7879,13 @@
   |=  [at=span names=(list term) subject=itype fields=(list term) state=istate]
   ^-  istate
   ?.  lowering.state  state
-  =/  entry=lowering-wing-request  [[at %expression] owner.state names subject fields]
+  =/  entry=lowering-wing-request  [[at %expression] owner.state names (itype-erase-display subject) fields]
   state(lowering-wings [entry lowering-wings.state])
 ++  lowering-record-edit
   |=  [entry=edit target=itype state=istate]
   ^-  istate
   ?.  lowering.state  state
-  =/  captured=lowering-edit-request  [at.entry owner.state names.entry target]
+  =/  captured=lowering-edit-request  [at.entry owner.state names.entry (itype-erase-display target)]
   state(lowering-edits [captured lowering-edits.state])
 ++  lowering-record-components
   |=  [scope=(unit span) components=icomponents state=istate]
@@ -7853,7 +7902,7 @@
   =/  arms=(list lowering-match-arm)
     (turn arms.e |=(a=arm [at.a [at.pat.a %pattern] [(span-of val.a) %expression]]))
   =/  entry=lowering-match
-    [[at.e %expression] owner.state subject domain graph matrix arms ~]
+    [[at.e %expression] owner.state (itype-erase-display subject) domain graph matrix arms ~]
   state(lowering-matches [entry lowering-matches.state])
 +$  idsite  $%([at=span note=tape] [%external file=path source=@t at=span note=tape])
 +$  idiag  [msg=tape sites=(list idsite)]
@@ -7890,9 +7939,15 @@
     ?.  ?=(%var -.t)  ~
     (itype-witness-get id.t sub)
   ?:  ?=([~ [%conflict ~]] witness)  ~
-  =.  t  (itype-walk t sub)
+  =.  t  (itype-display-walk t sub)
   =/  out=(unit itype)
     ?+  -.t  `t
+      %named
+        =/  body=(unit itype)  (itype-realize body.t sub)
+        ?~  body  ~
+        =/  args=(unit (list itype))  (itype-realize-list args.t sub)
+        ?~  args  ~
+        `t(body u.body, args u.args)
       %opaque
         =/  body=(unit itype)  (itype-realize body.t sub)
         ?~  body  ~
@@ -7945,7 +8000,8 @@
 ++  itype-normalize
   |=  [t=itype sub=isub]
   ^-  itype
-  =.  t  (itype-walk t sub)
+  =.  t  (itype-display-walk t sub)
+  ?:  ?=(%named -.t)  t(body $(t body.t), args (turn args.t |=(c=itype (itype-normalize c sub))))
   ?:  ?=(%opaque -.t)  t(body $(t body.t), args (turn args.t |=(c=itype (itype-normalize c sub))))
   ?:  ?=(%refined -.t)  t(proof $(t proof.t))
   ?:  ?=(%mrec -.t)  t(args (turn args.t |=(c=itype (itype-normalize c sub))))
@@ -7971,6 +8027,7 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %named     |($(t body.t) (lien args.t |=(c=itype (itype-has-gate c))))
     %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-has-gate c))))
     %refined  $(t proof.t)
     %fn        &
@@ -8000,6 +8057,7 @@
   ^-  itype
   ?:  (itype-has-gate t)  t
   ?-  -.t
+    %named   t(body $(t body.t), args (turn args.t |=(c=itype ^$(t c))))
     %opaque  t(body $(t body.t), args (turn args.t |=(c=itype ^$(t c))))
     %refined  t(proof $(t proof.t))
     %nvar      [%atom %ud]
@@ -8126,6 +8184,7 @@
   |=  t=itype
   ^-  (list @ud)
   ?-  -.t
+    %named   (zing (turn [body.t args.t] |=(c=itype (itype-vars c))))
     %opaque  (zing (turn [body.t args.t] |=(c=itype (itype-vars c))))
     %refined  $(t proof.t)
     %var   ~[id.t]
@@ -8163,6 +8222,7 @@
   |=  [t=itype ren=isub]
   ^-  itype
   ?-  -.t
+    %named   t(body $(t body.t), args (turn args.t |=(c=itype (itype-rename c ren))))
     %opaque  t(body $(t body.t), args (turn args.t |=(c=itype (itype-rename c ren))))
     %refined  t(proof $(t proof.t))
     %var
@@ -8212,6 +8272,7 @@
   |=  [n=@ud t=itype]
   ^-  ?
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (itype-var-is-atom n c))))
     %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-var-is-atom n c))))
     %refined  $(t proof.t)
     %var       |
@@ -8239,6 +8300,7 @@
   |=  [n=@ud t=itype]
   ^-  ?
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (itype-var-is-restricted n c))))
     %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-var-is-restricted n c))))
     %refined  $(t proof.t)
     %var       |
@@ -8272,6 +8334,7 @@
   ?:  =(0 fuel)  &
   =.  fuel  (dec fuel)
   ?-  -.t
+    %named   |($(t body.t, fuel fuel) (lien args.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel))))
     %opaque  |($(t body.t, fuel fuel) (lien args.t |=(c=itype (itype-var-is-gate-free-fuel n c fuel))))
     %refined  $(t proof.t, fuel fuel)
     %var       |
@@ -8450,6 +8513,7 @@
     $(todo [u.binding t.todo], seen (~(put in:..zuse seen) id), roots [[id u.binding] roots])
   =/  children=(list itype)
     ?-  -.typ
+      %named   [body.typ args.typ]
       %opaque  [body.typ args.typ]
       %refined  ~[proof.typ]
       ?(%face %slot)  ~[body.typ]
@@ -8754,6 +8818,10 @@
   ==
 +$  gentry  $%([%direct key=gkey captures=(list @t)] [%template params=(list @t) body=gnode])
 +$  gscope  [names=(map gname gentry) graph=(map gkey gdef)]
+++  standard-list-template
+  |=  template=ischeme
+  ^-  ?
+  &(?=(~ graph.template) =(vars.template ~[0]) =((itype-display-body typ.template) [%collection %list ~[[%var 0]]]))
 ++  rg-standard-list
   |=  prelude=(unit ifile)
   ^-  ?
@@ -8761,7 +8829,7 @@
   ?.  =(at.u.prelude /lib/jibb/prelude/jibb)  |
   =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude)
   ?~  standard  |
-  =(u.standard [[%collection %list ~[[%var 0]]] ~[0] ~])
+  (standard-list-template u.standard)
 ++  rg-merge-entries
   |=  [entries=(list [key=gkey def=gdef]) graph=(map gkey gdef)]
   ^-  (unit (map gkey gdef))
@@ -8882,7 +8950,7 @@
   ?:  &(=(~ face) =(%list name.i.molds) ?=(^ prior))
     ?>  ?=(^ prior)
     ?.  =(u.prior [%direct [/lib/jibb/prelude/jibb *span %list] ~])  ~
-    ?.  =(template [[%collection %list ~[[%var 0]]] ~[0] ~])  ~
+    ?.  (standard-list-template template)  ~
     $(molds t.molds)
   =/  typ=itype  typ.template
   =/  body=(unit gnode)  (rg-type-node typ vars.template)
@@ -9572,6 +9640,7 @@
 ++  import-direct-loobean
   |=  t=itype
   ^-  ?
+  ?:  ?=(%named -.t)  $(t body.t)
   ?:  ?=(?(%face %slot) -.t)  $(t body.t)
   ?:  ?=(%union -.t)  (import-has-loobean-singleton cases.t)
   ?=([%const [%loobean *]] t)
@@ -9597,6 +9666,7 @@
   |=  typ=itype
   ^-  upat
   ?-  -.typ
+    %named  $(typ body.typ)
     %noun   [%all ~]
     %empty  [%empty ~]
     %atom   [%atom ~]
@@ -9786,12 +9856,17 @@
   ?.  ?=(%& -.result)  ~
   =/  node=*  +.result
   ?.  (imported-faces-valid node)  ~
-  ?@  node  (import-to-itype-standard node standard)
-  ?:  ?=(%ref -.node)  (import-to-itype-standard node standard)
-  =/  pattern=(unit irec-pattern)  (rec-pattern node module name)
-  ?~  pattern  (import-to-itype-standard node standard)
-  ?.  has.u.pattern  (import-to-itype-standard node standard)
-  `[%recursive module name `(crip "{(trip name)}.{(trip module)}")]
+  =/  imported=(unit itype)
+    ?@  node  (import-to-itype-standard node standard)
+    ?:  ?=(%ref -.node)  (import-to-itype-standard node standard)
+    =/  pattern=(unit irec-pattern)  (rec-pattern node module name)
+    ?~  pattern  (import-to-itype-standard node standard)
+    ?.  has.u.pattern  (import-to-itype-standard node standard)
+    `[%recursive module name `(crip "{(trip name)}.{(trip module)}")]
+  ?~  imported  ~
+  ::  The selected reader result authenticates this visible Hoon name. Its
+  ::  origin remains absent: no Jibb declaration identity is fabricated.
+  `(resolved-mold-reference u.imported ~ (crip "{(trip name)}.{(trip module)}") ~)
 ::
 ++  find-imported-mold
   |=  [module=term name=term externals=iexternals surs=(list term)]
@@ -9919,8 +9994,9 @@
   ^-  (unit term)
   ?~  molds  ~
   =/  template=ischeme  template.i.molds
-  ?:  &(?=(~ vars.template) ?=(%union -.typ.template))
-    ?:(=(`origin origin.typ.template) `name.i.molds $(molds t.molds))
+  =/  body=itype  (itype-display-body typ.template)
+  ?:  &(?=(~ vars.template) ?=(%union -.body))
+    ?:(=(`origin origin.body) `name.i.molds $(molds t.molds))
   $(molds t.molds)
 ::
 ::  A prelude union alias is a display name, not a new union identity.  An
@@ -9941,12 +10017,13 @@
   ^-  (unit term)
   ?~  molds  ~
   =/  template=ischeme  template.i.molds
-  ?.  ?=(%union -.typ.template)  $(molds t.molds)
-  ?.  =(`origin origin.typ.template)  $(molds t.molds)
+  =/  body=itype  (itype-display-body typ.template)
+  ?.  ?=(%union -.body)  $(molds t.molds)
+  ?.  =(`origin origin.body)  $(molds t.molds)
   ?~  vars.template
     ?^  args  $(molds t.molds)
-    ?:(=(args args.typ.template) `name.i.molds $(molds t.molds))
-  ?:  &((identity-union-parameters vars.template args.typ.template) =((lent vars.template) (lent args)))
+    ?:(=(args args.body) `name.i.molds $(molds t.molds))
+  ?:  &((identity-union-parameters vars.template args.body) =((lent vars.template) (lent args)))
     `name.i.molds
   $(molds t.molds)
 ::
@@ -9958,14 +10035,26 @@
   ^-  (unit term)
   ?~  molds  ~
   =/  template=ischeme  template.i.molds
-  ?.  ?=(%mrec -.typ.template)  $(molds t.molds)
-  ?.  &(=(at.typ.template origin) =(site.typ.template site) =(name.typ.template name) (rg-graphs-agree [at.typ.template site.typ.template name.typ.template] graph.typ.template graph))  $(molds t.molds)
-  ?.  &((identity-union-parameters vars.template args.typ.template) =((lent vars.template) (lent args)))  $(molds t.molds)
+  =/  body=itype  (itype-display-body typ.template)
+  ?.  ?=(%mrec -.body)  $(molds t.molds)
+  ?.  &(=(at.body origin) =(site.body site) =(name.body name) (rg-graphs-agree [at.body site.body name.body] graph.body graph))  $(molds t.molds)
+  ?.  &((identity-union-parameters vars.template args.body) =((lent vars.template) (lent args)))  $(molds t.molds)
   `name.i.molds
 ++  itype-in-import
   |=  [t=itype iface=ifile face=term prelude=(unit ifile)]
   ^-  itype
   ?-  -.t
+    %named
+      =/  label=(unit @t)
+        ?~  origin.t  ~
+        ?:  =(at.u.origin.t at.iface)
+          ?.  ?=(^ (find-jibb-mold name.u.origin.t iface))  ~
+          `(crip "{(trip name.u.origin.t)}.{(trip face)}")
+        ?~  prelude  ~
+        ?.  =(at.u.origin.t at.u.prelude)  ~
+        ?.  ?=(^ (find-jibb-mold name.u.origin.t u.prelude))  ~
+        `name.u.origin.t
+      t(label label, body $(t body.t), args (turn args.t |=(c=itype ^$(t c))))
     %opaque  t(body $(t body.t), args (turn args.t |=(c=itype ^$(t c))))
     %refined  t(proof $(t proof.t))
     %union
@@ -9995,9 +10084,35 @@
     *      t
   ==
 ::
+++  resolved-mold-reference
+  |=  [typ=itype origin=(unit [at=path name=term]) label=@t args=(list itype)]
+  ^-  itype
+  ::  Existing nominal nodes already carry their semantic arguments. Reuse
+  ::  their display label only when those are exactly the printed arguments;
+  ::  otherwise the transparent view retains both lists independently.
+  ?:  ?=(%union -.typ)
+    ?:(=(args args.typ) typ(label `label) [%named origin `label args typ])
+  ?:  ?=(%mrec -.typ)
+    ?:(=(args args.typ) typ(label `label) [%named origin `label args typ])
+  ?:  ?=(%opaque -.typ)
+    ?:(=(args args.typ) typ(label `label) [%named origin `label args typ])
+  ?:  ?=(%recursive -.typ)
+    ?~(args typ(label `label) [%named origin `label args typ])
+  ?:  ?=(%collection -.typ)
+    ?:  &(=(label name.typ) =(args args.typ))  typ
+    [%named origin `label args typ]
+  [%named origin `label args typ]
+::
+++  local-mold-reference
+  |=  [typ=itype name=term args=(list itype) state=istate]
+  ^-  itype
+  ?.  (lien top-molds.state |=(n=term =(n name)))  typ
+  (resolved-mold-reference typ `[at.state name] name args)
+::
 ++  label-direct-union
   |=  [typ=itype body=shape name=term state=istate]
   ^-  itype
+  ?:  ?=(%named -.typ)  typ(body $(typ body.typ))
   ?.  ?=(%union -.typ)  typ
   =/  direct=?  ?=(%union -.body)
   =?  direct  ?=(%generic -.body)  ?=(%union -.body.body)
@@ -10146,14 +10261,21 @@
     =/  used=(list @ud)  (itype-vars typ.u.out)
     =/  captured=(list @ud)  (unique-type-vars (zing (turn params.state |=(p=[name=@t typ=itype] (itype-vars typ.p)))))
     ?.  (levy used |=(n=@ud (lien (weld vars.fresh captured) |=(p=@ud =(p n)))))  ~
-    `[[(itype-value-root typ.u.out) vars.fresh ~] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
+    =/  typ=itype  (itype-value-root typ.u.out)
+    =/  args=(list itype)  (turn vars.fresh |=(n=@ud `itype`[%var n]))
+    =?  typ  ?=([@ ~] active.state)
+      (local-mold-reference typ i.active.state args state)
+    `[[typ vars.fresh ~] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
   =/  out=(unit [typ=itype state=istate])
     (infer-simple-shape sh state(in-mold &))
   ?~  out  ~
   ?^  (unresolved-hole holes.state.u.out holes.state state.u.out)  ~
   =/  captured=(list @ud)  (unique-type-vars (zing (turn params.state |=(p=[name=@t typ=itype] (itype-vars typ.p)))))
   ?.  (levy (itype-vars typ.u.out) |=(n=@ud (lien captured |=(p=@ud =(p n)))))  ~
-  `[[(itype-value-root typ.u.out) ~ ~] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
+  =/  typ=itype  (itype-value-root typ.u.out)
+  =?  typ  ?=([@ ~] active.state)
+    (local-mold-reference typ i.active.state ~ state)
+  `[[typ ~ ~] state.u.out(params params.state, in-mold in-mold.state, holes holes.state)]
 ::
 ++  imported-collection-key-reason
   |=  [node=* standard=(unit ischeme)]
@@ -10412,8 +10534,9 @@
   ?~  template  ~
   =/  display=(unit itype)  (scheme-display-type u.template)
   ?~  display  ~
-  ?.  ?=(%collection -.u.display)  ~
-  ?.  ?=(?(%map %set %jar %jug %mop) name.u.display)  ~
+  =/  inspected=itype  (itype-walk u.display ~)
+  ?.  ?=(%collection -.inspected)  ~
+  ?.  ?=(?(%map %set %jar %jug %mop) name.inspected)  ~
   =/  vars=(list @ud)  vars.u.template
   =/  shapes=(list shape)  args.sh
   =/  actual=(list itype)  types
@@ -10429,8 +10552,8 @@
   ?.  |(=(%no verdict.proof) noun)
     $(vars t.vars, shapes t.shapes, actual t.actual)
   =/  message=tape
-    ?.  noun  "{(trip name.u.display)} keys cannot contain gates"
-    "{(trip name.u.display)} keys cannot contain `*`, which a gate or an element may fit"
+    ?.  noun  "{(trip name.inspected)} keys cannot contain gates"
+    "{(trip name.inspected)} keys cannot contain `*`, which a gate or an element may fit"
   =/  direct=(list idsite)  (diagnostic-sample-key-sites sh value state)
   =/  evidence=(list idsite)
     ?.  ?=([* ~] direct)  ~
@@ -10452,6 +10575,7 @@
   ?:  =(0 fuel)  |
   =.  fuel  (dec fuel)
   ?+  -.t  |
+    %named   $(t body.t)
     ?(%noun %refined)  &
     ?(%face %slot)  $(t body.t)
     %cell  |($(t hed.t) $(t tal.t))
@@ -10636,7 +10760,9 @@
           =/  found=(unit ischeme)  (find-jibb-mold n u.iface)
           ?~  found  ~
           ?^  vars.u.found  ~
-          `[(itype-in-import typ.u.found u.iface i.t.names.sh prelude.state) state]
+          =/  typ=itype  (itype-in-import typ.u.found u.iface i.t.names.sh prelude.state)
+          =/  label=@t  (crip "{(trip n)}.{(trip i.t.names.sh)}")
+          `[(resolved-mold-reference typ `[at.u.iface n] label ~) state]
         =/  found=(unit itype)
           (find-imported-mold-prelude i.t.names.sh n externals.state surs.state ?~(prelude.state *ifile u.prelude.state))
         ?~  found  ~
@@ -10645,7 +10771,7 @@
         ?^  (find-simple-mold n molds.state)  ~
         =/  imported=(unit itype)  (find-imported-mark-prelude n mark-externals.state marks.state ?~(prelude.state *ifile u.prelude.state))
         ?~  imported  ~
-        `[u.imported state]
+        `[(resolved-mold-reference u.imported ~ n ~) state]
       ?:  (lien active.state |=(x=term =(x n)))  ~
       =/  found=(unit shape)  (find-simple-mold n molds.state)
       ?~  found
@@ -10654,16 +10780,17 @@
         =/  prelude-entry=(unit ischeme)  (find-jibb-mold n u.prelude.state)
         ?~  prelude-entry  ~
         ?^  vars.u.prelude-entry  ~
-        `[typ.u.prelude-entry state]
+        `[(resolved-mold-reference typ.u.prelude-entry `[at.u.prelude.state n] n ~) state]
       =/  graph-template=(unit [template=ischeme state=istate])  (rg-mold-template n state)
       ?^  graph-template
         ?^  vars.template.u.graph-template  ~
-        `[typ.template.u.graph-template state.u.graph-template]
+        `[(local-mold-reference typ.template.u.graph-template n ~ state.u.graph-template) state.u.graph-template]
       =/  out=(unit [typ=itype state=istate])
         $(sh u.found, state state(active [n active.state], in-mold &, params (local-mold-params n mold-captures.state)))
       ?~  out  ~
       ?^  (unresolved-hole holes.state.u.out holes.state state.u.out)  ~
-      `[(label-direct-union typ.u.out u.found n state) state.u.out(active active.state, in-mold in-mold.state, params params.state, holes holes.state)]
+      =/  typ=itype  (label-direct-union typ.u.out u.found n state)
+      `[(local-mold-reference typ n ~ state) state.u.out(active active.state, in-mold in-mold.state, params params.state, holes holes.state)]
     %apply
       ?~  ref.sh  ~
       =/  args=(unit [types=(list itype) state=istate])  (infer-shape-args args.sh state)
@@ -10692,14 +10819,17 @@
           ?~  template  ~
           =/  applied=(unit [typ=itype sub=isub])  (template-apply-sub u.template types.u.args sub.state.u.args)
           ?~  applied  ~
-          `[typ.u.applied state.u.args(sub sub.u.applied)]
+          =/  label=@t  (crip "{(trip n)}.{(trip i.t.ref.sh)}")
+          `[(resolved-mold-reference typ.u.applied ~ label types.u.args) state.u.args(sub sub.u.applied)]
         =/  template=(unit ischeme)  (find-jibb-mold n u.iface)
         ?~  template  ~
         ?~  vars.u.template  ~
         =/  applied=(unit [typ=itype sub=isub])  (template-apply-sub u.template types.u.args sub.state.u.args)
         ?~  applied  ~
         =.  sub.state.u.args  sub.u.applied
-        `[(itype-in-import typ.u.applied u.iface i.t.ref.sh prelude.state.u.args) state.u.args]
+        =/  typ=itype  (itype-in-import typ.u.applied u.iface i.t.ref.sh prelude.state.u.args)
+        =/  label=@t  (crip "{(trip n)}.{(trip i.t.ref.sh)}")
+        `[(resolved-mold-reference typ `[at.u.iface n] label types.u.args) state.u.args]
       ?:  (lien active.state.u.args |=(x=term =(x n)))  ~
       =/  found=(unit shape)  (find-simple-mold n molds.state.u.args)
       ?~  found
@@ -10711,13 +10841,13 @@
         =/  applied=(unit [typ=itype sub=isub])  (template-apply-sub u.prelude-entry types.u.args sub.state.u.args)
         ?~  applied  ~
         =.  sub.state.u.args  sub.u.applied
-        `[typ.u.applied state.u.args]
+        `[(resolved-mold-reference typ.u.applied `[at.u.prelude.state.u.args n] n types.u.args) state.u.args]
       ?.  ?=(%generic -.u.found)  ~
       =/  graph-template=(unit [template=ischeme state=istate])  (rg-mold-template n state.u.args)
       ?^  graph-template
         =/  applied=(unit [typ=itype sub=isub])  (template-apply-sub template.u.graph-template types.u.args sub.state.u.graph-template)
         ?~  applied  ~
-        `[typ.u.applied state.u.graph-template(sub sub.u.applied)]
+        `[(local-mold-reference typ.u.applied n types.u.args state.u.graph-template) state.u.graph-template(sub sub.u.applied)]
       ?.  (distinct-params vars.u.found)  ~
       =/  params=(unit iparams)  (bind-params vars.u.found types.u.args)
       ?~  params  ~
@@ -10733,7 +10863,8 @@
       ::  the source-qualified seal and payload remain authoritative.
       =?  typ.u.out  ?=(%opaque -.typ.u.out)
         typ.u.out(label `n, args types.u.args)
-      `[typ.u.out state.u.out(active active.state.u.args, in-mold in-mold.state.u.args, params params.state.u.args, holes holes.state.u.args)]
+      =/  typ=itype  (local-mold-reference typ.u.out n types.u.args state.u.args)
+      `[typ state.u.out(active active.state.u.args, in-mold in-mold.state.u.args, params params.state.u.args, holes holes.state.u.args)]
     %tvar
       =/  param=(unit itype)  (iparam-lookup name.sh params.state)
       ?^  param  `[u.param state]
@@ -10775,6 +10906,7 @@
 ++  itype-value-root
   |=  typ=itype
   ^-  itype
+  ?:  ?=(%named -.typ)  typ(body $(typ body.typ))
   ?:  ?=(%slot -.typ)  [%face name.typ body.typ]
   typ
 ::
@@ -12060,7 +12192,7 @@
     [%| (required-standard-list "list literal" at.e state)]
   =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude.state)
   ?~  standard  [%| (required-standard-list "list literal" at.e state)]
-  ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0] ~])
+  ?.  (standard-list-template u.standard)
     [%| (required-standard-list "list literal" at.e state)]
   =/  target=itype  (itype-walk expected sub.state)
   ?.  ?=(%collection -.target)  [%| ["list context is not supported by partial inference" ~]]
@@ -12522,6 +12654,7 @@
   |=  [p=pattern t=itype args=(list itype)]
   ^-  (unit [at=span name=term])
   ?.  ?=(?(%bind %cell) -.p)  ~
+  ?:  ?=(%named -.t)  $(t body.t)
   ?:  ?=(?(%face %slot) -.t)  $(t body.t)
   ?:  (lien args |=(a=itype =(a t)))  ~
   ?:  ?=(%union -.t)
@@ -12547,6 +12680,7 @@
   ^-  (unit [at=span name=term])
   ?~  ps  ~
   ?~  t.ps  (tag-name-pattern i.ps t args)
+  ?:  ?=(%named -.t)  $(t body.t)
   ?:  ?=(?(%face %slot) -.t)  $(t body.t)
   ?:  (lien args |=(a=itype =(a t)))  ~
   ?:  ?=(%union -.t)  (tag-name-pattern [%cell at.i.ps ps] t args)
@@ -12807,6 +12941,7 @@
   ?:  =(0 fuel)  ~
   =.  fuel  (dec fuel)
   ?-  -.t
+    %named   $(t body.t)
     %opaque  `[%noun ~]
     %refined  `[%noun ~]
     ?(%var %fvar)  `[%noun ~]
@@ -13463,6 +13598,7 @@
   |=  t=itype
   ^-  itype
   ?+  -.t  t
+    %named       $(t body.t)
     %slot        [%face name.t $(t body.t)]
     %face        [%face name.t $(t body.t)]
     %cell        [%cell $(t hed.t) $(t tal.t)]
@@ -14046,22 +14182,25 @@
     ?.  ?=(%fn -.target)  ~
     $(e [%lit at.e tag.e], expected product.target)
   =/  literal=lit  literal.u.written
-  =.  expected  (itype-walk expected sub)
+  =.  expected  (itype-display-walk expected sub)
   |-
-  ?:  ?=(?(%face %slot) -.expected)  $(expected (itype-walk body.expected sub))
+  =/  shown=itype  expected
+  =.  expected  (itype-walk expected sub)
+  ?:  ?=(?(%face %slot) -.expected)  $(expected body.expected)
   ?:  &(?=(%collection -.expected) =(%list name.expected) ?=(~ payload.u.written) !=(0 val.literal))
-    `["{(show-itype expected sub)} has no case `{(trip txt.literal)}`" ~[[context (site-type-note "expected list" expected sub)] [at.u.written "tag literal has type {(trip txt.literal)}"]]]
+    `["{(show-itype shown sub)} has no case `{(trip txt.literal)}`" ~[[context (site-type-note "expected list" shown sub)] [at.u.written "tag literal has type {(trip txt.literal)}"]]]
   ?.  ?=(?(%union %cell) -.expected)  ~
   ?:  ?=(%cell -.expected)
     =/  head=itype  (itype-walk hed.expected sub)
     ?.  ?=(%const -.head)  ~
     ?.  !=(val.literal val.literal.head)  ~
-    `["type {(show-itype expected sub)} has no case `{(trip txt.literal)}`" ~[[context (site-type-note "expected case" expected sub)] [at.u.written "tag literal has type {(trip txt.literal)}"]]]
+    `["type {(show-itype shown sub)} has no case `{(trip txt.literal)}`" ~[[context (site-type-note "expected case" shown sub)] [at.u.written "tag literal has type {(trip txt.literal)}"]]]
   ?.  =(%no (tag-presence expected val.literal sub))  ~
   =/  label=tape
-    ?~  label.expected  "union {(show-itype expected sub)}"
-    (show-itype expected sub)
-  `["{label} has no case `{(trip txt.literal)}`" ~[[context (site-type-note "expected union" expected sub)] [at.u.written "tag literal has type {(trip txt.literal)}"]]]
+    ?:  ?=(%named -.shown)  (show-itype shown sub)
+    ?~  label.expected  "union {(show-itype shown sub)}"
+    (show-itype shown sub)
+  `["{label} has no case `{(trip txt.literal)}`" ~[[context (site-type-note "expected union" shown sub)] [at.u.written "tag literal has type {(trip txt.literal)}"]]]
 ::
 ::  Locate a missing tag inside a syntactic tuple only by replaying the
 ::  directional fit in source order. Uncertain or earlier failures stop
@@ -14503,7 +14642,7 @@
         [%| (required-standard-list "list literal" at.e state)]
       =/  standard=(unit ischeme)  (find-jibb-mold %list u.prelude.state)
       ?~  standard  [%| (required-standard-list "list literal" at.e state)]
-      ?.  =(u.standard [[%collection %list ~[[%var 0]]] ~[0] ~])
+      ?.  (standard-list-template u.standard)
         [%| (required-standard-list "list literal" at.e state)]
       =/  element=itype  [%var next.state]
       =/  result=iresult  (infer-open-list-items items.e element env state(next +(next.state)) at.e ~ ~)
@@ -14521,7 +14660,7 @@
       ?.  =(at.u.prelude.state /lib/jibb/prelude/jibb)  [%| missing]
       =/  standard=(unit ischeme)  (find-jibb-mold %path u.prelude.state)
       ?~  standard  [%| missing]
-      ?.  =(u.standard [[%collection %list ~[[%atom %ta]]] ~ ~])
+      ?.  &(?=(~ graph.u.standard) ?=(~ vars.u.standard) =((itype-slots-as-faces typ.u.standard) [%collection %list ~[[%atom %ta]]]))
         [%| missing]
       [%& typ.u.standard state]
     %qath
@@ -15387,7 +15526,7 @@
   =/  project=(unit iwidth-result)  (width-project u.shape sub.state.p.value next.state.p.value)
   ?~  project  [%| ["proj constraint needs unsupported inference" ~]]
   =/  st=istate  state.p.value(sub sub.u.project, next next.u.project)
-  [%& expected st(projections [[at.e e typ.p.value expected steps.u.project ~] projections.st])]
+  [%& expected st(projections [[at.e e (itype-erase-display typ.p.value) (itype-erase-display expected) steps.u.project ~] projections.st])]
 ::
 ::  A known literal singleton in a direct union can contextualize a
 ::  loobean literal of the same noun. Only explicit singleton and cell
@@ -15622,6 +15761,7 @@
 ++  projection-field-target
   |=  expected=itype
   ^-  itype
+  ?:  ?=(%named -.expected)  $(expected body.expected)
   ?:(?=(?(%face %slot) -.expected) body.expected expected)
 ::
 ::  Only the outer positional slot is omitted when a field expression
@@ -15629,6 +15769,7 @@
 ++  sample-slot-target
   |=  expected=itype
   ^-  itype
+  ?:  ?=(%named -.expected)  $(expected body.expected)
   ?:(?=(%slot -.expected) body.expected expected)
 ::
 ++  infer-call-context-items
@@ -15694,8 +15835,12 @@
 ++  show-itype
   |=  [t=itype sub=isub]
   ^-  tape
-  =.  t  (itype-walk t sub)
+  =.  t  (itype-display-walk t sub)
   ?-  -.t
+    %named
+      ?~  label.t  (show-itype body.t sub)
+      ?~  args.t  (trip u.label.t)
+      "({(trip u.label.t)} {(show-itype-cases args.t sub)})"
     %opaque  ?~(label.t "opaque type" ?~(args.t (trip u.label.t) "({(trip u.label.t)} {(show-itype-cases args.t sub)})"))
     %refined  "*"
     %var    (show-var id.t)
@@ -15723,8 +15868,20 @@
     %collection  "({(trip name.t)} {(show-itype-cases args.t sub)})"
     ?(%face %slot)  "[{(trip name.t)}={(show-itype-context body.t sub)}]"
     %fn    "$-({(show-itype-context sample.t sub)} {(show-itype-context product.t sub)})"
-    %cell  "[{(show-itype-item hed.t sub)} {(show-itype-item tal.t sub)}]"
+    %cell  "[{(show-itype-cell-items t sub)}]"
   ==
+::
+::  Only an unfaced cell in the tail supplies more printed fields. A named
+::  tail, a faced tail and every non-tail cell retain their own brackets.
+++  show-itype-cell-items
+  |=  [t=itype sub=isub]
+  ^-  tape
+  =.  t  (itype-display-walk t sub)
+  ?.  ?=(%cell -.t)  ""
+  =/  head=tape  (show-itype-item hed.t sub)
+  =/  tail=itype  (itype-display-walk tal.t sub)
+  ?:  ?=(%cell -.tail)  "{head} {$(t tail)}"
+  "{head} {(show-itype-item tal.t sub)}"
 ::
 ::  +show-var: a type variable as printed: its name if it has one, else
 ::  a letter for its number, A to Z, then T26, T27 and on
@@ -15740,14 +15897,14 @@
 ++  show-itype-item
   |=  [t=itype sub=isub]
   ^-  tape
-  =.  t  (itype-walk t sub)
+  =.  t  (itype-display-walk t sub)
   ?:  ?=(?(%face %slot) -.t)  "{(trip name.t)}={(show-itype-context body.t sub)}"
   (show-itype-context t sub)
 ::
 ++  show-itype-context
   |=  [t=itype sub=isub]
   ^-  tape
-  =.  t  (itype-walk t sub)
+  =.  t  (itype-display-walk t sub)
   ?:  &(?=(%union -.t) ?=(~ label.t))  "({(show-itype t sub)})"
   (show-itype t sub)
 ::
@@ -15765,6 +15922,7 @@
   |=  typ=itype
   ^-  ?
   ?-  -.typ
+    %named   |($(typ body.typ) (lien args.typ |=(c=itype (itype-has-nvar c))))
     %opaque  |($(typ body.typ) (lien args.typ |=(c=itype (itype-has-nvar c))))
     %refined  $(typ proof.typ)
     %nvar      &
@@ -15855,6 +16013,8 @@
 ++  site-actual-note
   |=  [label=tape actual=itype expected=itype sub=isub next=@ud]
   ^-  tape
+  =/  shown=itype  (itype-display-walk actual sub)
+  ?:  ?=(%named -.shown)  (site-type-note label shown sub)
   (site-type-note label (diagnostic-context-type actual expected sub next) sub)
 ::
 ++  diagnostic-pending-tag
@@ -15863,6 +16023,7 @@
   ?~  todo  ~
   =/  t=itype  i.todo
   ?+  -.t  $(todo t.todo)
+    %named  $(todo [body.t (weld args.t t.todo)])
     %tag
       ?:  constructor.t  `"contains the unresolved constructor `|={(trip txt.literal.t)}`"
       `"contains the unresolved tag `{(trip txt.literal.t)}`"
@@ -15892,6 +16053,7 @@
   ?~  todo  ~
   =/  t=itype  i.todo
   ?+  -.t  $(todo t.todo)
+    %named  $(todo [body.t (weld args.t t.todo)])
     %tag
       ?:  (lien seen |=(n=@ud =(n id.t)))  $(todo t.todo)
       [[id.t literal.t constructor.t] $(todo t.todo, seen [id.t seen])]
@@ -15907,6 +16069,7 @@
   ^-  itype
   ?+  -.t  t
     %tag  [%var id.t]
+    %named   t(body $(t body.t), args (turn args.t diagnostic-tag-variables))
     ?(%face %slot)  t(body $(t body.t))
     %cell  t(hed $(t hed.t), tal $(t tal.t))
     %fn  t(sample $(t sample.t), product $(t product.t))
@@ -16082,6 +16245,7 @@
   |=  [t=itype ids=(map @ud @ud)]
   ^-  itype
   ?-  -.t
+    %named   t(body $(t body.t), args (turn args.t |=(c=itype ^$(t c))))
     %opaque  t(body $(t body.t), args (turn args.t |=(c=itype ^$(t c))))
     %refined  t(proof $(t proof.t))
     %var    t(id (fall (~(get by ids) id.t) id.t))
@@ -16351,6 +16515,7 @@
   |=  [n=@ud t=itype]
   ^-  ?
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (has-atom-var n c))))
     %opaque  |($(t body.t) (lien args.t |=(c=itype (has-atom-var n c))))
     %refined  $(t proof.t)
     %var       |
@@ -16379,6 +16544,7 @@
   |=  [n=@ud t=itype]
   ^-  ?
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (has-number-var n c))))
     %opaque  |($(t body.t) (lien args.t |=(c=itype (has-number-var n c))))
     %refined  $(t proof.t)
     %var       |
@@ -16407,6 +16573,7 @@
   |=  [n=@ud t=itype]
   ^-  ?
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (has-restricted-number-var n c))))
     %opaque  |($(t body.t) (lien args.t |=(c=itype (has-restricted-number-var n c))))
     %refined  $(t proof.t)
     %var       |
@@ -17738,13 +17905,14 @@
 ++  diagnostic-literal-type
   |=  [typ=itype actuals=(map @ud [actual=itype sub=isub]) sub=isub]
   ^-  itype
-  =.  typ  (itype-walk typ sub)
+  =.  typ  (itype-display-walk typ sub)
   =/  stored=(unit [actual=itype sub=isub])
     ?.  ?=(%var -.typ)  ~
     (~(get by actuals) id.typ)
   ?^  stored  $(typ actual.u.stored, sub sub.u.stored)
   ?-  -.typ
     %tag  ?:(constructor.typ typ [%const literal.typ])
+    %named   typ(body $(typ body.typ), args (diagnostic-literal-types args.typ actuals sub))
     %opaque  typ(body $(typ body.typ), args (diagnostic-literal-types args.typ actuals sub))
     %refined  typ(proof $(typ proof.typ))
     ?(%face %slot)  typ(body $(typ body.typ))
@@ -18306,6 +18474,7 @@
     ?~  bound  $(todo t.todo)
     $(todo [u.bound t.todo])
   ?+  -.typ  $(todo t.todo)
+    %named   $(todo [body.typ (weld args.typ t.todo)])
     %opaque  $(todo [body.typ (weld args.typ t.todo)])
     %refined  $(todo [proof.typ t.todo])
     ?(%face %slot)  $(todo [body.typ t.todo])
@@ -18410,6 +18579,7 @@
     ?.  generalized  t
     (itype-preserve-roots walked sub quantified)
   ?-  -.t
+    %named   t(body (itype-preserve-roots body.t sub quantified), args (turn args.t |=(c=itype (itype-preserve-roots c sub quantified))))
     %opaque  t(body (itype-preserve-roots body.t sub quantified), args (turn args.t |=(c=itype (itype-preserve-roots c sub quantified))))
     %refined  t(proof (itype-preserve-roots proof.t sub quantified))
     ?(%face %slot)  t(body (itype-preserve-roots body.t sub quantified))
@@ -22599,6 +22769,9 @@
   |=  typ=itype
   ^-  itype
   ?-  -.typ
+    %named
+      =/  label=(unit @t)  ?~(label.typ ~ (prelude-public-label u.label.typ))
+      typ(label label, body $(typ body.typ), args (turn args.typ |=(c=itype (prelude-label-nested c))))
     %union
       =/  label=(unit @t)  ?~(label.typ ~ (prelude-public-label u.label.typ))
       [%union (turn cases.typ |=(c=itype (prelude-label-nested c))) origin.typ label (turn args.typ |=(c=itype (prelude-label-nested c)))]
@@ -22616,6 +22789,7 @@
   |=  [typ=itype name=term vars=(list @ud)]
   ^-  itype
   =.  typ  (prelude-label-nested typ)
+  ?:  ?=(%named -.typ)  typ(body $(typ body.typ))
   ?:  ?=(%opaque -.typ)
     typ(label `name, args (turn vars |=(v=@ud [%var v])))
   ?:  ?=(%mrec -.typ)
@@ -24414,7 +24588,7 @@
   ?~  path  ~
   ?^  vars.u.path  ~
   =/  path-type=itype  [%collection %list ~[[%atom %ta]]]
-  ?.  =(typ.u.path path-type)  ~
+  ?.  =((itype-slots-as-faces typ.u.path) path-type)  ~
   =/  unit-template=(unit ischeme)  (find-jibb-mold %unit public)
   ?~  unit-template  ~
   ?.  (standard-unit-template u.unit-template /lib/jibb/prelude/jibb)  ~
@@ -24941,6 +25115,7 @@
   ^-  (unit itype)
   ?:  |(=(0 fuel) =(0 axis))  ~
   ?:  =(1 axis)  `typ
+  ?:  ?=(%named -.typ)  $(typ body.typ, fuel (dec fuel))
   ?:  ?=(?(%face %slot) -.typ)  $(typ body.typ, fuel (dec fuel))
   ?.  ?=(%cell -.typ)  ~
   $(typ ?:(=(2 (cap axis)) hed.typ tal.typ), axis (mas axis), fuel (dec fuel))
@@ -24948,6 +25123,7 @@
   |=  [typ=itype name=term axis=@ud fuel=@ud]
   ^-  (list @ud)
   ?:  =(0 fuel)  ~
+  ?:  ?=(%named -.typ)  $(typ body.typ, fuel (dec fuel))
   ?:  ?=(?(%face %slot) -.typ)
     ?:(=(name name.typ) ~[axis] ~)
   ?.  ?=(%cell -.typ)  ~
@@ -25743,7 +25919,8 @@
   ::  An unconstrained generic is not evidence of an element value.
   =/  visible=(unit itype)  (scheme-display-type u.main)
   ?~  visible  ~
-  ?.  ?=(%opaque -.u.visible)  ~
+  =/  visible-type=itype  (itype-walk u.visible ~)
+  ?.  ?=(%opaque -.visible-type)  ~
   =/  canonical=(unit itype)  (template-apply u.element ~[[%empty ~]])
   ?~  canonical  ~
   =/  checked-instance=(unit [typ=itype state=istate])  (instantiate-scheme u.main *istate)
@@ -25751,13 +25928,14 @@
   =/  instance=[typ=itype state=istate]  u.checked-instance
   =/  fit=ifit  (itype-fit typ.instance u.canonical ~ next.state.instance)
   ?.  ?=(%ok -.fit)  ~
-  =/  closed=itype  (itype-normalize typ.instance sub.fit)
+  =/  closed=itype  (itype-walk (itype-normalize typ.instance sub.fit) ~)
+  =/  canonical-type=itype  (itype-walk u.canonical ~)
   ?^  (itype-vars closed)  ~
   ?:  (itype-has-tag closed)  ~
   ?.  ?=(%opaque -.closed)  ~
-  ?.  ?=(%opaque -.u.canonical)  ~
-  ?.  &(=(origin.closed origin.u.canonical) =(args.closed args.u.canonical))  ~
-  =/  exact=ifit  (direct-invariant closed u.canonical ~ next.fit)
+  ?.  ?=(%opaque -.canonical-type)  ~
+  ?.  &(=(origin.closed origin.canonical-type) =(args.closed args.canonical-type))  ~
+  =/  exact=ifit  (direct-invariant closed canonical-type ~ next.fit)
   ?.  ?=(%ok -.exact)  ~
   `[u.canonical ~ ~]
 ::
@@ -25813,11 +25991,13 @@
 ++  route-unface
   |=  typ=itype
   ^-  itype
+  ?:  ?=(%named -.typ)  $(typ body.typ)
   ?:  ?=(?(%face %slot) -.typ)  $(typ body.typ)
   typ
 ++  route-sample-fields
   |=  typ=itype
   ^-  (unit (list [name=term typ=itype]))
+  ?:  ?=(%named -.typ)  $(typ body.typ)
   ?:  ?=(?(%face %slot) -.typ)  `~[[name.typ body.typ]]
   ?.  ?=(%cell -.typ)  ~
   ?.  ?=(?(%face %slot) -.hed.typ)  ~
@@ -26071,6 +26251,7 @@
 ++  store-value-parts
   |=  value=itype
   ^-  (unit [init=itype update=itype])
+  =.  value  (itype-walk value ~)
   ?.  ?=(%cell -.value)  ~
   =/  initial=itype  hed.value
   =/  updater=itype  tal.value
@@ -26081,6 +26262,7 @@
     ?:  &(?=(%face -.initial) =(%init name.initial))  body.initial
     initial
   =?  updater  ?=(?(%face %slot) -.updater)  body.updater
+  =.  updater  (itype-walk updater ~)
   ::  A cell here is a longer record spine, not the update position.
   ?.  ?=(?(%fn %refined %noun) -.updater)  ~
   `[initial updater]
@@ -27428,6 +27610,7 @@
       $(todo t.todo, ids [node-id ids])
     $(todo [u.found t.todo])
   ?+  -.t  ~
+    %named   $(todo [body.t (weld args.t t.todo)])
     %opaque  $(todo [body.t (weld args.t t.todo)])
     %refined  $(todo [proof.t t.todo])
     %mrec  $(todo (weld args.t t.todo))
@@ -27482,6 +27665,7 @@
   |=  [t=itype top=@ud]
   ^-  @ud
   ?-  -.t
+    %named   (itype-max-ids args.t (itype-max-id body.t top))
     %opaque  (itype-max-ids args.t (itype-max-id body.t top))
     %refined  $(t proof.t)
     %var          (max top (var-count id.t))
@@ -27576,7 +27760,8 @@
   =/  dynamic=?  ?~(page | (main-matches-template u.main u.page))
   ::  A bare generic is not itself an element; otherwise specialization
   ::  would assign an arbitrary polymorphic main to the static-page kind.
-  =/  static=?  &(?=(%opaque -.u.resolved) ?=(^ (static-main-specialized values.iface prelude)))
+  =/  main-type=itype  (itype-walk u.resolved ~)
+  =/  static=?  &(?=(%opaque -.main-type) ?=(^ (static-main-specialized values.iface prelude)))
   =/  storage=?  ?~(store | (main-matches-store-template u.main u.store))
   =/  found=(list checked-kind)  ~
   =?  found  island  [%island found]
@@ -27693,7 +27878,7 @@
   =/  sc=ischeme  template.i.aliases
   =/  display=(unit itype)  (scheme-display-type sc)
   ?~  display  $(aliases t.aliases)
-  =/  template=itype  u.display
+  =/  template=itype  (itype-display-body u.display)
   ?.  ?=(%union -.template)  $(aliases t.aliases)
   ?.  =(origin.typ origin.template)  $(aliases t.aliases)
   ?:  &(identity !(identity-union-parameters vars.sc args.template))
@@ -27707,6 +27892,8 @@
   |=  [typ=itype aliases=report-aliases]
   ^-  itype
   ?+  -.typ  typ
+    %named
+      typ(body $(typ body.typ), args (turn args.typ |=(t=itype (report-itype t aliases))))
     %union
       =/  preferred=(unit [name=@t args=(list itype)])
         ?~  label.typ  ~
@@ -27766,7 +27953,9 @@
     ?:  (lien paths |=(p=path =(p u.origin)))  paths
     [u.origin paths]
   =/  more=(list itype)
-    ?+  -.typ  ~
+  ?+  -.typ  ~
+      %named  ?:  ?=(^ label.typ)  args.typ
+              (weld args.typ ~[body.typ])
       %union  ?:  |(?=(^ label.typ) external)  args.typ
               (weld args.typ cases.typ)
       %mrec  args.typ
@@ -27792,6 +27981,8 @@
   =?  found  keep  [typ found]
   =/  more=(list itype)
     ?+  -.typ  ~
+      %named  ?:  ?=(^ label.typ)  args.typ
+              [body.typ args.typ]
       %union  (weld args.typ cases.typ)
       %mrec  args.typ
       %collection  args.typ
@@ -27852,7 +28043,7 @@
   =/  sc=ischeme  template.i.aliases
   =/  display=(unit itype)  (scheme-display-type sc)
   ?~  display  $(aliases t.aliases)
-  =/  template=itype  u.display
+  =/  template=itype  (itype-display-body u.display)
   ?:  &(?=(%mrec -.typ) ?=(%mrec -.template))
     ?.  &(=(at.typ at.template) =(site.typ site.template) =(name.typ name.template) (rg-graphs-agree [at.typ site.typ name.typ] graph.typ graph.template))  $(aliases t.aliases)
     =/  ren=(unit isub)  (report-match-list args.template args.typ vars.sc ~)
@@ -27914,6 +28105,9 @@
   |=  t=itype
   ^-  (unit tape)
   ?+  -.t  ~
+    %named
+      ?:  ?=(^ label.t)  (full-report-hidden-list args.t)
+      (full-report-hidden-list [body.t args.t])
     %recursive  ?~(label.t `"recursive mold name is not available in this scope" ~)
     %mrec
       ?~  label.t  `"recursive mold name is not available in this scope"

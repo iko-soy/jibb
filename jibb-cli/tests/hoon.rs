@@ -112,3 +112,37 @@ fn mark_molds_and_values_can_share_a_name() {
     let span = error.span.expect("mark conflict has a span");
     assert_eq!(&source[span.start..span.end], "/% %foo");
 }
+
+#[test]
+fn displays_imported_mold_names() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let root = directory.path();
+    fs::create_dir(root.join("sur")).unwrap();
+    fs::write(
+        root.join("sur/todo.hoon"),
+        "|%\n+$  item  [title=@t]\n+$  choice  $?(%yes %no)\n--\n",
+    )
+    .unwrap();
+    let main = root.join("main.jibb");
+    fs::write(
+        &main,
+        "/- todo\n+$ local item.todo\n++ copy |= value=item.todo value\n++ alias |= value=local value\n",
+    )
+    .unwrap();
+    let checked = check_path(&main, &[root.to_path_buf()], None).expect("imported mold names");
+    assert_eq!(
+        checked.values["copy"].to_string(),
+        "$-(item.todo item.todo)"
+    );
+    assert_eq!(checked.values["alias"].to_string(), "$-(local local)");
+
+    let source = "/- todo\n++ bad ^- choice.todo %other\n";
+    fs::write(&main, source).unwrap();
+    let error = check_path(&main, &[root.to_path_buf()], None).unwrap_err();
+    assert_eq!(
+        error.message,
+        "type mismatch: expected choice.todo, found %other"
+    );
+    let span = error.span.expect("mismatched term has a span");
+    assert_eq!(&source[span.start..span.end], "%other");
+}

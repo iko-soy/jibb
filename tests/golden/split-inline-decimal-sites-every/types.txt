@@ -2,6 +2,6 @@
 /tests/golden/split-inline-decimal-sites-every/source.jibb:18:40: decimal
 ++ every ^- (list (sub msg)) ~[[%every 1 |=%tick]]
                                        ^
-/tests/golden/split-inline-decimal-sites-every/source.jibb:18:13: expected type has type [%every [gap=@dr reply=$-(@da msg)]]
+/tests/golden/split-inline-decimal-sites-every/source.jibb:18:13: expected type has type [%every gap=@dr reply=$-(@da msg)]
 ++ every ^- (list (sub msg)) ~[[%every 1 |=%tick]]
             ^

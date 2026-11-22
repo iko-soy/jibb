@@ -1,13 +1,13 @@
 module kind: library
 +$ msg: msg
-+$ record: [u=(unit msg) xs=(list (unit @t))]
++$ record: record
 ++ valid: (unit msg)
 ++ str: (unit @t)
 ++ nest: (unit (unit @t))
 ++ lis: (unit (list @t))
 ++ accept: $-((unit msg) (unit msg))
 ++ call: (unit msg)
-++ field-value: [u=(unit msg) xs=(list (unit @t))]
+++ field-value: record
 ++ preserve: $-(A (unit A))
 ++ known-left: $-(msg [a=msg])
 ++ contextual: $-(A [a=A b=(unit A)])

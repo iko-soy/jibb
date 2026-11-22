@@ -15,8 +15,8 @@
   =/  report=@t
     (golden-types-with-prepared-prelude:jibb /ui/client/jibb source ~ ~ ~[[/ui/dep/jibb dependency]] prepared)
   =/  want=@t
-    'module kind: library\0a++ direct: $-((forward A B) (forward A B))\0a++ concrete: $-((forward @t @p) (forward @t @p))\0a++ imported: $-((forward A B) (forward A B))\0a++ choice-imported: $-(choice choice)\0a++ swapped: $-((forward B A) (forward B A))\0a++ fixed-alias: $-((forward A @t) (forward A @t))\0a++ phantom-alias: $-((forward A @t) (forward A @t))\0a++ repeat-alias: $-((forward A A) (forward A A))'
-  ?.  =(report want)  ~["generic alias source or import report changed"]
+    'module kind: library\0a++ direct: $-((forward A B) (forward A B))\0a++ concrete: $-((forward @t @p) (forward @t @p))\0a++ imported: $-((forward A B) (forward A B))\0a++ choice-imported: $-(choice choice)\0a++ swapped: $-((reverse A B) (reverse A B))\0a++ fixed-alias: $-((fixed A) (fixed A))\0a++ phantom-alias: $-((phantom A B) (phantom A B))\0a++ repeat-alias: $-((repeated A) (repeated A))'
+  ?.  =(report want)  ~[(weld "generic alias source or import report changed: " (trip report))]
   =/  orig=[at=path name=term]  [/lib/jibb/internal/jibb %union-source]
   =/  args=(list itype:jibb)  ~[[%atom %t] [%atom %p]]
   =/  aliases=imold-types:jibb  molds.iface.u.prepared
@@ -41,6 +41,26 @@
     (golden-types-with-prepared-prelude:jibb /ui/client/jibb fixed-source ~ ~ ~[[/ui/dep/jibb fixed-dep]] fixed-prepared)
   ?.  =(fixed-report 'module kind: library\0a++ exposed: $-(specialized specialized)')
     ~["fixed specialization import did not print its public mold name"]
+  ~
+++  test-structural-generic-alias
+  ^-  tang
+  =/  internal=@t  '+$ pair |$ [A B] [first=A second=B]\0a'
+  =/  public=@t
+    '/= internal /lib/jibb/internal\0a+$ forward |$ [A B] (pair.internal A B)\0a+$ reverse |$ [A B] (pair.internal B A)\0a+$ fixed |$ [A] (pair.internal A @t)\0a+$ phantom |$ [A B] [value=A]\0a+$ repeated |$ [A] (pair.internal A A)\0a'
+  =/  prepared=(unit iprelude:jibb)  (prepare-prelude-with-internal:jibb public internal)
+  ?~  prepared  ~[leaf+"structural prelude did not prepare"]
+  =/  dependency=@t
+    '++ identity |= x=(forward A B) x\0a++ swapped |= x=(reverse A B) x\0a++ fixed-id |= x=(fixed A) x\0a++ phantom-id |= x=(phantom A B) x\0a++ repeated-id |= x=(repeated A) x\0a'
+  =/  source=@t
+    '/= dep /ui/dep\0a++ direct |= x=(forward A B) x\0a++ imported identity.dep\0a++ swapped swapped.dep\0a++ fixed fixed-id.dep\0a++ phantom phantom-id.dep\0a++ repeated repeated-id.dep\0a'
+  =/  report=@t
+    (golden-types-with-prepared-prelude:jibb /ui/client/jibb source ~ ~ ~[[/ui/dep/jibb dependency]] prepared)
+  =/  want=@t
+    'module kind: library\0a++ direct: $-((forward A B) (forward A B))\0a++ imported: $-((forward A B) (forward A B))\0a++ swapped: $-((reverse A B) (reverse A B))\0a++ fixed: $-((fixed A) (fixed A))\0a++ phantom: $-((phantom A B) (phantom A B))\0a++ repeated: $-((repeated A) (repeated A))'
+  ?.  =(report want)  ~[leaf+"structural generic alias report changed" leaf+(trip report)]
+  =/  raw=itype:jibb  [%cell [%slot %first [%atom %t]] [%slot %second [%atom %p]]]
+  =/  shown=itype:jibb  (report-itype:jibb raw (report-mold-aliases:jibb molds.iface.u.prepared ~))
+  ?.  =(shown raw)  ~[leaf+"a same-shaped structural value acquired a mold name"]
   ~
 ++  test-generic-alias
   ^-  tang

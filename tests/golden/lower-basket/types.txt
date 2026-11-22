@@ -1,8 +1,8 @@
 module kind: island
-++ main: [init=$-(~ [cart=[items=(list @t) open=?] note=@t]) [update=$-([msg [cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))]) [view=$-([cart=[items=(list @t) open=?] note=@t] (element msg)) subs=$-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))]]]
-+$ model: [cart=[items=(list @t) open=?] note=@t]
+++ main: (program ~ [cart=[items=(list @t) open=?] note=@t] msg)
++$ model: model
 +$ msg: msg
 ++ init: $-(~ [cart=[items=(list @t) open=?] note=@t])
-++ update: $-([msg=msg m=[cart=[items=(list @t) open=?] note=@t]] [[cart=[items=(list @t) open=?] note=@t] (list (cmd msg))])
-++ subs: $-([cart=[items=(list @t) open=?] note=@t] (list (sub msg)))
-++ view: $-([cart=[items=(list @t) open=?] note=@t] (element msg))
+++ update: $-([msg=msg m=model] [model (list (cmd msg))])
+++ subs: $-(model (list (sub msg)))
+++ view: $-(model (element msg))

@@ -8,7 +8,7 @@ use crate::{
     infer::Unifier,
     types::{
         Aura, ConstraintKind, PathSegmentType, QuantifiedVariable, Type, TypeField, TypeScheme,
-        TypeVar, spread_cell_fields,
+        TypeVar, display_mold_name, spread_cell_fields,
     },
 };
 use num_bigint::BigUint;
@@ -389,7 +389,10 @@ impl<'a> Checker<'a> {
             MoldKind::Reference(names) => {
                 let name = self.local_mold_name(names, mold.span)?;
                 let Some((definition, _)) = self.mold_definition(name) else {
-                    return Err(Diagnostic::at(format!("unknown mold `{name}`"), mold.span));
+                    return Err(Diagnostic::at(
+                        format!("unknown mold `{}`", display_mold_name(name)),
+                        mold.span,
+                    ));
                 };
                 let arity = definition
                     .generic
@@ -397,7 +400,10 @@ impl<'a> Checker<'a> {
                     .map_or(0, |generic| generic.variables.len());
                 if arity != 0 {
                     return Err(Diagnostic::at(
-                        format!("generic mold `{name}` expects {arity} arguments"),
+                        format!(
+                            "generic mold `{}` expects {arity} arguments",
+                            display_mold_name(name)
+                        ),
                         mold.span,
                     ));
                 }
@@ -413,7 +419,10 @@ impl<'a> Checker<'a> {
             } => {
                 let name = self.local_mold_name(constructor, mold.span)?;
                 let Some((definition, _)) = self.mold_definition(name) else {
-                    return Err(Diagnostic::at(format!("unknown mold `{name}`"), mold.span));
+                    return Err(Diagnostic::at(
+                        format!("unknown mold `{}`", display_mold_name(name)),
+                        mold.span,
+                    ));
                 };
                 let expected = definition
                     .generic
@@ -422,7 +431,8 @@ impl<'a> Checker<'a> {
                 if arguments.len() != expected {
                     return Err(Diagnostic::at(
                         format!(
-                            "mold `{name}` expects {expected} arguments, found {}",
+                            "mold `{}` expects {expected} arguments, found {}",
+                            display_mold_name(name),
                             arguments.len()
                         ),
                         mold.span,
@@ -575,7 +585,10 @@ impl<'a> Checker<'a> {
                 let mut visiting = HashSet::new();
                 if self.may_overlap(&a.typ, &b.typ, &mut visiting) {
                     return Err(Diagnostic::at(
-                        format!("union `{}` has overlapping cases", mold.name),
+                        format!(
+                            "union `{}` has overlapping cases",
+                            display_mold_name(&mold.name)
+                        ),
                         b.span,
                     )
                     .with_note("earlier overlapping case", a.span));

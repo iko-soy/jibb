@@ -1,5 +1,5 @@
 ++ bad: cast mold and expression type do not unify
-/tests/golden/types-union-constructor-shape/source.jibb:5:11: cast mold has type $-(@t [text=@t tag=%typed])
+/tests/golden/types-union-constructor-shape/source.jibb:5:11: cast mold has type $-(@t reversed)
 ++ bad ^- $-(@t reversed) |=%typed
           ^
 /tests/golden/types-union-constructor-shape/source.jibb:5:27: expression has type A; A remains unresolved for constructor `|=%typed`

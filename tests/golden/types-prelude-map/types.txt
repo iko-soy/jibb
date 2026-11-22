@@ -1,3 +1,4 @@
-module kind: library
-++ identity: $-((map @t @p) (map @t @p))
-++ generic: $-((map A @t) (map A @t)) where A contains no gates
+++ generic: definition result type remains unresolved; add a `^-`
+/tests/golden/types-prelude-map/source.jibb:2:21: gate sample mold
+++ generic |= value=(map A @t) value
+                    ^

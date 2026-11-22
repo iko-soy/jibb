@@ -92,13 +92,15 @@
   ?:  (program-type-closed:jibb open-values `iface.u.prepared)
     ~["generic main scheme passed the closure check"]
   =/  model=itype:jibb  [%face %count [%atom %ud]]
-  ?.  =(u.init [[%fn [%atom %t] model] ~ ~])  ~["init interface type differs"]
+  =/  expected-init=itype:jibb  [%fn [%atom %t] model]
+  ?.  =((itype-slots-as-faces:jibb typ.u.init) expected-init)  ~["init interface type differs"]
+  ?.  =("$-(@t model)" (show-itype:jibb typ.u.init ~))  ~["init interface lost its model name"]
   ?.  ?=(~ vars.u.main)  ~["main interface is not closed"]
   =/  init-fields=(list itype:jibb)  (record-fields-named:jibb %init typ.u.main ~)
   =/  update-fields=(list itype:jibb)  (record-fields-named:jibb %update typ.u.main ~)
   =/  view-fields=(list itype:jibb)  (record-fields-named:jibb %view typ.u.main ~)
   =/  subs-fields=(list itype:jibb)  (record-fields-named:jibb %subs typ.u.main ~)
-  ?.  =(init-fields ~[typ.u.init])  ~["main initializer field differs"]
+  ?.  =((turn init-fields |=(t=itype:jibb (itype-slots-as-faces:jibb t))) ~[(itype-slots-as-faces:jibb typ.u.init)])  ~["main initializer field differs"]
   ?.  &(=(1 (lent update-fields)) =(1 (lent view-fields)) =(1 (lent subs-fields)))
     ~["main component fields differ"]
   ?~  source.checked  ~["program source evidence is missing"]
@@ -109,7 +111,8 @@
   ?:  ?=(%| -.imported)  ~[(weld "ordinary downstream program import was rejected: " (trip message.p.imported))]
   =/  use=(unit ischeme:jibb)  (ienv-lookup:jibb %imported values.iface.p.imported)
   ?~  use  ~["downstream imported initializer is missing"]
-  ?.  =(u.use u.init)  ~["downstream imported initializer type differs"]
+  ?.  &(=(vars.u.use vars.u.init) =((itype-slots-as-faces:jibb typ.u.use) (itype-slots-as-faces:jibb typ.u.init)))
+    ~["downstream imported initializer type differs"]
   ?.  =(7 (lent negatives))  ~["focused negative fixture count differs"]
   =/  relocated=jfile-detailed-result:jibb
     (program-main-detailed /ui/stores/program-main/jibb island ~ u.prepared)

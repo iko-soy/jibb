@@ -1,7 +1,7 @@
 ++ bad: call's sample and argument types do not unify
-/tests/golden/types-list-imported/source.jibb:6:29: called gate has type $-((list @t) (list @t))
+/tests/golden/types-list-imported/source.jibb:6:29: called gate has type $-(texts.fixture texts.fixture)
 ++ bad |= xs=ships.fixture (take xs)
                             ^
-/tests/golden/types-list-imported/source.jibb:6:34: argument has type (list @p)
+/tests/golden/types-list-imported/source.jibb:6:34: argument has type ships.fixture
 ++ bad |= xs=ships.fixture (take xs)
                                  ^

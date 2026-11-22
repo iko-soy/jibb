@@ -1,5 +1,5 @@
 ++ wrong: call's sample and argument types do not unify
-/tests/golden/types-prelude-like/source.jibb:7:11: called gate has type $-([f=$-(@p @t) result=[p=[p=@ud q=@ud] q=(unit [p=@p q=[p=[p=@ud q=@ud] q=(list @tD)]])]] [p=[p=@ud q=@ud] q=(unit [p=@t q=[p=[p=@ud q=@ud] q=(list @tD)]])])
+/tests/golden/types-prelude-like/source.jibb:7:11: called gate has type $-([f=$-(@p @t) result=(like @p)] (like @t))
 ++ wrong (like |=(x=@p "no") present)
           ^
 /tests/golden/types-prelude-like/source.jibb:7:30: argument has type @ud

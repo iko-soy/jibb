@@ -20,13 +20,7 @@
   (infer-jibb-file-detailed:jibb at src ~ ~ ~ ~[at] values.prep molds.prep ~ `iface.prep)
 ++  expected-program-main
   ^-  tape
-  ;:  weld
-    "[init=$-((list @t) [xs=(list @t) [draft=@t error=(unit @t)]]) "
-    "[update=$-([message [xs=(list @t) [draft=@t error=(unit @t)]]] "
-    "[[xs=(list @t) [draft=@t error=(unit @t)]] (list (cmd message))]) "
-    "[view=$-([xs=(list @t) [draft=@t error=(unit @t)]] (element message)) "
-    "subs=$-([xs=(list @t) [draft=@t error=(unit @t)]] (list (sub message)))]]]"
-  ==
+  "(program (list @t) [xs=(list @t) draft=@t error=(unit @t)] message)"
 ++  test-program-valid-inference
   ^-  tang
   =/  prep=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
@@ -48,7 +42,7 @@
   =/  generic-main=(unit ischeme:jibb)  (ienv-lookup:jibb %main values.iface.p.generic-result)
   ?~  generic-init  ~[leaf+"inferred init missing"]
   ?~  generic-main  ~[leaf+"inferred main missing"]
-  ?.  =((show-itype:jibb typ.u.generic-init ~) "$-(A [A [@t (unit @t)]])")
+  ?.  =((show-itype:jibb typ.u.generic-init ~) "$-(A [A @t (unit @t)])")
     ~[leaf+"inferred init principal type differs: {(show-itype:jibb typ.u.generic-init ~)}"]
   ?.  ?=([@ ~] vars.u.generic-init)
     ~[leaf+"inferred init did not generalize its input"]

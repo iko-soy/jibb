@@ -1,8 +1,8 @@
 module kind: store
-+$ state: [items=(list @t) open=?]
++$ state: state
 +$ poke: poke
-++ main: [init=[items=(list @t) open=?] update=*]
-++ init: [items=(list @t) open=?]
-++ update: $-([a=poke s=[items=(list @t) open=?]] [items=(list @t) open=?])
-++ state: $-($-([items=(list @t) open=?] A) (ask A)) (generated)
+++ main: [init=state update=*]
+++ init: state
+++ update: $-([a=poke s=state] state)
+++ state: $-($-(state A) (ask A)) (generated)
 ++ poke: $-([poke $-((unit @t) A)] (cmd A)) (generated)

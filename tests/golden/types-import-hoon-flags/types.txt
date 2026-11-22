@@ -1,5 +1,5 @@
 ++ bad-yes: cast mold and expression type do not unify
-/tests/golden/types-import-hoon-flags/source.jibb:9:15: cast mold has type %.y
+/tests/golden/types-import-hoon-flags/source.jibb:9:15: cast mold has type yes.flags
 ++ bad-yes ^- yes.flags %.n
               ^
 /tests/golden/types-import-hoon-flags/source.jibb:9:25: expression has type %.n
