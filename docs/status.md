@@ -180,7 +180,7 @@ Five new namespace goldens and 12 updated useless-arm goldens pass alongside the
 
 `(mop K V)` does not retain its comparator, Hoon's `each` mold keeps its name beside the element gate, and `%jibb` retains `%hoon`'s final-newline-dropping `%txt` round trip. `$%` imports accept `%&`, `%|` and `%0` tags with noun-based overlap checks. Standard `each` and recursive `json` were already authenticated by Hoon source-backed reader paths; native standalone Hoon imports now link canonical `list`, `each` and `json` catalog molds in standard case order, preserving local shadows and cross-import recursive identity.
 
-Focused validation passed seven Hoon importer/mop arms, including exact full-checker overlap diagnostics and disjoint `%&`/`%0` constructors, `each` shadowing and standard/json identity controls. The native suite passed 175 tests with one ignored, and clippy passed. Documentation checks and manifest freshness passed; the corpus remains 1,506 goldens and 748 arms in 285 suites.
+Focused validation passed seven Hoon importer/mop arms, including exact full-checker overlap diagnostics and disjoint `%&`/`%0` constructors, `each` shadowing and standard/json identity controls. The native suite passed 175 tests with one ignored, and clippy passed. Documentation checks and manifest freshness passed; the corpus remains 1,506 goldens and 748 arms in 285 suites. Final `nix flake check -L -j 2 --keep-going` acceptance on `cb3ec66` passed all eval, fresh-ship, desk, native CLI and CLI-corpus groups, including the fake-ship `%jibb` mark checks.
 
 ## Parser and mark
 
