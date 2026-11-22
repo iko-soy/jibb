@@ -223,6 +223,7 @@ impl<'a> Loader<'a> {
         let result = (|| {
             let mut linked = Vec::new();
             let mut primitives_linked = false;
+            let mut hoon_linked = false;
             let mut faces = BTreeSet::new();
             let own_names = module
                 .definitions
@@ -245,6 +246,7 @@ impl<'a> Loader<'a> {
                             ));
                         }
                         let definitions = self.load_hoon_library(name, &key)?;
+                        hoon_linked = true;
                         linked.extend(definitions);
                         for definition in &mut module.definitions {
                             rewrite_definition(definition, name, &BTreeMap::new());
@@ -257,6 +259,7 @@ impl<'a> Loader<'a> {
                                 import.span,
                             ));
                         }
+                        hoon_linked = true;
                         linked.extend(self.load_hoon_mark(mark, &key)?);
                     }
                     ImportKind::Module { name, path } => {
@@ -287,6 +290,9 @@ impl<'a> Loader<'a> {
                         }
                     }
                 }
+            }
+            if hoon_linked {
+                linked.extend(native_hoon_molds());
             }
             for definition in &mut module.definitions {
                 rewrite_definition(definition, "", &BTreeMap::new());
@@ -348,7 +354,8 @@ impl<'a> Loader<'a> {
         })?;
         self.loading.push(path.clone());
         let result = (|| {
-            let module = crate::hoon::read_sur(&source, name, Span::default())?;
+            let mut module = crate::hoon::read_sur(&source, name, Span::default())?;
+            resolve_standard_mold_references(&mut module.definitions);
             let mut definitions = Vec::new();
             for import in &module.imports {
                 definitions.extend(self.load_hoon_library(import, &path)?);
@@ -381,7 +388,8 @@ impl<'a> Loader<'a> {
         })?;
         self.loading.push(path.clone());
         let result = (|| {
-            let module = crate::hoon::read_mark(&source, mark_name, Span::default())?;
+            let mut module = crate::hoon::read_mark(&source, mark_name, Span::default())?;
+            resolve_standard_mold_references(&mut module.definitions);
             let mut definitions = Vec::new();
             for import in &module.imports {
                 definitions.extend(self.load_hoon_library(import, &path)?);
@@ -433,9 +441,38 @@ fn primitive_opaque() -> Vec<Definition> {
 
 fn native_hoon_molds() -> Vec<Definition> {
     native_source(
-        "+$ map |$ [K V] (tree [p=K q=V])\n+$ tree |$ [A]\n  ~\n  [n=A l=(tree A) r=(tree A)]\n+$ step @ud\n",
+        concat!(
+            "+$ map |$ [K V] (tree [p=K q=V])\n",
+            "+$ tree |$ [A]\n  ~\n  [n=A l=(tree A) r=(tree A)]\n",
+            "+$ step @ud\n",
+            "+$ list |$ [A]\n  ~\n  [i=A t=(list A)]\n",
+            "+$ each |$ [A B]\n  [%& p=A]\n  [%| p=B]\n",
+            "+$ json\n",
+            "  ~\n",
+            "  [%a p=(list json)]\n",
+            "  [%b p=?]\n",
+            "  [%n p=@ta]\n",
+            "  [%o p=(map @t json)]\n",
+            "  [%s p=@t]\n",
+        ),
         "hoon",
     )
+}
+
+/// Resolves unqualified Hoon references against the same native standard
+/// catalog that is linked with the import. `read_sur` has already rewritten
+/// local references, so a local mold shadows its standard namesake here.
+fn resolve_standard_mold_references(definitions: &mut [Definition]) {
+    let renames = native_hoon_molds()
+        .into_iter()
+        .filter_map(|definition| {
+            let name = definition.name.strip_prefix("hoon__")?.to_string();
+            Some((name, definition.name))
+        })
+        .collect();
+    for definition in definitions {
+        rewrite_definition_for_hoon(definition, &renames);
+    }
 }
 
 fn native_source(source: &str, face: &str) -> Vec<Definition> {

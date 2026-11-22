@@ -68,9 +68,10 @@ Hoon's runes and literals in an indentation layout, over Hoon's nouns and molds,
 | `$^` | A union if its cases differ as nouns, else an error where used |
 | `$~` | Dropped |
 | `map`, `set`, `qeu`, `jar`, `jug` | The same, by name, checked with `apt` on arrival |
-| `mop` | `(mop K V)`, read with `on` |
+| `mop` | `(mop K V)`, read with `on`; as in Hoon, the comparator is not retained |
 | Other `$\|` | Its base type |
 | `%0`, `%&`, `%\|` | Tags |
+| `each` | The standard `(each A B)` union; its mold name coexists with the element gate `each` |
 | Recursive molds, such as `json` | Recursive, matched by name |
 | Records with duplicate field names; cores, gates, vases, signed and float auras | An error where used |
 
@@ -277,7 +278,7 @@ A module's kind fixes where it runs; nothing infers stages.
 --
 ```
 
-- Text, like `%hoon`: `|commit` never fails on a half-written file, and Clay merges by line.
+- Text, like `%hoon`: `|commit` never fails on a half-written file, Clay merges by line, and a `%txt` round trip drops the final newline as `%hoon` does.
 - Compiled modules are cached by their hash, their imports' hashes, Hoon files included, and the desk's compiler, so a commit recompiles only what changed. Import cycles are errors.
 - Relinking prints each error with its file, line, column and an excerpt.
 - Each app desk vendors `jibb-dev`, as with `base-dev`: compiler, prelude, browser library, and the `%jibb` and static-file marks. It also needs base-dev's `txt`, `txt-diff`, `js`, `bill` and `kelvin` marks, docket's `docket-0`, and a `sys.kelvin`. The `%jibb` desk holds only the shared host and its threads.

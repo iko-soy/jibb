@@ -176,6 +176,12 @@ A `?-` arm with no remaining case now reports the definite `arm matches no case`
 
 Five new namespace goldens and 12 updated useless-arm goldens pass alongside the API and shadow controls: 20 selected goldens in all, including the path API whose mark and value now validly share a name. Focused validation passed 17 Hoon arms, 74 strict probes in the affected groups, all 448 split-golden checks, documentation checks and manifest freshness. The native suite passed 172 tests with one ignored, and clippy passed. Current runners enumerate 1,506 golden cases and 748 arms in 285 suites. Final `nix flake check -L -j 2 --keep-going` acceptance on `8712b69` passed all eval, fresh-ship, desk, native CLI and CLI-corpus groups, rebuilding the affected golden batch and 1,506-case ship corpus and reusing the other passing outputs from the complete `5d1a786` run.
 
+## Import rulings (2026-11-22)
+
+`(mop K V)` does not retain its comparator, Hoon's `each` mold keeps its name beside the element gate, and `%jibb` retains `%hoon`'s final-newline-dropping `%txt` round trip. `$%` imports accept `%&`, `%|` and `%0` tags with noun-based overlap checks. Standard `each` and recursive `json` were already authenticated by Hoon source-backed reader paths; native standalone Hoon imports now link canonical `list`, `each` and `json` catalog molds in standard case order, preserving local shadows and cross-import recursive identity.
+
+Focused validation passed seven Hoon importer/mop arms, including exact full-checker overlap diagnostics and disjoint `%&`/`%0` constructors, `each` shadowing and standard/json identity controls. The native suite passed 175 tests with one ignored, and clippy passed. Documentation checks and manifest freshness passed; the corpus remains 1,506 goldens and 748 arms in 285 suites.
+
 ## Parser and mark
 
 | Area | Status | Evidence |

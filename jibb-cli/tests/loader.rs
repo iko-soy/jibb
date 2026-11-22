@@ -105,6 +105,99 @@ fn checks_files_and_source_without_evaluating() {
 }
 
 #[test]
+fn imports_standard_each_through_temporary_sur_files() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let root = directory.path();
+    fs::create_dir(root.join("sur")).unwrap();
+    fs::write(
+        root.join("sur/fixture.hoon"),
+        "|%\n+$  either  (each @ud @t)\n--\n",
+    )
+    .unwrap();
+    let main = root.join("main.jibb");
+    fs::write(
+        &main,
+        "/- fixture\n++ left ^- either.fixture [%& 42]\n++ right ^- either.fixture [%| \"hello\"]\n++ main [left right]\n",
+    )
+    .unwrap();
+    check_path(&main, &[root.to_path_buf()], None).expect("both standard each branches");
+
+    fs::write(
+        root.join("sur/shadow.hoon"),
+        "|%\n+$  each  [left=@ud right=@t]\n+$  local  each\n--\n",
+    )
+    .unwrap();
+    fs::write(&main, "/- shadow\n++ main ^- local.shadow [1 \"local\"]\n").unwrap();
+    check_path(&main, &[root.to_path_buf()], None).expect("local each shadows the standard mold");
+}
+
+#[test]
+fn imports_recursive_standard_json_through_temporary_sur_files() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let root = directory.path();
+    fs::create_dir(root.join("sur")).unwrap();
+    for name in ["fixture", "other"] {
+        fs::write(
+            root.join(format!("sur/{name}.hoon")),
+            "|%\n+$  entry  json\n--\n",
+        )
+        .unwrap();
+    }
+    let main = root.join("main.jibb");
+    fs::write(
+        &main,
+        concat!(
+            "/- fixture\n/- other\n",
+            "++ copy |= value=entry.fixture ^- entry.other value\n",
+            "++ main ^- entry.fixture\n",
+            "  [%a [[%b %.y] [[%n ~.42] [[%s \"hello\"] [[%o [[p=\"key\" q=~] ~ ~]] ~]]]]]\n",
+        ),
+    )
+    .unwrap();
+    check_path(&main, &[root.to_path_buf()], None)
+        .expect("recursive json values and cross-import identity");
+
+    fs::write(
+        &main,
+        "/- fixture\n++ main ^- entry.fixture [%a [[%s 42] ~]]\n",
+    )
+    .unwrap();
+    let error = check_path(&main, &[root.to_path_buf()], None).unwrap_err();
+    assert!(error.message.contains("type mismatch"), "{error}");
+
+    fs::write(
+        root.join("sur/shadow.hoon"),
+        "|%\n+$  json  @ud\n+$  local  json\n--\n",
+    )
+    .unwrap();
+    fs::write(&main, "/- shadow\n++ main ^- local.shadow 42\n").unwrap();
+    check_path(&main, &[root.to_path_buf()], None).expect("local json shadows the standard mold");
+}
+
+#[test]
+fn imports_numeric_hoon_tags_and_rejects_loobean_noun_overlap() {
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let root = directory.path();
+    fs::create_dir(root.join("sur")).unwrap();
+    let main = root.join("main.jibb");
+    fs::write(
+        root.join("sur/tags.hoon"),
+        "|%\n+$  versioned\n  $%  [%0 @ud]\n      [%1 @t]\n  ==\n--\n",
+    )
+    .unwrap();
+    fs::write(&main, "/- tags\n++ main ^- versioned.tags [%0 42]\n").unwrap();
+    check_path(&main, &[root.to_path_buf()], None).expect("numeric %0 union tag");
+
+    fs::write(
+        root.join("sur/tags.hoon"),
+        "|%\n+$  overlap\n  $%  [%& @ud]\n      [%0 @t]\n  ==\n--\n",
+    )
+    .unwrap();
+    let error = check_path(&main, &[root.to_path_buf()], None).unwrap_err();
+    assert!(error.message.contains("overlapping cases"), "{error}");
+}
+
+#[test]
 fn rejects_import_cycles() {
     let directory = tempfile::tempdir().expect("temporary directory");
     let root = directory.path();

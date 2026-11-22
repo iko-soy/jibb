@@ -27,10 +27,6 @@ The [2026-11-02 review](reviews/2026-11-02-repo-review.md) raised these language
 
 | # | Question | Proposed answer | Refs |
 | --- | --- | --- | --- |
-| [23](reviews/2026-11-02-questions.md) | Should `(mop K V)` carry its comparator? | No, match Hoon | A55 |
-| [24](reviews/2026-11-02-questions.md) | Should Hoon's `each` mold be renamed, since the prelude has the element gate `each`? | No, keep both | A64 |
-| [26](reviews/2026-11-02-questions.md) | Which Hoon unions should the importer read? | `$%` with `%&`, `%\|` and `%0` tags now, then `each` and `json` as catalog entries | A50 |
-| [27](reviews/2026-11-02-questions.md) | Should the `%jibb` mark keep dropping the final newline on a `%txt` round trip? | Keep it, like `%hoon` | A61 |
 | [28](reviews/2026-11-02-questions.md) | Should the printer flatten `[a [b c]]` and print named molds by name, such as `theme`? | Yes | A136 |
 
 ## Grammar questions never put to the doc's author

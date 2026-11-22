@@ -181,6 +181,7 @@ The `jibb-dev` desk holds `my-app`'s `ui/`, `sur/` and `mar/` under `/my-app` (r
 | `jibb-import` | The partial Hoon importer's diagnostic trees and errors over the importer fixtures, and the structured values behind them; the projection is an internal tree, not the Jibb type printer | `tests/importer/tree.txt` |
 | `jibb-import-default` | Default-wrapped union source proofs over a real Tlon mold, and adversarial cases | `tests/type-import-default/expected.txt` |
 | `jibb-import-general` | A `/sur` containing `$%`, `$@`, a map and a recursive mold through the full checker; `tools/clay-fixtures` also builds these molds through Clay and prints their types | `tests/clay-fixtures/full-import-expected.txt` |
+| `jibb-import-each`, `jibb-import-json` | Source-authenticated standard `each` and recursive `json` imports, including constructors, shadowing and nominal identity | |
 | `jibb-import-mark-source` | Source-aware mark origin authentication, declaration sites, stale/ambiguous/decoy controls and unchanged semantic bodies and errors | |
 | `jibb-import-tag-auras` | Non-term tagged union heads, noun-equal head overlap, disjoint payloads and reader vase diagnostics | |
 | `jibb-import-vase` | A used Hoon vase reports its error at the Jibb use site | |
