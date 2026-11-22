@@ -1,6 +1,6 @@
 # Status
 
-As of 2026-11-20. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
+As of 2026-11-22. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
 
 ## Milestones
 
@@ -174,7 +174,7 @@ A `/%` mark binds only a mold. Its name may coexist with local values, value sam
 
 A `?-` arm with no remaining case now reports the definite `arm matches no case` diagnostic through the existing usefulness analysis, retaining the covering and covered arm sites. Initially impossible patterns keep their separate `pattern cannot match the subject` diagnostic, and deferred coverage reports the same distinction after the subject closes.
 
-Five new namespace goldens and 12 updated useless-arm goldens pass alongside the API and shadow controls: 19 selected goldens in all. Focused validation passed 17 Hoon arms, 74 strict probes in the affected groups, all 448 split-golden checks, documentation checks and manifest freshness. The native suite passed 172 tests with one ignored, and clippy passed. Current runners enumerate 1,506 golden cases and 748 arms in 285 suites.
+Five new namespace goldens and 12 updated useless-arm goldens pass alongside the API and shadow controls: 20 selected goldens in all, including the path API whose mark and value now validly share a name. Focused validation passed 17 Hoon arms, 74 strict probes in the affected groups, all 448 split-golden checks, documentation checks and manifest freshness. The native suite passed 172 tests with one ignored, and clippy passed. Current runners enumerate 1,506 golden cases and 748 arms in 285 suites. Final `nix flake check -L -j 2 --keep-going` acceptance on `8712b69` passed all eval, fresh-ship, desk, native CLI and CLI-corpus groups, rebuilding the affected golden batch and 1,506-case ship corpus and reusing the other passing outputs from the complete `5d1a786` run.
 
 ## Parser and mark
 
