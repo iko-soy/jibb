@@ -1,6 +1,6 @@
 # Status
 
-As of 2026-11-22. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
+As of 2026-11-24. This is the current capability and acceptance table. History and dated review findings are in git and [reviews/](reviews/). The plan is [spec/implementation-plan.md](spec/implementation-plan.md); every milestone requires its checks to pass on a fake ship as well as under eval.
 
 ## Milestones
 
@@ -186,7 +186,7 @@ Focused validation passed seven Hoon importer/mop arms, including exact full-che
 
 Printed types flatten unfaced right-nested cell tails while preserving faced and non-tail nesting. Successfully resolved named molds print by their visible local or imported names, with exact generic arguments. Hoon carries transparent reference metadata alongside the expanded body: inference, identity, witnesses and lowering use the body, and display erasure keeps checked artifacts unchanged. Same-shaped inferred values do not acquire mold names. Native printing follows the same tail and display-name rules, including `item.todo` and named diagnostics.
 
-The final full eval golden run passed all 1,506 cases after regeneration. Direct printer, structural-generic, same-shaped-inference, imported-union and gate-constructor controls pass, and the native alias-printing exemptions are removed. The native suite passed 178 tests with one ignored, and clippy passed. Manifest freshness and documentation checks passed; the corpus remains 1,506 goldens and 748 arms in 285 suites.
+The final full eval golden run passed all 1,506 cases after regeneration. Direct printer, structural-generic, same-shaped-inference, imported-union and gate-constructor controls pass, and the native alias-printing exemptions are removed. The native suite passed 178 tests with one ignored, and clippy passed. Manifest freshness and documentation checks passed; the corpus remains 1,506 goldens and 750 arms in 285 suites. Final `nix flake check -L -j 2 --keep-going` acceptance on `47f029c` passed all eval, fresh-ship, desk, native CLI and CLI-corpus groups, including every arm and the complete fresh-ship golden corpus.
 
 ## Parser and mark
 
