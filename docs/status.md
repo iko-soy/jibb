@@ -188,6 +188,12 @@ Printed types flatten unfaced right-nested cell tails while preserving faced and
 
 The final full eval golden run passed all 1,506 cases after regeneration. Direct printer, structural-generic, same-shaped-inference, imported-union and gate-constructor controls pass, and the native alias-printing exemptions are removed. The native suite passed 178 tests with one ignored, and clippy passed. Manifest freshness and documentation checks passed; the corpus remains 1,506 goldens and 750 arms in 285 suites. Final `nix flake check -L -j 2 --keep-going` acceptance on `47f029c` passed all eval, fresh-ship, desk, native CLI and CLI-corpus groups, including every arm and the complete fresh-ship golden corpus.
 
+## Island loop and overlays (2026-11-24)
+
+The island runtime follows the settled loop: messages are handled one at a time in arrival order; changed models re-render and patch before the next message; unchanged models do not call `view`; commands run after the patch in list order and replies arrive later. Controls reset after every event, and v1 has no dialogs, menus, popovers or tooltips. This required no production change.
+
+New focused regressions cover the complete update/patch/command/FIFO trace, unchanged-view suppression, and view-crash attribution with prior-DOM recovery. All 405 JavaScript tests and documentation checks pass. Final `nix flake check -L -j 2 --keep-going` acceptance on `9b0d972` passed all eval, fresh-ship, desk, native CLI and CLI-corpus groups, including browser acceptance and the benchmark bar.
+
 ## Parser and mark
 
 | Area | Status | Evidence |
