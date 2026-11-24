@@ -1,7 +1,7 @@
-++ main: call's sample and argument types do not unify
-/ui/w-path.jibb:6:10: called gate has type $-([init=$-((list @t) [xs=(list @t) draft=@t error=(unit @t)]) update=$-([msg=message state=[xs=(list @t) draft=@t error=(unit @t)]] [[xs=(list @t) draft=@t error=(unit @t)] (list (cmd message))]) view=$-([xs=(list @t) draft=@t error=(unit @t)] (element message)) subs=$-([xs=(list @t) draft=@t error=(unit @t)] (list (sub message)))] (program (list @t) [xs=(list @t) draft=@t error=(unit @t)] message))
-++ main (program init update view subs)
-         ^
-/ui/w-path.jibb:6:23: argument has type [message xs=(list @t) draft=@t error=(unit @t) extra=@ud]
-++ main (program init update view subs)
-                      ^
+++ main: record molds `model` and `other` do not unify
+/ui/w-path.jibb:1:4: expected record mold
++$ model [xs=(list @t) draft=@t error=(unit @t)]
+   ^
+/ui/w-path.jibb:2:4: actual record mold
++$ other [xs=(list @t) draft=@t error=(unit @t) extra=@ud]
+   ^

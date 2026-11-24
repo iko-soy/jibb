@@ -27871,13 +27871,16 @@
   |=  [pattern=itype actual=itype vars=(list @ud) ren=isub]
   ^-  (unit isub)
   ?:  ?=(%named -.pattern)  $(pattern body.pattern)
-  ?:  ?=(%named -.actual)  $(actual body.actual)
   ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.pattern)
     ?:  (lien vars |=(id=@ud =(id +.pattern)))
       =/  found=(unit itype)  (itype-lookup +.pattern ren)
+      ::  Keep an actual argument's authenticated reference for display.
+      ::  Repeated parameters still agree only by their semantic bodies.
       ?~  found  `(itype-bind +.pattern actual ren)
-      ?:(=(u.found actual) `ren ~)
+      ?:  =((itype-erase-display u.found) (itype-erase-display actual))  `ren
+      ~
     ?:(=(pattern actual) `ren ~)
+  ?:  ?=(%named -.actual)  $(actual body.actual)
   ?.  =(-.pattern -.actual)  ~
   ?+  -.pattern  ?:(=(pattern actual) `ren ~)
     %opaque
