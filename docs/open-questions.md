@@ -9,7 +9,6 @@ From [spec/implementation-plan.md](spec/implementation-plan.md), Open questions:
 | Question | Needed by |
 | --- | --- |
 | Does the Eyre channel CSRF test reproduce on a fake ship? @iko has the write-up; if it does, it goes to Urbit privately. | Milestone 4 |
-| Are the proposed loop rules adopted, along with no overlays in v1? | Milestone 6 |
 | What do controls look like by default: buttons, toggles and fields, with their focus and disabled states? | Milestone 6 |
 
 ## Questions milestone 2 raises

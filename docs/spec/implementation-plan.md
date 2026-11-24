@@ -70,8 +70,8 @@ Anything that crosses between ship and browser is the same noun on both sides: r
 For milestone 6. An island is one loop over one model: events become messages, `update` turns each message into a new model and commands, and only `view` decides what the island shows.
 
 - **Start**: run `view` on the jammed model, bind the result to the server's nodes by key, and replace the subtree if they differ. `subs` then opens its watches, and each watch's first fact, full state, arrives as a message.
-- **Messages** come from controls, command replies, facts, timers and `%url`. *Proposed*: an island handles them one at a time, in arrival order.
-- **Rendering**: a message changes the model when `update` returns a different noun; `view` then re-runs and a keyed diff patches the DOM. An unchanged model renders nothing. *Proposed*: the patch lands before the next message, so a crash in `view` belongs to one message.
+- **Messages** come from controls, command replies, facts, timers and `%url`. An island handles them one at a time, in arrival order.
+- **Rendering**: a message changes the model when `update` returns a different noun; `view` then re-runs and a keyed diff patches the DOM. An unchanged model renders nothing. The patch lands before the next message, so a crash in `view` belongs to one message.
 - **Controls**: after every event, the control that fired is reset to the latest view, even when the model didn't change. A field's text is rewritten only when it differs from the screen, which keeps the caret and any IME composition.
 - **Commands**: an update may return several commands. The runtime processes them one at a time, in list order, after the patch. Each reply arrives later as a new message, never inside the `update` that sent it.
 
@@ -82,7 +82,7 @@ For milestone 6. An island is one loop over one model: events become messages, `
 | `field label value reply` | `(reply text)` | On every `input` event, and once per IME composition, when it ends |
 | `form msg kids` | `msg` | On Enter in any field inside it, without reloading the page |
 
-*Proposed*: no overlays in v1, so no dialogs, menus, popovers or tooltips.
+No overlays in v1, so no dialogs, menus, popovers or tooltips.
 
 ## Risks
 
@@ -99,5 +99,4 @@ For milestone 6. An island is one loop over one model: events become messages, `
 | What is the typography scale for heading levels and the `role` values? | Milestone 4 |
 | Does the Eyre channel CSRF test reproduce on a fake ship? @iko has the write-up; if it does, it goes to Urbit privately. | Milestone 4 |
 | What is the benchmark's bar? Proposed: a keystroke in a 500-row list island renders within one 16 ms frame on a mid-range phone. | Milestone 6 |
-| Are the proposed loop rules adopted, along with no overlays in v1? | Milestone 6 |
 | What do controls look like by default: buttons, toggles and fields, with their focus and disabled states? | Milestone 6 |

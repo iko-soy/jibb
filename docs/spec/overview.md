@@ -153,7 +153,7 @@ Loads and renders run in Nock.
   [%url reply=$-(path  M)]
 ```
 
-An island's `update` returns `[model (list (cmd M))]`, so one message may produce several commands. The runtime processes the returned commands one at a time, in list order. A store's `update` consumes exactly one poke with the current state and returns the next state.
+An island's `update` returns `[model (list (cmd M))]`, so one message may produce several commands. Messages are handled one at a time in arrival order. A changed model re-renders and its patch lands before the next message; an unchanged model renders nothing. Commands run after that patch, one at a time in list order, and each reply arrives later as a new message, never inside the `update` that sent it. A store's `update` consumes exactly one poke with the current state and returns the next state. There are no dialogs, menus, popovers or tooltips in v1.
 
 - `raw-poke`, `ask` and `qath` are transparent types defined in the internal prelude and re-exported normally. Derived gates and `pure` also construct requests. A derived poke helper such as `(poke.todo [%add draft.m] |=%acked)` checks its value and supplies the agent and mark, returning a command whose reply becomes an island message, so one island can poke several agents. The agent's mark rechecks on the ship; a nack's `tang` reaches the reply as text. Store helpers poke the store in the browser.
 - A request such as `(todos.todo |=%got)` comes from a declared path or a store's `state`; its reply always gets full state. A path with diffs also takes a fold, `(changes.todo |=%got apply)`, which the runtime applies first. Facts are checked; a bad one crashes the reply, which counts as a crashed `update`.

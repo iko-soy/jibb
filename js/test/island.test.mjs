@@ -161,3 +161,75 @@ test('stop detaches the island and rejects later messages', () => {
   island.send(cord('increment'));
   assert.equal(document.body.textContent, 'Count: 1');
 });
+
+test('messages, patches, and commands stay in FIFO order', () => {
+  const log = [];
+  let island;
+  const program = counterProgram({
+    update: ([message, model]) => {
+      log.push(`update:${message === cord('first') ? 'first' : message === cord('second') ? 'second' : 'third'}`);
+      if (message === cord('first')) island.send(cord('second'));
+      return [model + 1n, arrayToList([cord('a'), cord('b')])];
+    },
+  });
+  let document;
+  ({ document, island } = setup(program, {
+    dispatchCommand: command => {
+      log.push(`command:${command === cord('a') ? 'a' : 'b'}:${document.body.textContent}`);
+      if (command === cord('a') && island.model === 1n) island.send(cord('third'));
+    },
+  }));
+  island.send(cord('first'));
+  assert.deepEqual(log, [
+    'update:first',
+    'command:a:Count: 1',
+    'command:b:Count: 1',
+    'update:second',
+    'command:a:Count: 2',
+    'command:b:Count: 2',
+    'update:third',
+    'command:a:Count: 3',
+    'command:b:Count: 3',
+  ]);
+});
+
+test('an unchanged model does not call view again', () => {
+  let views = 0;
+  const program = counterProgram({
+    update: ([_message, model]) => [model, 0n],
+    view: model => {
+      views += 1;
+      return textElement(`Count: ${model}`);
+    },
+  });
+  const { document, island } = setup(program);
+  assert.equal(views, 1);
+  island.send(cord('same'));
+  island.send(cord('same'));
+  assert.equal(island.model, 0n);
+  assert.equal(views, 1);
+  assert.equal(document.body.textContent, 'Count: 0');
+});
+
+test('a view crash names its message, preserves the prior DOM, and recovers', () => {
+  const errors = [];
+  let failView = true;
+  const program = counterProgram({
+    view: model => {
+      if (model === 1n && failView) {
+        failView = false;
+        throw new Error('bad view');
+      }
+      return textElement(`Count: ${model}`);
+    },
+  });
+  const { document, island } = setup(program, {
+    onCrash: (error, message) => errors.push([error.message, message]),
+  });
+  island.send(cord('bad'));
+  assert.deepEqual(errors, [['bad view', cord('bad')]]);
+  assert.equal(document.body.textContent, 'Count: 0');
+  island.send(cord('good'));
+  assert.equal(island.model, 1n);
+  assert.equal(document.body.textContent, 'Count: 1');
+});
