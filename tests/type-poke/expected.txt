@@ -7,7 +7,7 @@ module kind: library
 /ui/test.jibb:16:24: cast mold has type @t
 ++ leaked |= x=copy ^- @t x
                        ^
-/ui/test.jibb:16:27: expression has type raw-poke
+/ui/test.jibb:16:27: expression has type copy
 ++ leaked |= x=copy ^- @t x
                           ^
 the prelude internal module is private

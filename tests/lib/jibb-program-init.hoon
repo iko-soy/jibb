@@ -52,7 +52,7 @@
   ?~  init  ~["contextual init interface is missing"]
   ?~  main  ~["contextual main interface is missing"]
   ?.  ?=(~ vars.u.init)  ~["contextual init interface is not closed"]
-  =/  expected=tape  "$-((list @t) [xs=(list @t) [draft=@t error=(unit @t)]])"
+  =/  expected=tape  "$-((list @t) [xs=(list @t) draft=@t error=(unit @t)])"
   ?.  =((show-itype:jibb typ.u.init ~) expected)
     ~["contextual init interface type differs: {(show-itype:jibb typ.u.init ~)}"]
   ?.  ?=(~ vars.u.main)  ~["contextual main interface is not closed"]

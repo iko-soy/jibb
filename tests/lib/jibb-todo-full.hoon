@@ -159,13 +159,14 @@
     (todo-full-legacy-report (text api) (text source) externals.inputs marks.inputs u.prepared)
   ?.  =((to-wain:format (cat 3 legacy '\0a')) expected)
     ~[leaf+"legacy full todo report differs"]
+  =/  cast-expected=wain  ~['full todo accepted' '(program (list item.todo) model msg)']
   =/  cast-report=@t
     (todo-full-prepared-report (text api) (text cast-init) externals.inputs marks.inputs u.prepared)
-  ?.  =((to-wain:format (cat 3 cast-report '\0a')) expected)
+  ?.  =((to-wain:format (cat 3 cast-report '\0a')) cast-expected)
     ~[leaf+"ordinary annotated initializer was rejected"]
   =/  cast-legacy=@t
     (todo-full-legacy-report (text api) (text cast-init) externals.inputs marks.inputs u.prepared)
-  ?.  =((to-wain:format (cat 3 cast-legacy '\0a')) expected)
+  ?.  =((to-wain:format (cat 3 cast-legacy '\0a')) cast-expected)
     ~[leaf+"legacy ordinary annotated initializer was rejected"]
   ::  Each, mapper aliases and !! are ordinary expressions, not errors.
   =/  variants=(list [label=tape src=@t])

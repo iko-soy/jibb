@@ -1,1 +1,1 @@
-'module kind: library\0a++ value: $-([id=@ud value=([a=@ud b=@t] @ud)] ([a=@ud b=@t] @ud))\0a++ values: $-([title=@t values=(list @ud)] (list @ud))\0a++ chain: $-(chain.blog chain.blog)'
+'module kind: library\0a++ value: $-(nested.import-fixture ([a=@ud b=@t] @ud))\0a++ values: $-(sample.import-fixture (list @ud))\0a++ chain: $-(chain.blog chain.blog)'

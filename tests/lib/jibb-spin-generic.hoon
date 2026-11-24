@@ -21,7 +21,7 @@
     (infer-jibb-file-detailed:jibb at source ~ ~ ~ ~[at] values.u.prep molds.u.prep ~ `iface.u.prep)
   ?:  ?=(%| -.out)  ~[leaf+(trip message.p.out)]
   =/  spin=(unit tape)  (rendered %spin-items values.iface.p.out)
-  ?.  =(spin `"$-([(list A) [B $-([A B] [C B])]] [p=(list C) q=B])")
+  ?.  =(spin `"$-([(list A) B $-([A B] [C B])] [p=(list C) q=B])")
     ~[leaf+"spin lost its principal generic scheme"]
   =/  first=(unit tape)  (rendered %output values.iface.p.out)
   ?.  =(first `"[p=(list @t) q=@ud]")  ~[leaf+"first spin instance differs"]

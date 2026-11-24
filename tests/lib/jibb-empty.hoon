@@ -59,7 +59,7 @@
   =/  split=(unit ischeme:jibb)  (find-jibb-mold:jibb %split iface.p.valid)
   ?~  split  'BAD split export'
   ?.  ?=(%fn -.typ.u.select)  'BAD select gate'
-  =/  selected=itype:jibb  sample.typ.u.select
+  =/  selected=itype:jibb  (itype-display-body:jibb sample.typ.u.select)
   =?  selected  ?=(%face -.selected)  body.selected
   =/  parsed-overlap=(each module:jibb error:jibb)  (parse:jibb f overlap)
   =/  parsed-dead=(each module:jibb error:jibb)  (parse:jibb f dead)
@@ -83,7 +83,7 @@
   =/  only-good=?
     ?~  only  |
     ?.  ?=(%fn -.typ.u.only)  |
-    =/  sample=itype:jibb  sample.typ.u.only
+    =/  sample=itype:jibb  (itype-display-body:jibb sample.typ.u.only)
     =?  sample  ?=(%face -.sample)  body.sample
     &(=(sample [%collection %list ~[[%empty ~]]]) =(product.typ.u.only [%atom %t]))
   =/  parsed-live=(each module:jibb error:jibb)  (parse:jibb f list-live)
@@ -116,8 +116,8 @@
   =/  no-gates=igate-free:jibb  (gate-free-type:jibb impossible 8 ~)
   =/  list-gates=igate-free:jibb  (gate-free-type:jibb singleton 8 ~)
   =/  checks=(list [label=@t ok=?])
-    :~  ['empty mold exported' =([%empty ~] typ.u.never)]
-        ['live union selector preserves type' &(=(typ.u.split selected) =([%atom %t] product.typ.u.select))]
+    :~        ['empty mold exported' =([%empty ~] (itype-display-body:jibb typ.u.never))]
+        ['live union selector preserves type' &(=((itype-erase-display:jibb typ.u.split) (itype-erase-display:jibb selected)) =([%atom %t] product.typ.u.select))]
         ['overlap parses and is rejected' &(?=(%& -.parsed-overlap) ?=(%| -.invalid))]
         ['dead empty case parses and is rejected' &(?=(%& -.parsed-dead) ?=(%| -.dead-result))]
         ['missing live case parses and is rejected' &(?=(%& -.parsed-missing) ?=(%| -.missing-result))]

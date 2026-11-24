@@ -1,5 +1,5 @@
 module kind: library
-++ identity: $-(@t @t)
+++ identity: $-(label label)
 ++ identity: mold `label` is not defined
 /test.jibb:1:18: unknown mold
 ++ identity |= x=label x

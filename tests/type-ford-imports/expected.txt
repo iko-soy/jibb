@@ -2,7 +2,7 @@ valid dependency graph:
 CHECKED
 changed transitive mold:
 ++ dependency-witness: cast mold and expression type do not unify
-/ui/ford-imports.jibb:3:26: cast mold has type [title=@t count=[left=@ud right=@ud]]
+/ui/ford-imports.jibb:3:26: cast mold has type sample.tables
 ++ dependency-witness ^- sample.tables [title="Ford" count=7]
                          ^
 /ui/ford-imports.jibb:3:40: expression has type [title=@t count=@ud]

@@ -49,7 +49,7 @@
   ?~  update  ~["contextual update interface is missing"]
   ?~  main  ~["contextual main interface is missing"]
   ?.  ?=(~ vars.u.update)  ~["contextual update interface is not closed"]
-  =/  expected=tape  "$-([event=message current=[count=@ud]] [count=@ud (list (cmd message))])"
+  =/  expected=tape  "$-([event=message current=model] [model (list (cmd message))])"
   ?.  =((show-itype:jibb typ.u.update ~) expected)  ~["contextual update interface type differs"]
   ?.  ?=(~ vars.u.main)  ~["contextual main interface is not closed"]
   =/  fields=(list itype:jibb)  (record-fields-named:jibb %update typ.u.main ~)
@@ -137,13 +137,13 @@
         (program-update-report at (snag 1 negatives) %update "branch arm does not fit its expected type" ~[[8 3 "expected branch result has type @ud"] [10 18 "branch arm has type @t"]])  u.prepared
         :-  'inconsistent message'
         :^    at  (snag 2 negatives)
-        (program-update-report at (snag 2 negatives) %main "call's sample and argument types do not unify" ~[[4 10 "called gate has type $-([init=$-(@t @ud) [update=$-([event=%other current=[count=@ud]] [count=@ud (list (cmd %other))]) [view=$-(@ud (element %other)) subs=$-(@ud (list (sub %other)))]]] [init=$-(@t @ud) [update=$-([%other @ud] [@ud (list (cmd %other))]) [view=$-(@ud (element %other)) subs=$-(@ud (list (sub %other)))]]])"] [4 30 "argument has type %noop"]])  u.prepared
+        (program-update-report at (snag 2 negatives) %main "call's sample and argument types do not unify" ~[[4 10 "called gate has type $-([init=$-(@t @ud) update=$-([event=%other current=[count=@ud]] [count=@ud (list (cmd %other))]) view=$-(@ud (element %other)) subs=$-(@ud (list (sub %other)))] (program @t @ud %other))"] [4 30 "argument has type message"]])  u.prepared
         :-  'malformed sample'
         :^    at  (snag 3 negatives)
-        (program-update-report at (snag 3 negatives) %main "local sample `update` does not unify with [%noop @ud]: %noop versus [%noop @ud]" ~[[5 14 "written gate sample"] [3 10 "call context has type [$-(Data Model) [$-([Msg Model] [Model (list (cmd Msg))]) [$-(Model (element Msg)) $-(Model (list (sub Msg)))]]]"]])  u.prepared
+        (program-update-report at (snag 3 negatives) %main "local sample `update` does not unify with [%noop @ud]: message versus [%noop @ud]" ~[[5 14 "written gate sample"] [3 10 "call context has type [$-(Data Model) $-([Msg Model] [Model (list (cmd Msg))]) $-(Model (element Msg)) $-(Model (list (sub Msg)))]"]])  u.prepared
         :-  'non-two-slot sample'
         :^    at  (snag 4 negatives)
-        (program-update-report at (snag 4 negatives) %main "call's sample and argument types do not unify" ~[[3 10 "called gate has type $-([init=$-(@t [count=@ud]) [update=$-([event=%noop @ud] [count=@ud (list (cmd %noop))]) [view=$-([count=@ud] (element %noop)) subs=$-([count=@ud] (list (sub %noop)))]]] [init=$-(@t @ud) [update=$-([%noop @ud] [@ud (list (cmd %noop))]) [view=$-(@ud (element %noop)) subs=$-(@ud (list (sub %noop)))]]])"] [3 23 "argument has type [%noop [current=[count=@ud] extra=@ud]]"]])  u.prepared
+        (program-update-report at (snag 4 negatives) %main "call's sample and argument types do not unify" ~[[3 10 "called gate has type $-([init=$-(@t [count=@ud]) update=$-([event=%noop @ud] [count=@ud (list (cmd %noop))]) view=$-([count=@ud] (element %noop)) subs=$-([count=@ud] (list (sub %noop)))] (program @t @ud %noop))"] [3 23 "argument has type [%noop current=model extra=@ud]"]])  u.prepared
         :-  'non-main same source'
         :^    at  (snag 5 negatives)
         (program-update-report at (snag 5 negatives) %update "nothing fixes the union of ~; add a `^-`" ~[[8 20 "nothing fixes the union of ~; add a `^-`"]])  u.prepared
@@ -152,7 +152,7 @@
         (program-update-report at (snag 6 negatives) %dangling "nothing fixes the union of %unrelated; add a `^-`" ~[[16 13 "nothing fixes the union of %unrelated; add a `^-`"]])  u.prepared
         :-  'missing canonical cmd'
         :^    at  island
-        (program-update-report at island %main "island main needs closed, gate-free data and model types" ~[[5 4 "main has type [init=$-(@t [count=@ud]) [update=$-([message count=@ud] [count=@ud (list (cmd message))]) [view=$-([count=@ud] (element message)) subs=$-([count=@ud] (list (sub message)))]]]"]])  without-cmd
+        (program-update-report at island %main "island main needs closed, gate-free data and model types" ~[[5 4 "main has type (program @t [count=@ud] message)"]])  without-cmd
         :-  'missing canonical list'
         :^    at  (snag 7 negatives)
         (program-update-report at (snag 7 negatives) %update "nothing fixes the union of ~; add a `^-`" ~[[9 20 "nothing fixes the union of ~; add a `^-`"]])  without-list

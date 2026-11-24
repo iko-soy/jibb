@@ -17,7 +17,9 @@
   =/  shown=(unit itype:jibb)  (scheme-display-type:jibb u.main)
   ?~  shown  ~[leaf+"store main did not realize"]
   =/  expected=itype:jibb  [%face %callback [%fn [%atom %t] [%atom %t]]]
-  ?.  =((record-fields-named:jibb %init u.shown ~) ~[expected])  ~[leaf+"published store lost its callback value face" leaf+(show-itype:jibb u.shown ~)]
+  =/  fields=(list itype:jibb)  (record-fields-named:jibb %init u.shown ~)
+  =/  actual=(list itype:jibb)  (turn fields |=(field=itype:jibb (itype-display-body:jibb field)))
+  ?.  =(actual ~[expected])  ~[leaf+"published store lost its callback value face" leaf+(show-itype:jibb u.shown ~)]
   ~
 ++  test-init-face-retention
   ^-  tang

@@ -420,7 +420,7 @@ def check_fixture_crash_isolated(c, tmp):
              'empty fixture should name the fixture:\n' + out)
     for name in ('good', 'mark-only'):
         c.expect(('==> %s: types <==\nmodule kind: library\n'
-                  '++ label-id: $-(@t @t)') % name in out,
+                  '++ label-id: $-(label label)') % name in out,
                  'valid fixture should be isolated: ' + name + '\n' + out)
     expected = read(os.path.join(cases, 'bad', 'types.txt'))
     status, out = golden('--dir', cases, '--case', 'bad', '--update')

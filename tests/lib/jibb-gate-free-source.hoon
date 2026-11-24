@@ -45,7 +45,8 @@
   ?.  =(%yes verdict.result.p.model)  'todo model not proven gate-free'
   ?.  &(=(at.p.model at) =(source.p.model source-text) =(name.p.model %model) =(prepared.p.model u.prepared) =(externals.p.model inputs) =(marks.p.model marks) =(modules.p.model modules))  'source evidence changed'
   ?~  dependencies.p.model  'resolved dependency evidence missing'
-  ?.  ?=(%cell -.typ.mold.p.model)  'selected model scheme missing'
+  =/  model-body=itype:jibb  (itype-display-body:jibb typ.mold.p.model)
+  ?.  ?=(%cell -.model-body)  'selected model scheme missing'
   ?.  &(=(256 requested.p.model) =(256 budget.p.model))  'requested budget not retained'
   =/  callback  (gate-free-mold-source:jibb at gate-text %model inputs marks modules prepared 256)
   ?:  ?=(%| -.callback)  'callback model unavailable'
@@ -62,6 +63,20 @@
   =/  capped  (gate-free-mold-source:jibb /tests/tiny/jibb tiny %sample ~ ~ ~ prepared 999)
   ?:  ?=(%| -.capped)  'large fuel unavailable'
   ?.  &(=(999 requested.p.capped) =(256 budget.p.capped) =(%yes verdict.result.p.capped) =(255 left.result.p.capped))  'fuel cap incorrect'
+  =/  named-atom=itype:jibb  [%named ~ `%sample ~ [%atom %t]]
+  =/  named-gate=itype:jibb  [%named ~ `%callback ~ [%fn [%atom %t] [%atom %t]]]
+  =/  atom-verdict=igate-free:jibb  (gate-free-type:jibb named-atom 1 ~)
+  ?.  &(=(%yes verdict.atom-verdict) =(0 left.atom-verdict))  'transparent atom consumed extra fuel'
+  =/  gate-verdict=igate-free:jibb  (gate-free-type:jibb named-gate 1 ~)
+  ?.  &(=(%no verdict.gate-verdict) =(0 left.gate-verdict) ?=(^ path.gate-verdict))  'transparent gate lost its witness'
+  =/  atom-form=(unit igf-form:jibb)  (itype-gate-free-form:jibb named-atom ~ 1)
+  ?~  atom-form  'transparent atom constraint consumed extra fuel'
+  ?.  =(0 left.u.atom-form)  'transparent atom constraint changed remaining fuel'
+  =/  recursive-form=(unit igf-form:jibb)  (rg-gate-free-form:jibb named-atom ~ ~ 1)
+  ?~  recursive-form  'transparent recursive constraint consumed extra fuel'
+  ?.  =(0 left.u.recursive-form)  'transparent recursive constraint changed remaining fuel'
+  =/  gate-form=(unit igf-form:jibb)  (itype-gate-free-form:jibb named-gate ~ 1)
+  ?^  gate-form  'transparent gate constraint was accepted'
   =/  matched  (gate-free-mold-source:jibb /tests/tiny/jibb tiny %sample ~ ~ ~[[/tests/tiny/jibb tiny]] prepared 256)
   ?:  ?=(%| -.matched)  'matching root source rejected'
   =/  unused-sur=@t  '/- unused\0a+$ sample @t\0a'

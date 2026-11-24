@@ -11,7 +11,7 @@
     :~  [%homo "$-((list A) (list A))"]
         [%fand "$-([needle=(list A) haystack=(list A)] (list @ud)) where A contains no gates"]
         [%find "$-([needle=(list A) haystack=(list A)] (unit @ud)) where A contains no gates"]
-        [%spin "$-([(list A) [B $-([A B] [C B])]] [p=(list C) q=B])"]
+        [%spin "$-([(list A) B $-([A B] [C B])] [p=(list C) q=B])"]
         [%test "$-([A A] ?) where A contains no gates"]
         [%sqt "$-(A [p=A q=A]) where A is an atom other than ?"]
     ==

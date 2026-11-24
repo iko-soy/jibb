@@ -130,10 +130,10 @@
   "E02b-faces-cast": {
     "reasons": [
       [
-        "[a=@ud b=@ud]"
+        "ab"
       ],
       [
-        "[x=@ud y=@ud]"
+        "xy"
       ],
       [
         "unif",

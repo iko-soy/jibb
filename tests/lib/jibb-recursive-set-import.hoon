@@ -30,7 +30,7 @@
   ?:  ?=(%| -.checked)  ~[leaf+"an imported set with a gate-free key was rejected" leaf+(trip message.p.checked)]
   =/  identity=(unit ischeme:jibb)  (ienv-lookup:jibb %identity values.iface.p.checked)
   ?~  identity  ~[leaf+"safe imported set identity was not exported"]
-  ?.  =((show-itype:jibb typ.u.identity ~) "$-((set @t) (set @t))")
+  ?.  =((show-itype:jibb typ.u.identity ~) "$-(texts.fixture texts.fixture)")
     ~[leaf+"safe imported set changed type" leaf+(show-itype:jibb typ.u.identity ~)]
   =/  invalid=@t  '/- fixture\0a+$ box nouns.fixture\0a'
   =/  rejected=jfile-detailed-result:jibb

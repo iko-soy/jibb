@@ -19,7 +19,7 @@
   ?~  prepared  ~[leaf+"map and private bit groups did not prepare together"]
   =/  code=@t  '++ invert not.bit\0a++ map-id |= value=(map @ud @t) value\0a'
   =/  result=@t  (golden-types-with-prepared-prelude:jibb /ui/test/jibb code ~ ~ ~ prepared)
-  ?.  &((contains (trip result) "++ invert: $-([@ [@ @]] @)") (contains (trip result) "++ map-id: $-((map @ud @t) (map @ud @t))"))
+  ?.  &((contains (trip result) "++ invert: $-([@ @ @] @)") (contains (trip result) "++ map-id: $-((map @ud @t) (map @ud @t))"))
     ~[leaf+"map or private bit group lost its type" leaf+(trip result)]
   ~
 --

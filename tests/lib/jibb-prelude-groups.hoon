@@ -30,7 +30,7 @@
   ?~  sample  ~[leaf+"qualified group value did not resolve"]
   =/  actual=(unit itype:jibb)  (scheme-display-type:jibb u.sample)
   ?~  actual  ~[leaf+"qualified group result did not realize"]
-  ?.  =((show-itype:jibb u.actual ~) "$-(@t @t)")
+  ?.  =((show-itype:jibb u.actual ~) "$-(token.widget @t)")
     ~[leaf+(weld "qualified group has the wrong type: " (show-itype:jibb u.actual ~))]
   ~
 ++  test-prelude-group-rejections
@@ -146,9 +146,10 @@
   ?~  bite  ~[leaf+"group-dependent public mold was omitted"]
   =/  shape=(unit itype:jibb)  (scheme-display-type:jibb u.bite)
   ?~  shape  ~[leaf+"group-dependent mold did not realize"]
-  ?.  ?=(%union -.u.shape)  ~[leaf+"bite is not a union"]
+  =/  body=itype:jibb  (itype-erase-display:jibb u.shape)
+  ?.  ?=(%union -.body)  ~[leaf+"bite is not a union"]
   =/  pair=itype:jibb  [%cell [%slot %bloq [%any-atom ~]] [%slot %step [%atom %u]]]
-  ?.  =(cases.u.shape ~[[%any-atom ~] pair])  ~[leaf+"bite did not retain its exact atom and faced tuple cases"]
+  ?.  =(cases.body ~[[%any-atom ~] pair])  ~[leaf+"bite did not retain its exact atom and faced tuple cases"]
   =/  file=path  /tests/prelude-groups/jibb
   =/  src=@t  (of-wain:format ~['++ by-bloq ^- bite 3' '++ by-pair ^- bite [bloq=3 step=0x1f]'])
   =/  checked=jfile-detailed-result:jibb

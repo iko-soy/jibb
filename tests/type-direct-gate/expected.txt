@@ -3,12 +3,12 @@
 ++ update: $-([msg=message state=@ud] [@ud (list (cmd message))])
 ++ view: $-(@ud (element message))
 ++ subs: $-(@ud (list (sub message)))
-++ direct: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
+++ direct: (program @t @ud message)
 ++ wrong-init: $-(@p @ud)
-++ different-data: [init=$-(@p @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
+++ different-data: (program @p @ud message)
 ++ wrong-update: $-([msg=message state=@p] [@p (list (cmd message))])
 ++ mismatched-model: call's sample and argument types do not unify
-/tests/sub/client.jibb:14:22: called gate has type $-([init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]] [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]])
+/tests/sub/client.jibb:14:22: called gate has type $-([init=$-(@t @ud) update=$-([message @ud] [@ud (list (cmd message))]) view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))] (program @t @ud message))
 ++ mismatched-model (program init wrong-update view subs)
                      ^
 /tests/sub/client.jibb:14:35: argument has type @p
@@ -19,7 +19,7 @@
 /tests/sub/client.jibb:15:18: written gate sample
 ++ wrong-view |= state=@p ^- (element message) (text "view")
                  ^
-/tests/sub/client.jibb:16:21: call context has type [$-(Data Model) [$-([Msg Model] [Model (list (cmd Msg))]) [$-(Model (element Msg)) $-(Model (list (sub Msg)))]]]
+/tests/sub/client.jibb:16:21: call context has type [$-(Data Model) $-([Msg Model] [Model (list (cmd Msg))]) $-(Model (element Msg)) $-(Model (list (sub Msg)))]
 ++ mismatched-view (program init update wrong-view subs)
                     ^
 ++ wrong-subs: $-(@p (list (sub message)))
@@ -27,13 +27,13 @@
 /tests/sub/client.jibb:17:18: written gate sample
 ++ wrong-subs |= state=@p ^- (list (sub message)) ~
                  ^
-/tests/sub/client.jibb:18:21: call context has type [$-(Data Model) [$-([Msg Model] [Model (list (cmd Msg))]) [$-(Model (element Msg)) $-(Model (list (sub Msg)))]]]
+/tests/sub/client.jibb:18:21: call context has type [$-(Data Model) $-([Msg Model] [Model (list (cmd Msg))]) $-(Model (element Msg)) $-(Model (list (sub Msg)))]
 ++ mismatched-subs (program init update view wrong-subs)
                     ^
 +$ other: other
 ++ wrong-msg-update: $-([msg=other state=@ud] [@ud (list (cmd other))])
 ++ mismatched-message: call's sample and argument types do not unify
-/tests/sub/client.jibb:24:24: called gate has type $-([init=$-(@t @ud) [update=$-([other @ud] [@ud (list (cmd other))]) [view=$-(@ud (element other)) subs=$-(@ud (list (sub other)))]]] [init=$-(@t @ud) [update=$-([other @ud] [@ud (list (cmd other))]) [view=$-(@ud (element other)) subs=$-(@ud (list (sub other)))]]])
+/tests/sub/client.jibb:24:24: called gate has type $-([init=$-(@t @ud) update=$-([other @ud] [@ud (list (cmd other))]) view=$-(@ud (element other)) subs=$-(@ud (list (sub other)))] (program @t @ud other))
 ++ mismatched-message (program init wrong-msg-update view subs)
                        ^
 /tests/sub/client.jibb:24:54: argument has type message
@@ -43,18 +43,18 @@
 /tests/sub/client.jibb:26:6: nothing fixes the union of %unrelated; add a `^-`
   ~& %unrelated
      ^
-++ program-value: $-([init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] [init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]])
+++ program-value: $-([init=$-(Data Model) update=$-([Msg Model] [Model (list (cmd Msg))]) view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))] (program Data Model Msg))
 ++ update-unfaced: $-([message @ud] [@ud (list (cmd message))])
-++ direct-unfaced: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
-+$ record: [count=@ud label=@t]
-++ init-record: $-(@t [count=@ud label=@t])
-++ update-record: $-([msg=message state=[count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
-++ update-record-unfaced: $-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
-++ view-record: $-([count=@ud label=@t] (element message))
-++ subs-record: $-([count=@ud label=@t] (list (sub message)))
-++ program-record: [init=$-(@t [count=@ud label=@t]) [update=$-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))]) [view=$-([count=@ud label=@t] (element message)) subs=$-([count=@ud label=@t] (list (sub message)))]]]
-++ program-record-unfaced: [init=$-(@t [count=@ud label=@t]) [update=$-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))]) [view=$-([count=@ud label=@t] (element message)) subs=$-([count=@ud label=@t] (list (sub message)))]]]
-++ bad-update-record: $-([msg=message state=[other=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
+++ direct-unfaced: (program @t @ud message)
++$ record: record
+++ init-record: $-(@t record)
+++ update-record: $-([msg=message state=record] [record (list (cmd message))])
+++ update-record-unfaced: $-([message record] [record (list (cmd message))])
+++ view-record: $-(record (element message))
+++ subs-record: $-(record (list (sub message)))
+++ program-record: (program @t record message)
+++ program-record-unfaced: (program @t record message)
+++ bad-update-record: $-([msg=message state=[other=@ud label=@t]] [record (list (cmd message))])
 ++ program-wrong-nested-face: call argument does not unify with [count=@ud]: [other=@ud] versus [count=@ud]
 /tests/sub/client.jibb:33:28: local gate result has type [count=@ud]
 ++ init-record |= input=@t ^- record [count=0 label=input]
@@ -62,7 +62,7 @@
 /tests/sub/client.jibb:44:51: argument has type [other=@ud]
 ++ program-wrong-nested-face (program init-record bad-update-record view-record subs-record)
                                                   ^
-/tests/sub/client.jibb:44:31: call context has type [$-(Data Model) [$-([Msg Model] [Model (list (cmd Msg))]) [$-(Model (element Msg)) $-(Model (list (sub Msg)))]]]
+/tests/sub/client.jibb:44:31: call context has type [$-(Data Model) $-([Msg Model] [Model (list (cmd Msg))]) $-(Model (element Msg)) $-(Model (list (sub Msg)))]
 ++ program-wrong-nested-face (program init-record bad-update-record view-record subs-record)
                               ^
 ++ update-pending: nothing fixes the union of %orphan; add a `^-`
@@ -73,7 +73,7 @@
 /tests/sub/client.jibb:46:6: nothing fixes the union of %orphan; add a `^-`
   ~& %orphan
      ^
-++ update-proj: $-([msg=message state=[count=@ud [label=@t extra=?]]] [[count=@ud label=@t] (list (cmd message))])
+++ update-proj: $-([msg=message state=[count=@ud label=@t extra=?]] [record (list (cmd message))])
 ++ pass-fn: $-($-([A B] C) $-([A B] C))
 ++ pass-named: $-([msg=message state=@ud] [@ud (list (cmd message))])
 ++ pass-unnamed: $-([message @ud] [@ud (list (cmd message))])
@@ -97,14 +97,14 @@
 ++ mismatch-label (known-label different-label)
                                ^
 ++ unknown-call: $-($-([A B] C) $-([A B] C))
-++ update-proj-good: $-([msg=message state=[count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))])
-++ program-projection: [init=$-(@t [count=@ud label=@t]) [update=$-([message [count=@ud label=@t]] [[count=@ud label=@t] (list (cmd message))]) [view=$-([count=@ud label=@t] (element message)) subs=$-([count=@ud label=@t] (list (sub message)))]]]
-++ program-alias: $-([init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]] [init=$-(Data Model) [update=$-([Msg Model] [Model (list (cmd Msg))]) [view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))]]])
-++ through-head-alias: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
+++ update-proj-good: $-([msg=message state=record] [record (list (cmd message))])
+++ program-projection: (program @t record message)
+++ program-alias: $-([init=$-(Data Model) update=$-([Msg Model] [Model (list (cmd Msg))]) view=$-(Model (element Msg)) subs=$-(Model (list (sub Msg)))] (program Data Model Msg))
+++ through-head-alias: (program @t @ud message)
 ++ update-alias: $-([msg=message state=@ud] [@ud (list (cmd message))])
-++ through-arg-alias: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
+++ through-arg-alias: (program @t @ud message)
 ++ select-update: $-(? $-([msg=message state=@ud] [@ud (list (cmd message))]))
-++ through-branch: [init=$-(@t @ud) [update=$-([message @ud] [@ud (list (cmd message))]) [view=$-(@ud (element message)) subs=$-(@ud (list (sub message)))]]]
+++ through-branch: (program @t @ud message)
 ++ local-shadow: sample `update` shadows a name already in scope
 /tests/sub/client.jibb:5:4: earlier binding
 ++ update |= [msg=message state=@ud]
@@ -112,14 +112,14 @@
 /tests/sub/client.jibb:75:20: conflicting sample binding
 ++ local-shadow |= update (program init update view subs)
                    ^
-++ nested-layout: $-([a=@t [x=@t y=@p]] @t)
-++ flat-layout: $-([a=@t [x=@t y=@p]] @t)
+++ nested-layout: $-([a=@t x=@t y=@p] @t)
+++ flat-layout: $-([a=@t x=@t y=@p] @t)
 ++ nested-accept: @t
 ++ flat-accept: @t
-++ higher-nested: $-([@t [x=@t y=@p]] @t)
-++ higher-flat: $-([@t [x=@t y=@p]] @t)
-++ nested-ret: $-([a=@t [x=@t y=@p]] [x=@t y=@p])
-++ flat-ret: $-([a=@t [x=@t y=@p]] [x=@t y=@p])
+++ higher-nested: $-([@t x=@t y=@p] @t)
+++ higher-flat: $-([@t x=@t y=@p] @t)
+++ nested-ret: $-([a=@t x=@t y=@p] [x=@t y=@p])
+++ flat-ret: $-([a=@t x=@t y=@p] [x=@t y=@p])
 ++ higher-generic-nested: [x=@t y=@p]
 ++ higher-generic-flat: [x=@t y=@p]
 ++ global-id: $-(A A)

@@ -136,9 +136,9 @@
   =/  ctor-consumer=@t  '/= ctor-page /tests/page-main/ctor\0a++ imported main.ctor-page\0a'
   =/  positives=(list (list tape))
     :~  (page-main-positive "about" /ui/about/jibb about '(element !!)' /tests/page-main/about-consumer/jibb about-consumer %about-page externals.inputs marks.inputs modules u.prepared)
-        (page-main-positive "blog index" /ui/blog/index/jibb blog-index '[load=$-(~ (ask (list [title=@t slug=@ta]))) view=$-((list [title=@t slug=@ta]) (element !!))]' /tests/page-main/blog-consumer/jibb blog-consumer %blog-page externals.inputs marks.inputs modules u.prepared)
-        (page-main-positive "index" /ui/index/jibb index '[load=$-(~ (ask (list [id=@ud [done=? text=@t]]))) view=$-((list [id=@ud [done=? text=@t]]) (element !!))]' /tests/page-main/index-consumer/jibb index-consumer %index-page externals.inputs marks.inputs modules u.prepared)
-        (page-main-positive "constructor reply" /tests/page-main/ctor/jibb ctor-page '[load=$-(~ (ask [%got todos=(list [id=@ud [done=? text=@t]])])) view=$-([%got todos=(list [id=@ud [done=? text=@t]])] (element !!))]' /tests/page-main/ctor-consumer/jibb ctor-consumer %ctor-page externals.inputs marks.inputs modules u.prepared)
+        (page-main-positive "blog index" /ui/blog/index/jibb blog-index '(page ~ (list [title=@t slug=@ta]))' /tests/page-main/blog-consumer/jibb blog-consumer %blog-page externals.inputs marks.inputs modules u.prepared)
+        (page-main-positive "index" /ui/index/jibb index '(page ~ (list [id=@ud done=? text=@t]))' /tests/page-main/index-consumer/jibb index-consumer %index-page externals.inputs marks.inputs modules u.prepared)
+        (page-main-positive "constructor reply" /tests/page-main/ctor/jibb ctor-page '(page ~ [%got todos=(list item.todo)])' /tests/page-main/ctor-consumer/jibb ctor-consumer %ctor-page externals.inputs marks.inputs modules u.prepared)
     ==
   =/  failures=(list tape)  (zing positives)
   ?^  failures  failures

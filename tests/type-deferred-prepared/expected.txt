@@ -1,8 +1,8 @@
 module kind: library
-+$ model: [xs=(list @t) [draft=@t error=(unit @t)]]
++$ model: model
 +$ message: message
-++ final: $-((list @t) [(list @t) [@t (unit @t)]])
-++ initial: $-((list @t) [(list @t) [@t (unit @t)]])
+++ final: $-((list @t) [(list @t) @t (unit @t)])
+++ initial: $-((list @t) [(list @t) @t (unit @t)])
 ++ send: $-($-(@t A) $-(@t A))
 ++ first: $-(@t message)
 ++ fixed: $-(@t message)

@@ -15,7 +15,7 @@ wrong payload:
 /tests/call-positional.jibb:6:32: actual type has type @p
 ++ bad (expects pending [label=~zod count=5])
                                ^
-/tests/call-positional.jibb:6:9: call context has type [(element msg) [label=@t count=@ud]]
+/tests/call-positional.jibb:6:9: call context has type [(element msg) label=@t count=@ud]
 ++ bad (expects pending [label=~zod count=5])
         ^
 wrong tag:

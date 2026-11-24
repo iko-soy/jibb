@@ -6057,10 +6057,15 @@
 ++  rg-gate-free-form
   |=  [t=itype sub=isub seen=(list itype) fuel=@ud]
   ^-  (unit igf-form)
+  ::  Transparent display references are not semantic nodes: expand them
+  ::  before checking the shared budget, then normalize the exposed body.
+  =.  t  (itype-display-body t)
   ?:  =(fuel 0)  ~
   =.  fuel  (dec fuel)
+  =.  t  (itype-walk t sub)
   =.  t  (itype-normalize t sub)
   ?-  -.t
+    %named   ~
     %opaque  ~
     %refined  ~
     %var
@@ -6105,10 +6110,12 @@
 ++  itype-gate-free-form
   |=  [t=itype sub=isub fuel=@ud]
   ^-  (unit igf-form)
+  =.  t  (itype-display-body t)
   ?:  =(0 fuel)  ~
   =.  fuel  (dec fuel)
   =.  t  (itype-walk t sub)
   ?-  -.t
+    %named      ~
     %opaque  ~
     %refined  ~
     %var
@@ -6728,6 +6735,7 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (itype-has-tag c))))
     %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-has-tag c))))
     %refined  $(t proof.t)
     %tag   &
@@ -6744,6 +6752,7 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (itype-has-union c))))
     %opaque  (lien args.t |=(c=itype (itype-has-union c)))
     %refined  $(t proof.t)
     %union  &
@@ -6763,6 +6772,7 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (itype-has-hidden-generic c))))
     %opaque  (lien args.t |=(c=itype (itype-has-hidden-generic c)))
     %refined  |
     %union
@@ -6780,6 +6790,7 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (itype-has-recursive c))))
     %opaque  |($(t body.t) (lien args.t |=(c=itype (itype-has-recursive c))))
     %refined  $(t proof.t)
     %recursive  &
@@ -6796,6 +6807,7 @@
   |=  t=itype
   ^-  ?
   ?-  -.t
+    %named   |($(t body.t) (lien args.t |=(c=itype (itype-has-hidden-recursive c))))
     %opaque  (lien args.t |=(c=itype (itype-has-hidden-recursive c)))
     %refined  |
     %recursive  ?=(~ label.t)
@@ -7777,10 +7789,13 @@
 ++  gate-free-type-seen
   |=  [typ=itype fuel=@ud path=(list igf-segment) seen=(list itype)]
   ^-  igate-free
+  ::  A display name carries no value node or witness segment. Expand it
+  ::  before the budget check so adding a transparent name changes no verdict.
+  =.  typ  (itype-display-body typ)
   ?:  =(0 fuel)  [%unknown | 0 ~]
   =.  fuel  (dec fuel)
   ?-  -.typ
-    %named      $(typ body.typ)
+    %named      [%unknown | fuel ~]
     %opaque  [%unknown & fuel ~]
     %refined  [%unknown & fuel ~]
     %fn         [%no & fuel `(flop path)]
@@ -8429,6 +8444,7 @@
   |=  [id=@ud typ=itype]
   ^-  ?
   ?-  -.typ
+    %named  |($(typ body.typ) (lien args.typ |=(c=itype (numeric-in-type id c))))
     %opaque  |($(typ body.typ) (lien args.typ |=(c=itype (numeric-in-type id c))))
     %refined  $(typ proof.typ)
     %nvar  =(id id.typ)
@@ -8449,6 +8465,7 @@
   |=  [id=@ud typ=itype]
   ^-  ?
   ?-  -.typ
+    %named  |($(typ body.typ) (lien args.typ |=(c=itype (arithmetic-in-type id c))))
     %opaque  |($(typ body.typ) (lien args.typ |=(c=itype (arithmetic-in-type id c))))
     %refined  $(typ proof.typ)
     %rvar  =(id id.typ)
@@ -8869,6 +8886,7 @@
   |=  [typ=itype vars=(list @ud)]
   ^-  (unit gnode)
   ?-  -.typ
+    %named  $(typ body.typ)
     ?(%var %fvar %avar %rvar %nvar %rnvar)
       ?.  (~(has in:..zuse (silt vars)) id.typ)  ~
       `[%param (scot %ud id.typ)]
@@ -8927,6 +8945,7 @@
   ?~  todo  `graph
   =/  typ=itype  i.todo
   ?-  -.typ
+    %named  $(todo [body.typ (weld args.typ t.todo)])
     %mrec
       =/  merged=(unit (map gkey gdef))  (rg-merge-entries ~(tap by graph.typ) graph)
       ?~  merged  ~
@@ -9346,6 +9365,7 @@
   ^-  itype
   ?.  ?=(%mrec -.owner)  t
   ?-  -.t
+    %named  t(body (rg-view-self-label body.t owner), args (turn args.t |=(arg=itype (rg-view-self-label arg owner))))
     %mrec
       =/  same=?  &(=(at.t at.owner) =(site.t site.owner) =(name.t name.owner) (rg-graphs-agree [at.t site.t name.t] graph.t graph.owner))
       =?  t  same  t(label label.owner)
@@ -12561,6 +12581,7 @@
   ^-  imatch
   ?~  ps  %unknown
   ?~  t.ps  (union-pattern i.ps t)
+  =.  t  ?:(?=(%named -.t) body.t t)
   =.  t  ?:(?=(?(%face %slot) -.t) body.t t)
   ?.  ?=(%cell -.t)
     ?:  |(?=(%atom -.t) ?=(%any-atom -.t) ?=(%flag -.t) ?=(%const -.t))  %none
@@ -12573,6 +12594,7 @@
 ++  union-pattern
   |=  [p=pattern t=itype]
   ^-  imatch
+  =.  t  ?:(?=(%named -.t) body.t t)
   =.  t  ?:(?=(?(%face %slot) -.t) body.t t)
   ?-  -.p
     %any   %full
@@ -14259,6 +14281,7 @@
   |=  t=itype
   ^-  itype
   ?+  -.t  t
+    %named       t(body $(t body.t), args (turn args.t |=(c=itype (decimal-relax c))))
     %nvar        [%avar id.t]
     %rnvar       [%rvar id.t]
     %collection  t(args (turn args.t |=(c=itype (decimal-relax c))))
@@ -17740,6 +17763,7 @@
   =.  fuel  (dec fuel)
   =/  item=itype  (itype-normalize i.todo sub)
   ?-  -.item
+    %named  $(todo [body.item t.todo])
     ?(%atom %any-atom %flag %const)
       ?:  &(?=(^ shape) !=(%atom u.shape))  %unknown
       $(todo t.todo, shape `%atom)
@@ -18068,6 +18092,15 @@
         ?^  decimal  `[state.u.run(core-error `[owner.edge u.decimal]) (flop pending) &]
         =/  island=(unit idiag)  (icore-island-data-error edge state)
         ?^  island  `[state.u.run(core-error `[owner.edge u.island]) (flop pending) &]
+        ::  A transparent record reference can make the guarded mismatch
+        ::  definite before final pending-edge diagnosis. Use the same closed
+        ::  mold and call-provenance checks here instead of losing its origin.
+        =/  record=(unit idiag)
+          ?~  local-source.state  ~
+          =/  parsed=(each module error)  (parse at.state u.local-source.state)
+          ?:  ?=(%| -.parsed)  ~
+          (pending-record-mold-diagnostic edge state defs.p.parsed)
+        ?^  record  `[state.u.run(core-error `[owner.edge u.record]) (flop pending) &]
         =/  diag=idiag
           ["call's sample and argument types do not unify" ~[[context.edge (site-type-note "called gate" u.called.edge sub.state)] [at.edge (site-actual-note "argument" actual expected sub.state next.state)]]]
         =/  enriched=(unit idiag)
@@ -18735,7 +18768,17 @@
     =/  rest=(unit ienv)  $(env t.env)
     ?~  rest  ~
     `[[name.i.env u.closed] u.rest]
-  ?.  (levy vars.scheme |=(n=@ud ?=(~ (itype-lookup n sub))))  ~
+  ::  A quantified variable may retain a same-root constraint refinement,
+  ::  such as A -> fvar(A) from a map key.  That binding is scheme-local
+  ::  evidence, not an unclosed module ownership edge.  Every concrete or
+  ::  cross-root binding still fails closed.
+  =/  quantified-open
+    |=  n=@ud
+    ^-  ?
+    =/  bound=(unit itype)  (itype-lookup n sub)
+    ?~  bound  &
+    &(?=(?(%fvar %rvar %rnvar) -.u.bound) =(n +.u.bound))
+  ?.  (levy vars.scheme quantified-open)  ~
   =/  realized=(unit itype)  (itype-realize typ.scheme sub)
   ?~  realized  ~
   =.  typ.scheme  u.realized
@@ -18764,6 +18807,7 @@
   |=  typ=itype
   ^-  (list @ud)
   ?-  -.typ
+    %named  (zing (turn [body.typ args.typ] |=(c=itype (icore-sample-vars c))))
     %opaque  (zing (turn [body.typ args.typ] |=(c=itype (icore-sample-vars c))))
     %refined  $(typ proof.typ)
     %fn  (weld (itype-vars sample.typ) (weld $(typ sample.typ) $(typ product.typ)))
@@ -21077,7 +21121,9 @@
   ?.  ?=(~ vars.template.u.inferred)  $(ds t.ds)
   =/  display=(unit itype)  (scheme-display-type template.u.inferred)
   ?~  display  $(ds t.ds)
-  ?.  =((itype-unface u.display ~) (itype-unface typ sub.state))  $(ds t.ds)
+  =/  written=itype  (itype-unface (itype-erase-display (itype-normalize u.display ~)) ~)
+  =/  candidate=itype  (itype-unface (itype-erase-display (itype-normalize typ sub.state)) sub.state)
+  ?.  =(written candidate)  $(ds t.ds)
   ?~  local-source.state  $(ds t.ds)
   =/  site=span  (definition-name-site at.state u.local-source.state at.i.ds)
   [[name.i.ds site (lent fields.shape.i.ds)] $(ds t.ds)]
@@ -21087,8 +21133,8 @@
   |=  [edge=icore-edge state=istate defs=(list def)]
   ^-  (unit idiag)
   ?.  ?=(?(%fit %guarded-fit) -.edge)  ~
-  =/  actual=itype  (itype-normalize left.edge sub.state)
-  =/  expected=itype  (itype-normalize right.edge sub.state)
+  =/  actual=itype  (itype-walk (itype-normalize left.edge sub.state) sub.state)
+  =/  expected=itype  (itype-walk (itype-normalize right.edge sub.state) sub.state)
   ?.  &(?=(%cell -.actual) ?=(%cell -.expected))  ~
   ?:  |((itype-has-tag actual) (itype-has-tag expected) ?=(^ (itype-vars actual)) ?=(^ (itype-vars expected)))  ~
   (diagnostic-record-pair actual expected owner.edge state defs 1.024)
@@ -21101,8 +21147,8 @@
   ^-  (unit idiag)
   ?:  =(0 fuel)  ~
   =.  fuel  (dec fuel)
-  =.  actual  (itype-normalize actual sub.state)
-  =.  expected  (itype-normalize expected sub.state)
+  =.  actual  (itype-walk (itype-normalize actual sub.state) sub.state)
+  =.  expected  (itype-walk (itype-normalize expected sub.state) sub.state)
   ?:  =(actual expected)  ~
   ?:  &(?=(%cell -.actual) ?=(%cell -.expected))
     =/  actuals=(list irecord-origin)  (diagnostic-record-origins defs actual state)
@@ -21115,7 +21161,7 @@
     ?^  direct  direct
     =/  head=(unit idiag)  $(actual hed.actual, expected hed.expected, fuel fuel)
     ?^  head  head
-    ?.  =((itype-normalize hed.actual sub.state) (itype-normalize hed.expected sub.state))  ~
+    ?.  =((itype-walk (itype-normalize hed.actual sub.state) sub.state) (itype-walk (itype-normalize hed.expected sub.state) sub.state))  ~
     $(actual tal.actual, expected tal.expected, fuel fuel)
   ?:  &(?=(?(%face %slot) -.actual) ?=(?(%face %slot) -.expected))
     ?.  =(name.actual name.expected)  ~
@@ -27824,6 +27870,8 @@
 ++  report-match
   |=  [pattern=itype actual=itype vars=(list @ud) ren=isub]
   ^-  (unit isub)
+  ?:  ?=(%named -.pattern)  $(pattern body.pattern)
+  ?:  ?=(%named -.actual)  $(actual body.actual)
   ?:  ?=(?(%var %fvar %avar %rvar %nvar %rnvar) -.pattern)
     ?:  (lien vars |=(id=@ud =(id +.pattern)))
       =/  found=(unit itype)  (itype-lookup +.pattern ren)

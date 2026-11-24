@@ -249,7 +249,7 @@
   ?.  ?=([* ~] named)  'real imported helper mold unavailable'
   =/  item-type=(unit itype:jibb)  (find-imported-mold:jibb %todo %item ex ~[%todo])
   ?~  item-type  'real /sur item graph unavailable'
-  ?.  =(typ.template.i.named u.item-type)  'real helper differs from reader graph'
+  ?.  =((itype-erase-display:jibb typ.template.i.named) (itype-erase-display:jibb u.item-type))  'real helper differs from reader graph'
   ?.  =((lent marks.p.support) 4)  'real API declared marks incomplete'
   'real todo path evidence passed'
 ++  test-api-evidence-synthetic

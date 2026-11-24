@@ -1,5 +1,5 @@
 module kind: library
-++ fold: $-([d=[%todo-update ([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud])] s=(list [id=@ud [done=? text=@t]])] (list [id=@ud [done=? text=@t]]))
+++ fold: $-([d=[%todo-update todo-update.api] s=todos.api] todos.api)
 ++ todos-cord: (ask @t)
 ++ todos-ship: (ask @p)
 ++ by-id-cord: (ask @t)
@@ -7,11 +7,11 @@ module kind: library
 ++ changes-cord: (ask @t)
 ++ changes-ship: (ask @p)
 ++ action: (cmd (unit @t))
-++ item-id: $-([id=@ud [done=? text=@t]] @ud)
-++ action-id: $-(([%add text=@t] [%toggle id=@ud]) ([%add text=@t] [%toggle id=@ud]))
-++ todos-id: $-((list [id=@ud [done=? text=@t]]) (list [id=@ud [done=? text=@t]]))
-++ update-id: $-(([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud]) ([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud]))
-++ item-mark-id: $-([id=@ud [done=? text=@t]] [id=@ud [done=? text=@t]])
-+$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]
+++ item-id: $-(item.api @ud)
+++ action-id: $-(todo-action.api todo-action.api)
+++ todos-id: $-(todos.api todos.api)
+++ update-id: $-(todo-update.api todo-update.api)
+++ item-mark-id: $-(todo-item.api todo-item.api)
++$ model: model
 +$ msg: msg
-++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))
+++ subs: $-(model (list (sub msg)))

@@ -2,7 +2,7 @@ valid manifest collections:
 module kind: library
 ++ maps: $-((map @ud @t) (map @ud @t))
 ++ sets: $-((set @p) (set @p))
-++ more: $-((map @t @ud) (map @t @ud))
+++ more: $-((more-maps.ford @t @ud) (more-maps.ford @t @ud))
 invalid map key:
 ++ wrong: map keys cannot contain gates
 /lib/jibb/prelude.jibb:1:4: earlier binding
@@ -28,12 +28,12 @@ fresh commented dependency:
 module kind: library
 ++ maps: $-((map @ud @t) (map @ud @t))
 ++ sets: $-((set @p) (set @p))
-++ more: $-((map @t @ud) (map @t @ud))
+++ more: $-((more-maps.ford @t @ud) (more-maps.ford @t @ud))
 fresh preferred dependency:
 module kind: library
 ++ maps: $-((map @ud @t) (map @ud @t))
 ++ sets: $-((set @p) (set @p))
-++ more: $-((map @t @ud) (map @t @ud))
+++ more: $-((more-maps.ford @t @ud) (more-maps.ford @t @ud))
 fresh shadowed constructor:
 Hoon generic collection forwarding is not proven
 missing direct dependency:

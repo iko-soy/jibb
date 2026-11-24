@@ -127,7 +127,8 @@
   ?~  grow  ~[leaf+"growing recursive mold missing"]
   ?.  (levy `(list itype:jibb)`~[u.tree u.flags u.mutual u.choice u.nested u.empty u.foreign u.zig u.grow] |=(t=itype:jibb ?=(%mrec -.t)))
     ~[leaf+"full checker did not retain recursive graph types"]
-  ?.  ?=([%collection %map [* [%mrec *] ~]] u.forest)
+  =/  forest-body=itype:jibb  (itype-display-body:jibb u.forest)
+  ?.  ?=([%collection %map [* [%mrec *] ~]] forest-body)
     ~[leaf+"full checker did not retain a map containing recursive values"]
   =/  a=tang
     %+  check-cases  u.tree

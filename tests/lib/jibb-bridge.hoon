@@ -86,7 +86,9 @@
     |=  test=[name=@t node=* good=?]
     =/  got=(unit itype:jibb)
       (find-imported-mold:jibb %notes %outer ~[[%notes %outer [%& [%cell [%atom %ud ~] node.test]]]] ~[%notes])
-    =/  yes=?  ?=([~ [%cell [%atom %ud] [%recursive %notes %node *]]] got)
+    =/  yes=?
+      ?~  got  |
+      ?=([%cell [%atom %ud] [%recursive %notes %node *]] (itype-display-body:jibb u.got))
     "named-recursive {(trip name.test)}: {?:(=(yes good.test) "ok" "BAD")}"
   (of-wain:format (turn out |=(line=tape (crip line))))
 ::

@@ -1,7 +1,7 @@
 canonical
 module kind: library
-++ text-value: $-((list @t) (list @t))
-++ ship: $-((list @p) (list @p))
+++ text-value: $-((alias @t) (alias @t))
+++ ship: $-((alias @p) (alias @p))
 wrong
 ++ wrong: list item does not fit its expected type
 /ui/test.jibb:1:13: expected item has type @t
@@ -20,8 +20,8 @@ shadow
   ^
 altered
 module kind: library
-++ text-value: $-([@t @t] [@t @t])
-++ ship: $-([@p @p] [@p @p])
+++ text-value: $-((alias @t) (alias @t))
+++ ship: $-((alias @p) (alias @p))
 omitted
 prelude mold `list` is not defined
 /lib/jibb/prelude.jibb:1:15: unknown mold

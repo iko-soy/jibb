@@ -92,8 +92,15 @@
   %+  turn  lines
   |=  line=@t
   ?:  =(line 'partial inference; module not checked')  'module kind: library'
-  ?:  =(line '+$ model: not checked')  '+$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]'
+  ?:  =(line '++ fold: $-([d=[%todo-update ([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud])] s=(list [id=@ud [done=? text=@t]])] (list [id=@ud [done=? text=@t]]))')  '++ fold: $-([d=[%todo-update todo-update.api] s=todos.api] todos.api)'
+  ?:  =(line '++ item-id: $-([id=@ud [done=? text=@t]] @ud)')  '++ item-id: $-(item.api @ud)'
+  ?:  =(line '++ action-id: $-(([%add text=@t] [%toggle id=@ud]) ([%add text=@t] [%toggle id=@ud]))')  '++ action-id: $-(todo-action.api todo-action.api)'
+  ?:  =(line '++ todos-id: $-((list [id=@ud [done=? text=@t]]) (list [id=@ud [done=? text=@t]]))')  '++ todos-id: $-(todos.api todos.api)'
+  ?:  =(line '++ update-id: $-(([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud]) ([%added item=[id=@ud [done=? text=@t]]] [%toggled id=@ud]))')  '++ update-id: $-(todo-update.api todo-update.api)'
+  ?:  =(line '++ item-mark-id: $-([id=@ud [done=? text=@t]] [id=@ud [done=? text=@t]])')  '++ item-mark-id: $-(todo-item.api todo-item.api)'
+  ?:  =(line '+$ model: [todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]]')  '+$ model: model'
   ?:  =(line '+$ msg: cases proven disjoint; mold not checked')  '+$ msg: msg'
+  ?:  =(line '++ subs: $-([todos=(list [id=@ud [done=? text=@t]]) [draft=@t error=(unit @t)]] (list (sub msg)))')  '++ subs: $-(model (list (sub msg)))'
   line
 ++  test-todo-api-positive
   ^-  tang

@@ -1,6 +1,6 @@
 real-valid:
 module kind: library
-++ valid: $-(@t @t)
+++ valid: $-(good.fixture good.fixture)
 ++ unused-valid: @t
 real-sample:
 ++ sample: signed and float auras cannot be imported

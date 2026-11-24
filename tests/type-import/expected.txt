@@ -10,7 +10,7 @@ reader-separate-terms: (union [left [%$ @t]] [right [yes @t]])
 ++ use chain-id.helper
    ^
 ++ lookalike: cast types remain unresolved
-/ui/unit-client.jibb:18:17: cast mold has type [~ @t] ~
+/ui/unit-client.jibb:18:17: cast mold has type zero-lookalike.fixture
 ++ lookalike ^- zero-lookalike.fixture `"hi"
                 ^
 /ui/unit-client.jibb:18:40: expression has type (unit @t)

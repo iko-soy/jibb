@@ -17,17 +17,17 @@ module kind: library
 ++ result: $-([a=@t b=@p] @p)
 later binding
 module kind: library
-++ apply: $-([first=[foo=A] [second=A f=$-([C D] D)]] $-([C D] D))
+++ apply: $-([first=[foo=A] second=A f=$-([C D] D)] $-([C D] D))
 ++ target: $-([a=@t b=@p] @p)
 ++ result: $-([a=@t b=@p] @p)
 inferred face
 module kind: library
-++ apply: $-([first=[foo=A] [second=A f=$-([C D] D)]] $-([C D] D))
+++ apply: $-([first=[foo=A] second=A f=$-([C D] D)] $-([C D] D))
 ++ target: $-([a=@t b=@p] @p)
 ++ result: $-(@t $-([a=@t b=@p] @p))
 conflicting face
 ++ result: call's sample and argument types do not unify
-/ui/callback.jibb:3:12: called gate has type $-([first=[foo=@t] [second=@t f=$-([a=@t b=@p] @p)]] $-([a=@t b=@p] @p))
+/ui/callback.jibb:3:12: called gate has type $-([first=[foo=@t] second=@t f=$-([a=@t b=@p] @p)] $-([a=@t b=@p] @p))
 ++ result (apply [other="x"] "y" target)
            ^
 /ui/callback.jibb:3:18: argument has type [other=@t]
@@ -41,7 +41,7 @@ conflicting aura
 /ui/callback.jibb:3:28: actual type has type @p
 ++ result (apply [foo="x"] ~zod target)
                            ^
-/ui/callback.jibb:3:12: call context has type [foo=A [A $-([C D] D)]]
+/ui/callback.jibb:3:12: call context has type [foo=A A $-([C D] D)]
 ++ result (apply [foo="x"] ~zod target)
            ^
 distinct capitals

@@ -28,11 +28,11 @@ inhabited atom does not fit empty: ok
 empty gate-bearing cell is gate-free: ok
 list of empty is gate-free and inhabited: ok
 module kind: library
-+$ never: !!
-+$ box: [x=A y=@t]
++$ never: never
++$ box: (box A)
 +$ split: split
-++ identity: $-(!! !!)
-++ generic-empty: $-([x=!! y=@t] [x=!! y=@t])
+++ identity: $-(never never)
+++ generic-empty: $-((box !!) (box !!))
 ++ select: $-(split @t)
 ++ crash: !!
 module mold broken has overlapping cases

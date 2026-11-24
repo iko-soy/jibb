@@ -16,7 +16,7 @@
   =/  ext=iexternals:jibb  ~[[%fixture %table imported]]
   =/  src=@t  '/- fixture\0a++ identity |= value=(table.fixture @t @p) value\0a++ generic |= value=(table.fixture A @t) value\0a'
   =/  result=@t  (golden-types-with-modules:jibb /ui/test/jibb src ext ~ ~)
-  ?.  &((contains (trip result) "module kind: library") (contains (trip result) "(map @t @p)") (contains (trip result) "contains no gates"))
+  ?.  &((contains (trip result) "module kind: library") (contains (trip result) "(table.fixture @t @p)") (contains (trip result) "contains no gates"))
     ~[leaf+"generic map did not check with its constraint" leaf+(trip result)]
   =/  bad=@t  '/- fixture\0a++ wrong |= value=(table.fixture $-(@t @t) @ud) value\0a'
   =/  rejected=@t  (golden-types-with-modules:jibb /ui/test/jibb bad ext ~ ~)

@@ -12,7 +12,7 @@
   =/  mold=(unit ischeme:jibb)  (find-jibb-mold:jibb %mold iface.u.prepared)
   ?~  mold  ~[leaf+"mold mold was not exported"]
   =/  expected=itype:jibb  [%fn [%noun ~] [%noun ~]]
-  ?.  &(?=(~ vars.u.gate) =(expected typ.u.gate) ?=(~ vars.u.mold) =(expected typ.u.mold))
+  ?.  &(?=(~ vars.u.gate) =(expected (itype-erase-display:jibb typ.u.gate)) ?=(~ vars.u.mold) =(expected (itype-erase-display:jibb typ.u.mold)))
     ~[leaf+"gate or mold has the wrong signature"]
   =/  src=@t  (of-wain:format ~['++ use-gate |= f=gate f' '++ use-mold |= f=mold f'])
   =/  file=path  /tests/prelude-gate-mold/jibb
@@ -27,7 +27,9 @@
   =/  db=(unit itype:jibb)  (scheme-display-type:jibb u.b)
   ?~  da  ~[leaf+"gate user type did not realize"]
   ?~  db  ~[leaf+"mold user type did not realize"]
-  ?.  =((show-itype:jibb u.da ~) "$-($-(* *) $-(* *))")  ~[leaf+"gate user has the wrong type"]
-  ?.  =((show-itype:jibb u.db ~) "$-($-(* *) $-(* *))")  ~[leaf+"mold user has the wrong type"]
+  =/  shown-a=tape  (show-itype:jibb u.da ~)
+  =/  shown-b=tape  (show-itype:jibb u.db ~)
+  ?.  =(shown-a "$-(gate gate)")  ~[leaf+"gate user has the wrong type" leaf+shown-a]
+  ?.  =(shown-b "$-(mold mold)")  ~[leaf+"mold user has the wrong type" leaf+shown-b]
   ~
 --

@@ -20,8 +20,8 @@ duplicate input:
        ^
 valid:
 module kind: library
-+$ box: [first=A second=@t]
-++ id: $-([first=@ud second=@t] [first=@ud second=@t])
++$ box: (box A)
+++ id: $-((box @ud) (box @ud))
 union:
 +$ box: signed and float auras cannot be imported
 /tests/mold-control.jibb:4:10: invalid imported mold
@@ -39,7 +39,7 @@ bad callee:
        ^
 nested good:
 module kind: library
-++ good: $-([a=@t [b=@t c=@t]] @t)
+++ good: $-([a=@t b=@t c=@t] @t)
 independent faces:
 module kind: library
 ++ good: $-([outer=[same=@t] inner=[same=@t]] [same=@t])

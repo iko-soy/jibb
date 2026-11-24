@@ -8,7 +8,7 @@
   =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
   ?~  prepared  ~[leaf+"prelude did not prepare"]
   =/  checks=(list [name=term want=tape])
-    ~[[%tank "tank"] [%tang "(list tank)"] [%coin "coin"] [%pole "(pole A)"] [%tree "(tree A)"] [%toon "toon"]]
+    ~[[%tank "tank"] [%tang "tang"] [%coin "coin"] [%pole "(pole A)"] [%tree "(tree A)"] [%toon "toon"]]
   |-
   ?~  checks  ~
   =/  found=(unit ischeme:jibb)  (find-jibb-mold:jibb name.i.checks iface.u.prepared)

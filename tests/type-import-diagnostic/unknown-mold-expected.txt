@@ -20,9 +20,9 @@ application:
           ^
 known:
 module kind: library
-+$ known: @t
-++ good: $-(@t @t)
++$ known: known
+++ good: $-(known known)
 generic:
 module kind: library
-+$ box: [first=A second=@t]
-++ good: $-([first=@ud second=@t] [first=@ud second=@t])
++$ box: (box A)
+++ good: $-((box @ud) (box @ud))

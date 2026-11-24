@@ -50,7 +50,8 @@
   ?~  one-main  ~[leaf+"one-field store main missing"]
   =/  one-shown=(unit itype:jibb)  (scheme-display-type:jibb u.one-main)
   ?~  one-shown  ~[leaf+"one-field store main did not realize"]
-  =/  initial=(list itype:jibb)  (record-fields-named:jibb %init u.one-shown ~)
+  =/  fields=(list itype:jibb)  (record-fields-named:jibb %init u.one-shown ~)
+  =/  initial=(list itype:jibb)  (turn fields |=(field=itype:jibb (itype-display-body:jibb field)))
   ?.  ?=([[%face %count [%atom %ud]] ~] initial)  ~[leaf+"one-field state value face was erased"]
   =/  same=@t  '+$ state [init=@ud]\0a+$ poke %inc\0a++ init ^- state [init=0]\0a++ update |= [a=poke s=state] s\0a++ main [init update]\0a'
   =/  same-result=jfile-detailed-result:jibb  (check /ui/stores/same/jibb same u.prepared)

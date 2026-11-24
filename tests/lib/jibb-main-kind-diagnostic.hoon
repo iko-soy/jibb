@@ -34,7 +34,7 @@
   =/  at=path  /tests/prepared-main/jibb
   =/  out=jfile-detailed-result:jibb  (infer-jibb-file-detailed:jibb at source ~ ~ ~ ~[at] values.u.prep molds.u.prep ~ `iface.u.prep)
   ?:  ?=(%& -.out)  ~[leaf+"aliased gate main accepted"]
-  =/  expected=@t  '++ main: main has gate type $-((list @t) [(list @t) [@t (unit @t)]]); expected an element, page, program, or store'
+  =/  expected=@t  '++ main: main has gate type $-((list @t) [(list @t) @t (unit @t)]); expected an element, page, program, or store'
   ?.  (contains (trip message.p.out) (trip expected))  ~[leaf+"aliased gate main diagnostic differs" leaf+(trip message.p.out)]
   ?.  (contains (trip message.p.out) "/tests/prepared-main.jibb:10:4: main has a gate type\0a++ main initial\0a   ^")  ~[leaf+"main name site missing" leaf+(trip message.p.out)]
   ~

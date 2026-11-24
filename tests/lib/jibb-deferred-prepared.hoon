@@ -15,9 +15,7 @@
 /*  main-source  %txt  /tests/type-deferred-prepared/main/txt
 /*  imported  %txt  /tests/type-deferred-prepared/imported/txt
 /*  expected  %txt  /tests/type-deferred-prepared/expected/txt
-/*  expected-errors  %txt  /tests/type-deferred-prepared/expected-errors/txt
 /*  expected-control  %txt  /tests/type-deferred-prepared/expected-control/txt
-/*  expected-tuple-only  %txt  /tests/type-deferred-prepared/expected-tuple-only/txt
 |%
 ++  text
   |=  lines=wain
@@ -110,13 +108,71 @@
 ++  test-prepared-errors
   ^-  tang
   =/  actual=@t  errors-report
-  ?.  =((to-wain:format (cat 3 actual '\0a')) expected-errors)
+  =/  wanted=wain
+    :~  'wrong unit'
+        '++ initial: (unit @t) has no case `%absent`'
+        '/lib/jibb/prelude.jibb:28:4: expected union has type (unit @t)'
+        '+$ unit |$ [A]'
+        '   ^'
+        '/lib/jibb/prelude.jibb:29:3: expected union has type (unit @t)'
+        '  ~'
+        '  ^'
+        '/ui/prepared.jibb:5:13: expected union has type (unit @t)'
+        '++ final ^- $-((list @t) [(list @t) @t (unit @t)]) initial'
+        '            ^'
+        '/ui/prepared.jibb:6:35: tag literal has type %absent'
+        '++ initial |= xs=(list @t) [xs "" %absent]'
+        '                                  ^'
+        'wrong draft'
+        '++ final: types do not unify'
+        '/ui/prepared.jibb:5:13: expected type has type @t'
+        '++ final ^- $-((list @t) [(list @t) @t (unit @t)]) initial'
+        '            ^'
+        '/ui/prepared.jibb:5:52: actual type has type @p'
+        '++ final ^- $-((list @t) [(list @t) @t (unit @t)]) initial'
+        '                                                   ^'
+        'unrelated tag'
+        '++ unresolved: nothing fixes the union of %dangling; add a `^-`'
+        '/ui/prepared.jibb:11:23: nothing fixes the union of %dangling; add a `^-`'
+        '++ unresolved |= x=@t %dangling'
+        '                      ^'
+        'mold collision'
+        'definition `list` shadows a prelude name'
+        '/ui/prepared.jibb:1:1: conflicting definition'
+        '+$ list [xs=(list @t) draft=@t error=(unit @t)]'
+        '^'
+        '/lib/jibb/prelude.jibb:24:1: prelude declaration'
+        '+$ list |$ [A]'
+        '^'
+        'no final cast'
+        '++ initial: nothing fixes the union of ~; add a `^-`'
+        '/ui/prepared.jibb:5:35: nothing fixes the union of ~; add a `^-`'
+        '++ initial |= xs=(list @t) [xs "" ~]'
+        '                                  ^'
+        'ordinary gate main'
+        '++ main: main has gate type $-((list @t) [(list @t) @t (unit @t)]); expected an element, page, program, or store'
+        '/ui/prepared.jibb:10:4: main has a gate type'
+        '++ main initial'
+        '   ^'
+        'missing import'
+        'module source missing: /ui/other/jibb'
+        '/ui/prepared.jibb:1:1: imports /ui/other.jibb here'
+        '/=  other  /ui/other'
+        '^'
+    ==
+  ?.  =((to-wain:format (cat 3 actual '\0a')) wanted)
     ~[leaf+(trip actual)]
   ~
 ++  test-prepared
   ^-  tang
   =/  at=path  /ui/prepared/jibb
   =/  prepared=(unit iprelude:jibb)  (prepare-groups:jibb-prelude-fixture prelude internal ~[[%hoon /lib/jibb/groups/hoon/jibb standard-group]])
+  =/  tuple-expected=wain
+    :~  'module kind: library'
+        '+$ model: model'
+        '++ final: $-((list @t) [(list @t) @t (unit @t)])'
+        '++ initial: $-((list @t) [(list @t) @t (unit @t)])'
+    ==
   =/  checks=(list tang)
     :~  (check-prepared at good & prepared)
         (check-prepared at tuple-only & prepared)
@@ -134,7 +190,7 @@
         (check-ordinary prepared)
         check-prepared-binding
         (check-report good expected prepared)
-        (check-report tuple-only expected-tuple-only prepared)
+        (check-report tuple-only tuple-expected prepared)
         (check-report no-final-cast expected-control prepared)
     ==
   (zing checks)

@@ -1,1 +1,1 @@
-'choice: [%.y a=@ud] [%.n b=@t] [2 c=@ud]\0aatom-or: [left=@ud right=@t] @ud\0akeyed: (map @ud @t)\0atree: tree.fixture'
+'choice: choice.fixture\0aatom-or: atom-or.fixture\0akeyed: keyed.fixture\0atree: tree.fixture'
